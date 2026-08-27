@@ -67,6 +67,39 @@ export function validateCredentials(c: Credentials): string | null {
   return null
 }
 
+/**
+ * 서버가 준 값이 정말 `Viewer` 인가.
+ *
+ * `http.get<Viewer>()` 는 **타입 단언이지 검증이 아니다.** 서버가 다른 모양을 주면
+ * 아무도 막지 않은 채 `viewerStore` 에 들어가고, 그때부터 `viewer.name.charAt(0)`
+ * 같은 곳이 터지거나 권한 판정이 조용히 어긋난다. 인증 경계에서만은 확인한다.
+ *
+ * **스코프 문자열 하나하나가 아는 값인지는 보지 않는다.** 서버가 우리보다 먼저 새
+ * 스코프를 추가할 수 있고, 모르는 스코프는 `canAccess` 에서 어차피 아무것과도
+ * 매칭되지 않아 해가 없다. 여기서 막으면 배포 순서에 결합이 생긴다.
+ */
+export function isViewer(v: unknown): v is Viewer {
+  if (typeof v !== 'object' || v === null) return false
+  const o = v as Record<string, unknown>
+  return (
+    (o.role === 'top' || o.role === 'operator') &&
+    typeof o.name === 'string' &&
+    typeof o.email === 'string' &&
+    Array.isArray(o.scopes) &&
+    o.scopes.every((x) => typeof x === 'string')
+  )
+}
+
+/** 1차 로그인 응답이 두 갈래 중 하나인가 */
+export function isLoginResult(v: unknown): v is LoginResult {
+  if (typeof v !== 'object' || v === null) return false
+  const o = v as Record<string, unknown>
+  if (o.status === 'authenticated') return isViewer(o.viewer)
+  // challenge 가 빈 문자열이면 2차에서 쓸 수 없다 — 여기서 걸러야 화면이 헛돈다.
+  if (o.status === 'totp_required') return typeof o.challenge === 'string' && o.challenge !== ''
+  return false
+}
+
 /** 해당 스코프에 접근 가능한가 */
 export function canAccess(viewer: Viewer, scope: ScopeId): boolean {
   // 자기 계정 설정은 권한과 무관하다 — 스코프가 하나도 없는 사람도 2단계 인증은 켤 수 있어야 한다.

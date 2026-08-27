@@ -26,6 +26,8 @@ export type ApiErrorKind =
   | 'network'
   | 'timeout'
   | 'canceled'
+  /** 응답은 왔지만 우리가 아는 모양이 아님 — 서버 계약이 어긋났다 */
+  | 'parse'
   | 'unknown'
 
 export type ApiError = Error & {

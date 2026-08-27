@@ -14,6 +14,8 @@
 import { useMutation } from '@tanstack/react-query'
 
 import {
+  isLoginResult,
+  isViewer,
   TOP_VIEWER,
   validateCredentials,
   type Credentials,
@@ -51,8 +53,33 @@ export async function login(c: Credentials): Promise<LoginResult> {
     return { status: 'totp_required', challenge: `mock-${c.email.trim()}` }
   }
 
-  // TODO(백엔드 스펙 확정 후): 응답 DTO → LoginResult 매핑
-  return http.post<LoginResult>('/admin/auth/login', c, { skipSessionExpiry: true })
+  // TODO(백엔드 스펙 확정 후): 서버 DTO 필드명이 다르면 여기서 LoginResult 로 매핑한다.
+  const res = await http.post<unknown>('/admin/auth/login', c, { skipSessionExpiry: true })
+  return asLoginResult(res)
+}
+
+/**
+ * 응답이 우리가 아는 모양인지 확인한다.
+ *
+ * `http.post<LoginResult>` 의 제네릭은 **타입 단언일 뿐 런타임 검증이 아니다.**
+ * 서버가 다른 모양을 주면 `status` 분기가 엉뚱하게 갈리고 `undefined` 가 그대로
+ * `viewerStore` 에 들어간다. 인증 경계에서만은 값을 믿지 않고 확인한다.
+ *
+ * 넓은 스키마 검증(zod)은 폼이 들어올 때 함께 도입한다 (ARCHITECTURE.md §2.4).
+ * 지금은 **우리 코드가 실제로 의존하는 최소한**만 본다.
+ */
+function asLoginResult(v: unknown): LoginResult {
+  if (!isLoginResult(v)) {
+    throw apiError('parse', '로그인 응답을 이해할 수 없습니다. 잠시 후 다시 시도해 주세요.')
+  }
+  return v
+}
+
+function asViewer(v: unknown): Viewer {
+  if (!isViewer(v)) {
+    throw apiError('parse', '사용자 정보를 이해할 수 없습니다. 잠시 후 다시 시도해 주세요.')
+  }
+  return v
 }
 
 export type TotpVerification = {
@@ -77,7 +104,7 @@ export async function verifyTotp(v: TotpVerification): Promise<Viewer> {
     return mockViewer(v.challenge.replace(/^mock-/, ''))
   }
 
-  return http.post<Viewer>('/admin/auth/totp/verify', v, { skipSessionExpiry: true })
+  return asViewer(await http.post<unknown>('/admin/auth/totp/verify', v, { skipSessionExpiry: true }))
 }
 
 export async function logout(): Promise<void> {
@@ -95,7 +122,7 @@ export async function logout(): Promise<void> {
 export async function getSession(): Promise<Viewer | null> {
   if (USE_MOCK) return null // 목에서는 스토어에 저장된 값을 그대로 믿는다
   try {
-    return await http.get<Viewer>('/admin/auth/session')
+    return asViewer(await http.get<unknown>('/admin/auth/session'))
   } catch (e) {
     // **401 만 "세션 없음"이다.** 네트워크 끊김·타임아웃·5xx 까지 null 로 뭉개면
     // 서버가 잠깐 흔들렸을 뿐인데 로그인한 사람을 로그인 화면으로 쫓아낸다.
