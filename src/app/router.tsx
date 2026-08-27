@@ -1,0 +1,55 @@
+import { lazy } from 'react'
+
+import { createBrowserRouter, Navigate, type RouteObject } from 'react-router'
+
+import { LOGIN_PATH, SCREENS, SCREEN_IDS, type ScreenId } from '@/domain/screens'
+
+import { AdminLayout } from '@/layouts/AdminLayout'
+
+// 로그인은 **eager** 로 둔다 — 미인증 사용자의 첫 화면이라
+// lazy 로 만들면 왕복이 한 번 더 늘고 Suspense 폴백이 깜빡인다.
+// 측정: lazy 138.02KB/4요청 → eager 135.92KB/2요청 (§9.2)
+import LoginPage from '@/features/auth/LoginPage'
+import { PlaceholderPage } from '@/features/PlaceholderPage'
+
+import { RequireAuth } from './RequireAuth'
+
+/**
+ * 구현된 화면만 등록한다. 나머지 43개는 자동으로 placeholder 로 떨어진다.
+ *
+ * **셸 안의 화면은 lazy** 다 — 44개를 한 번에 받을 이유가 없고, 라우트 경계가 곧
+ * 청크 경계라 화면이 늘어도 분할 전략을 따로 고민할 필요가 없다.
+ * 대시보드만 해도 recharts 를 안고 gzip 117KB 다 (첫 로드 252KB → 138KB).
+ */
+const IMPLEMENTED: Partial<Record<ScreenId, React.LazyExoticComponent<React.ComponentType>>> = {
+  dash: lazy(() => import('@/features/dashboard/DashboardPage')),
+}
+
+const screenRoutes: RouteObject[] = SCREEN_IDS.map((id) => {
+  const Impl = IMPLEMENTED[id]
+  return {
+    // createBrowserRouter 의 자식 경로는 앞 슬래시 없이 준다.
+    path: SCREENS[id].path.slice(1),
+    element: Impl ? <Impl /> : <PlaceholderPage screen={id} />,
+  }
+})
+
+export const router = createBrowserRouter([
+  // 로그인은 셸 밖이다 — 사이드바도 탭도 없다.
+  { path: LOGIN_PATH, element: <LoginPage /> },
+
+  {
+    path: '/',
+    element: (
+      <RequireAuth>
+        <AdminLayout />
+      </RequireAuth>
+    ),
+    children: [
+      { index: true, element: <Navigate to={SCREENS.dash.path} replace /> },
+      ...screenRoutes,
+    ],
+  },
+
+  { path: '*', element: <Navigate to={SCREENS.dash.path} replace /> },
+])
