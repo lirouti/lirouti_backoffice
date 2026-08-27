@@ -31,6 +31,15 @@ export const TOP_VIEWER: Viewer = {
 export type Credentials = {
   email: string
   password: string
+  /**
+   * "로그인 상태 유지" 체크 여부.
+   *
+   * **결정은 서버가 한다** — 세션 쿠키의 Max-Age 를 길게 줄지 브라우저를 닫으면
+   * 사라지게 할지는 HttpOnly 쿠키를 심는 쪽의 몫이다. 클라이언트는 사용자의
+   * 선택을 전달만 한다. 이 값을 안 보내면 체크박스가 아무 일도 하지 않는
+   * 장식이 된다.
+   */
+  keepSignedIn?: boolean
 }
 
 /**
@@ -56,6 +65,39 @@ export function validateCredentials(c: Credentials): string | null {
   if (!/\S+@\S+\.\S+/.test(c.email.trim())) return '아이디는 회사 이메일 형식이어야 합니다.'
   if (c.password.length < 8) return '비밀번호는 8자 이상입니다. 다시 확인해 주세요.'
   return null
+}
+
+/**
+ * 서버가 준 값이 정말 `Viewer` 인가.
+ *
+ * `http.get<Viewer>()` 는 **타입 단언이지 검증이 아니다.** 서버가 다른 모양을 주면
+ * 아무도 막지 않은 채 `viewerStore` 에 들어가고, 그때부터 `viewer.name.charAt(0)`
+ * 같은 곳이 터지거나 권한 판정이 조용히 어긋난다. 인증 경계에서만은 확인한다.
+ *
+ * **스코프 문자열 하나하나가 아는 값인지는 보지 않는다.** 서버가 우리보다 먼저 새
+ * 스코프를 추가할 수 있고, 모르는 스코프는 `canAccess` 에서 어차피 아무것과도
+ * 매칭되지 않아 해가 없다. 여기서 막으면 배포 순서에 결합이 생긴다.
+ */
+export function isViewer(v: unknown): v is Viewer {
+  if (typeof v !== 'object' || v === null) return false
+  const o = v as Record<string, unknown>
+  return (
+    (o.role === 'top' || o.role === 'operator') &&
+    typeof o.name === 'string' &&
+    typeof o.email === 'string' &&
+    Array.isArray(o.scopes) &&
+    o.scopes.every((x) => typeof x === 'string')
+  )
+}
+
+/** 1차 로그인 응답이 두 갈래 중 하나인가 */
+export function isLoginResult(v: unknown): v is LoginResult {
+  if (typeof v !== 'object' || v === null) return false
+  const o = v as Record<string, unknown>
+  if (o.status === 'authenticated') return isViewer(o.viewer)
+  // challenge 가 빈 문자열이면 2차에서 쓸 수 없다 — 여기서 걸러야 화면이 헛돈다.
+  if (o.status === 'totp_required') return typeof o.challenge === 'string' && o.challenge !== ''
+  return false
 }
 
 /** 해당 스코프에 접근 가능한가 */
