@@ -28,11 +28,22 @@ const df = new Intl.DateTimeFormat('ko-KR', { year: 'numeric', month: 'long', da
  * 그대로 지역 시간으로 찍으면 UTC 보다 뒤진 지역에서 하루 전날이 나온다.
  * 한국(UTC+9)에서는 드러나지 않지만 **Spring 의 `LocalDate` 가 정확히 이 모양**이라
  * 실서버를 붙이면 들어올 값이다. 날짜만 오면 지역 자정으로 직접 만든다.
+ *
+ * 그런데 `new Date(y, m, d)` 는 **잘못된 날짜를 조용히 굴린다** — `2026-02-31` 을
+ * 거부하지 않고 3월 3일로 바꾼다. 그러면 "파싱 못 하면 원문" 계약이 깨진다.
+ * 또 연도 0~99 를 1900 년대로 매핑한다(`0001` → 1901). 둘 다 `setFullYear` 로
+ * 만든 뒤 **구성 요소를 되돌려 대조**해서 막는다.
  */
 export function date(iso: string): string {
-  const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso)
-  const d = dateOnly
-    ? new Date(Number(dateOnly[1]), Number(dateOnly[2]) - 1, Number(dateOnly[3]))
-    : new Date(iso)
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso)
+  if (m) {
+    const [y, mo, dd] = [Number(m[1]), Number(m[2]) - 1, Number(m[3])]
+    const d = new Date(0)
+    d.setFullYear(y, mo, dd) // 생성자와 달리 0~99 를 1900 년대로 바꾸지 않는다
+    d.setHours(0, 0, 0, 0)
+    const rolled = d.getFullYear() !== y || d.getMonth() !== mo || d.getDate() !== dd
+    return rolled ? iso : df.format(d)
+  }
+  const d = new Date(iso)
   return Number.isNaN(d.getTime()) ? iso : df.format(d)
 }
