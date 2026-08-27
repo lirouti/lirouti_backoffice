@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="298 -6 341 491">
+  <path d="M384,160 C384,152 389,148 397,148 L452,148 C459,148 462,153 460,163 C456,189 445,202 426,204 C405,206 390,190 384,166 Z" fill="#2E3644"/><path d="M552,160 C552,152 547,148 539,148 L484,148 C477,148 474,153 476,163 C480,189 491,202 510,204 C531,206 546,190 552,166 Z" fill="#2E3644"/>
+<defs><clipPath id="aface2_wa"><path d="M384,160 C384,152 389,148 397,148 L452,148 C459,148 462,153 460,163 C456,189 445,202 426,204 C405,206 390,190 384,166 Z"/></clipPath><clipPath id="aface2_wb"><path d="M552,160 C552,152 547,148 539,148 L484,148 C477,148 474,153 476,163 C480,189 491,202 510,204 C531,206 546,190 552,166 Z"/></clipPath></defs>
+<g clip-path="url(#aface2_wa)"><path d="M378,202 L410,142 L430,142 L396,208 Z" fill="#7b8aa3" opacity="0.5"/><path d="M404,208 L430,156 L440,156 L416,210 Z" fill="#7b8aa3" opacity="0.28"/><path d="M384,146 C412,142 452,144 462,152 L462,140 L384,140 Z" fill="#5b6779" opacity="0.6"/></g>
+<g clip-path="url(#aface2_wb)"><path d="M558,202 L526,142 L506,142 L540,208 Z" fill="#7b8aa3" opacity="0.5"/><path d="M532,208 L506,156 L496,156 L520,210 Z" fill="#7b8aa3" opacity="0.28"/><path d="M552,146 C524,142 484,144 474,152 L474,140 L552,140 Z" fill="#5b6779" opacity="0.6"/></g>
+<path d="M384,160 C384,152 389,148 397,148 L452,148 C459,148 462,153 460,163 C456,189 445,202 426,204 C405,206 390,190 384,166 Z" fill="none" stroke="#1e2530" stroke-width="7" stroke-linejoin="round"/><path d="M552,160 C552,152 547,148 539,148 L484,148 C477,148 474,153 476,163 C480,189 491,202 510,204 C531,206 546,190 552,166 Z" fill="none" stroke="#1e2530" stroke-width="7" stroke-linejoin="round"/>
+<path d="M460,158 C466,152 470,152 476,158" fill="none" stroke="#1e2530" stroke-width="9" stroke-linecap="round"/>
+<path d="M388,146 L548,146" fill="none" stroke="#1e2530" stroke-width="7" stroke-linecap="round"/>
+<circle cx="390" cy="154" r="4.5" fill="#8b98a9"/><circle cx="546" cy="154" r="4.5" fill="#8b98a9"/>
+<path d="M387,156 C370,162 359,172 353,183" fill="none" stroke="#1e2530" stroke-width="7" stroke-linecap="round"/>
+<path d="M549,156 C566,162 577,172 583,183" fill="none" stroke="#1e2530" stroke-width="7" stroke-linecap="round"/>
+</svg>

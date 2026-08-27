@@ -1,0 +1,28 @@
+node_modules
+dist
+dist-ssr
+*.local
+
+# Panda (코드젠 산출물 — 커밋하지 않는다)
+styled-system
+styled-system-studio
+
+# 디자인 원본 (Claude Design 프로젝트 "리루티" 에서 받는다)
+#
+# 저장소에 두지 않는다. 대신 **산출물인 `src/assets/icons`·`images` 를 커밋한다** —
+# 입력과 산출물을 둘 다 빼면 깨끗한 클론에서 `@/assets/icons` 가 존재하지 않아
+# 빌드가 아예 안 된다. 둘 중 하나는 저장소에 있어야 한다.
+#
+# 화면을 새로 포팅하거나 에셋을 다시 뽑아야 하면 Claude Design 에서 내려받아
+# `design/` 에 두고 `bun run assets` 를 돌린다. (docs/ARCHITECTURE.md §8)
+design/
+
+# Claude Code 프로젝트 메모 (커밋하지 않음)
+CLAUDE.md
+
+.DS_Store
+*.log
+.vite
+.eslintcache
+tsconfig.tsbuildinfo
+*.tsbuildinfo

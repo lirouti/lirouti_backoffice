@@ -839,7 +839,7 @@ manualChunks: (id) => (/node_modules\/recharts/.test(id) ? 'charts' : undefined)
 |---|---|---|---|
 | 1 | 도메인 상태값 표기 (§7.3) | **코드값 + 라벨 매핑** | `domain/<entity>/types.ts` 에 `'VISIBLE'` 등으로 정의, 한글은 같은 폴더의 `labels.ts`. 배지 tone 분기도 여기로 모았다 |
 | 2 | 디자인 원본 | **커밋하지 않는다 (`design/` gitignore)** | 대신 **산출물**(`src/assets/icons`·`images`)을 커밋한다. 입력과 산출물을 둘 다 빼면 깨끗한 클론에서 `@/assets/icons` 가 없어 빌드가 안 된다 — 둘 중 하나는 저장소에 있어야 한다. 포팅·재생성이 필요하면 Claude Design 에서 내려받아 `design/` 에 두고 `bun run assets` |
-| 3 | Pretendard | **일단 CDN** | `index.html` 에 TODO 로 표시. self-host 로 바꾸려면 `public/fonts/` 에 넣고 `<link>` 만 교체하면 된다 |
+| 3 | Pretendard | **CDN + SRI** | `/gh/` 경로는 GitHub **태그**를 서빙해서 태그가 옮겨지면 같은 URL 이 다른 내용을 준다. `integrity` 로 바이트를 고정했다(변조 시 브라우저가 차단하는 것까지 확인). ⚠️ SRI 는 CSS 만 덮고 그 CSS 가 부르는 **woff2 2.0MB 는 못 덮는다** — 완전히 닫으려면 self-host 여야 하고, 폐쇄망 요구와 함께 처리한다 |
 | 4 | 나머지 20개 화면 | **착수 시점에 하나씩** | 지금은 라우트 + placeholder |
 | 5 | 로그인 화면 | **구현됨** | 비밀번호 → TOTP 2단계 (§16) |
 | 6 | 2단계 인증 등록 | **구현됨** | `/security`. 디자인 원본에 없어 새로 그렸다 (§16.3) |

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="298 -6 341 491">
+  <ellipse cx="578" cy="212" rx="58" ry="62" fill="#63D0E8" opacity="0.24" class="rvfb" style="animation:rvGlow 3s ease-in-out infinite"/>
+<path d="M572,378 C576,330 578,282 580,240" fill="none" stroke="#C4900E" stroke-width="10" stroke-linecap="round"/>
+<path d="M572,378 C576,330 578,282 580,240" fill="none" stroke="#F5D97A" stroke-width="4" stroke-linecap="round" opacity="0.85"/>
+<path d="M548,244 C566,236 592,236 610,244" fill="none" stroke="#FCE6AC" stroke-width="9" stroke-linecap="round"/>
+<path d="M550,240 C550,204 548,178 544,158 C554,168 562,184 566,206 M580,238 V150 M608,240 C608,204 610,178 614,158 C604,168 596,184 592,206" fill="none" stroke="#FCE6AC" stroke-width="9" stroke-linecap="round"/>
+<path d="M550,240 C550,204 548,178 544,158 M580,238 V150 M608,240 C608,204 610,178 614,158" fill="none" stroke="#F5D97A" stroke-width="4" stroke-linecap="round"/>
+<circle cx="580" cy="256" r="11" fill="#6FD8E8" stroke="#F5D97A" stroke-width="5"/>
+<path d="M556,286 C566,300 592,300 602,286" fill="none" stroke="#3FA8C8" stroke-width="6" stroke-linecap="round" opacity="0.85"/>
+<path d="M552,314 C566,326 592,326 606,314" fill="none" stroke="#3FA8C8" stroke-width="5" stroke-linecap="round" opacity="0.6"/>
+<circle class="rvfb" style="animation:rvRise 4s linear 0s infinite" cx="546" cy="300" r="7" fill="none" stroke="#BFE6F7" stroke-width="2.4"/><circle class="rvfb" style="animation:rvRise 3.8s linear 1.2s infinite" cx="612" cy="286" r="6" fill="none" stroke="#BFE6F7" stroke-width="2.4"/><circle class="rvfb" style="animation:rvRise 3.5s linear 2s infinite" cx="560" cy="268" r="4.6" fill="none" stroke="#BFE6F7" stroke-width="2.4"/><circle class="rvfb" style="animation:rvRise 4.2s linear 0.6s infinite" cx="604" cy="320" r="8" fill="none" stroke="#BFE6F7" stroke-width="2.4"/><defs><clipPath id="ahand11_pgr2" clipPathUnits="userSpaceOnUse"><ellipse cx="570" cy="358" rx="17" ry="14" transform="rotate(-24 570 358)"/></clipPath></defs><g clip-path="url(#ahand11_pgr2)"></g>
+</svg>

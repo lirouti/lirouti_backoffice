@@ -1,0 +1,7 @@
+styled-system
+dist
+node_modules
+design
+public/riruti-icons.svg
+public/riruti-assets.svg
+bun.lock

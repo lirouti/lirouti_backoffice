@@ -1,0 +1,35 @@
+import react from '@vitejs/plugin-react-swc'
+import svgr from 'vite-plugin-svgr'
+import { defineConfig } from 'vitest/config'
+
+export default defineConfig({
+  // svgr: `import X from './x.svg?react'` → React 컴포넌트.
+  // 확장자 없는 기본 import 는 그대로 URL 을 준다 (캐릭터 에셋이 이 경로를 쓴다).
+  plugins: [react(), svgr()],
+
+  // tsconfig.json 의 paths 를 그대로 쓴다 (Vite 8 네이티브 — 별도 플러그인 불필요)
+  resolve: { tsconfigPaths: true },
+
+  build: {
+    // 캐릭터 에셋을 base64 로 JS 에 녹이지 않는다.
+    // 화면마다 5~12개만 쓰는데 50개를 번들에 넣으면 파일로 뺀 의미가 없다.
+    assetsInlineLimit: (file) => (file.endsWith('.svg') ? false : undefined),
+
+    // manualChunks 로 recharts 를 따로 빼려다 되돌렸다.
+    // 청크를 강제하면 Rollup 이 공용 모듈까지 그 청크에 배치해서, 엔트리가
+    // charts 를 **정적으로** 의존하게 된다 — 로그인 화면에도 105KB 가 딸려왔다.
+    // 자동 분할이 이미 recharts 를 lazy 한 DashboardPage 청크에 넣어준다. (§9.2)
+
+  },
+
+  server: { port: 5173 },
+
+  test: {
+    // `domain/` 은 React 도 DOM 도 쓰지 않는다 — jsdom 을 띄울 이유가 없다.
+    environment: 'node',
+    // **`.test.ts` 만** 잡는다. `.tsx` 를 빼 둔 건 실수가 아니라 경계다 —
+    // 컴포넌트 테스트를 시작하려면 jsdom·Testing Library 를 같이 들여야 하므로,
+    // 그 결정을 하기 전까지는 순수 함수 테스트만 존재한다는 뜻이 된다.
+    include: ['src/**/*.test.ts'],
+  },
+})

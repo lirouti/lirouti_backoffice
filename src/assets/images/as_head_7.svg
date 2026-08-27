@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="298 -6 341 491">
+  <ellipse cx="468" cy="70" rx="96" ry="46" fill="#5FC9C0" opacity="0.22" class="rvfb" style="animation:rvGlow 3.6s ease-in-out infinite"/>
+<g class="rvfb" style="animation:rvSway 4.4s ease-in-out infinite">
+<path d="M420,100 C424,62 440,26 468,8 C488,0 504,12 505,28 C500,54 508,80 516,100 Z" fill="#3F4C8C"/>
+<defs><clipPath id="ahead7_hpb"><path d="M420,100 C424,62 440,26 468,8 C488,0 504,12 505,28 C500,54 508,80 516,100 Z"/></clipPath></defs>
+<g clip-path="url(#ahead7_hpb)"><path d="M472,10 C494,34 498,70 492,102 L546,102 L546,4 Z" fill="#33407a"/>
+<path d="M434,64 C456,56 480,54 500,62" fill="none" stroke="#5FC9C0" stroke-width="4" opacity="0.7"/></g>
+<path d="M420,100 C424,62 440,26 468,8 C488,0 504,12 505,28 C500,54 508,80 516,100 Z" fill="none" stroke="#2b3566" stroke-width="8" stroke-linejoin="round"/>
+<path class="rvfb" style="animation:rvTwinkle 2.2s ease-in-out -0.4s infinite" d="M502,6 Q504.4,15.6 514,18 Q504.4,20.4 502,30 Q499.6,20.4 490,18 Q499.6,15.6 502,6 Z" fill="#FFE9A8" opacity="1"/></g>
+<path d="M362,102 C374,80 552,80 574,102 C562,122 376,122 362,102 Z" fill="#4A58A0" stroke="#2b3566" stroke-width="8" stroke-linejoin="round"/>
+<path d="M368,100 C396,86 540,86 568,100" fill="none" stroke="#6b7ac4" stroke-width="5" stroke-linecap="round" opacity="0.8"/>
+<path d="M370,110 C400,124 536,124 566,110" fill="none" stroke="#F5D97A" stroke-width="7" stroke-linecap="round"/>
+<circle cx="468" cy="112" r="11" fill="#5FC9C0" stroke="#F5D97A" stroke-width="5"/>
+<g class="rvfb" style="animation:rvFloat 3.4s ease-in-out infinite"><path d="M348,54 h22 M359,43 v22 M352,47 l14,14 M366,47 l-14,14" stroke="#7FE3DA" stroke-width="4" stroke-linecap="round" opacity="0.9"/></g>
+<g class="rvfb" style="animation:rvFloat 4.2s ease-in-out .7s infinite"><path d="M574,70 h18 M583,61 v18 M577,64 l12,12 M589,64 l-12,12" stroke="#7FE3DA" stroke-width="4" stroke-linecap="round" opacity="0.8"/></g>
+<path class="rvfb" style="animation:rvTwinkle 1.6s ease-in-out 0.4s infinite" d="M340,79 Q341.4,84.6 347,86 Q341.4,87.4 340,93 Q338.6,87.4 333,86 Q338.6,84.6 340,79 Z" fill="#7FE3DA" opacity="1"/><path class="rvfb" style="animation:rvTwinkle 1.9s ease-in-out 0.4s infinite" d="M596,37 Q597.4,42.6 603,44 Q597.4,45.4 596,51 Q594.6,45.4 589,44 Q594.6,42.6 596,37 Z" fill="#7FE3DA" opacity="1"/>
+</svg>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="298 -6 341 491">
+  <circle cx="514" cy="177" r="31" fill="#EAF2FE" fill-opacity="0.45"/>
+<defs><clipPath id="aface4_mo"><circle cx="514" cy="177" r="31"/></clipPath></defs>
+<g clip-path="url(#aface4_mo)"><path d="M490,198 L518,150 L534,150 L504,204 Z" fill="#fff" opacity="0.6"/><path d="M508,204 L532,164 L540,164 L520,206 Z" fill="#fff" opacity="0.32"/></g>
+<circle cx="514" cy="177" r="31" fill="none" stroke="#C4900E" stroke-width="7"/>
+<circle cx="514" cy="177" r="25" fill="none" stroke="#e8bd52" stroke-width="2.6" opacity="0.8"/>
+<path d="M484,172 C476,174 472,180 472,186" fill="none" stroke="#C4900E" stroke-width="6" stroke-linecap="round"/>
+<path d="M546,210L551.4,217L555.4,223.9L557,230.9L555.7,237.8L551.9,244.8L546.5,251.8L541,258.7L536.8,265.7L535,272.6L536.1,279.6L539.7,286.6L545,293.5L550.5,300.5L554.9,307.4L556.9,314.4L556.1,321.4" fill="none" stroke="#D9A32E" stroke-width="3.6" stroke-linecap="round"/>
+<circle cx="541" cy="205" r="5" fill="#FFD45E" stroke="#C4900E" stroke-width="3.4"/>
+</svg>
