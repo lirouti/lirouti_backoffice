@@ -34,6 +34,6 @@
 
 ## ✅ 체크리스트
 - [ ] `bun run lint` · `bun run typecheck` · `bun run test` · `bun run build` 가 모두 통과하나요?
-- [ ] 새 파일이 [레이어 규칙](../docs/ARCHITECTURE.md#43-의존-방향)에 맞는 폴더에 있나요? (의존은 아래로만)
+- [ ] 새 파일이 [레이어 규칙](/lirouti/lirouti_backoffice/blob/main/docs/ARCHITECTURE.md#43-의존-방향)에 맞는 폴더에 있나요? (의존은 아래로만)
 - [ ] 화면을 추가/수정했다면 **라이트·다크 두 테마**에서 확인했나요?
 - [ ] 민감한 정보(API 키, 비밀번호 등)가 노출되지 않았나요? (`VITE_*` 는 번들에 그대로 박힙니다)

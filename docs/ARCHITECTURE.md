@@ -46,7 +46,10 @@ Vite 8  +  React 19  +  TypeScript 6  +  Panda CSS 1  +  react-router 8
 |---|---|---|
 | `react` | `^19.2.8` | — |
 | `react-dom` | `^19.2.8` | — |
-| `react-router` | `^8.3.0` | SPA 라우팅. v7부터 `react-router-dom`이 아니라 **`react-router`** 단일 패키지. `createBrowserRouter` 선언형 사용 |
+| `react-router` | `^8.3.0` | SPA 라우팅. v7부터 `react-router-dom`이 아니라 **`react-router`** 단일 패키지. `createBrowserRouter` 기반 **Data Router**(`<BrowserRouter>`+`<Routes>` 의 Declarative 모드가 아니다) |
+| `axios` | `^1.19.0` | HTTP. 응답 있음/네트워크 끊김/타임아웃/취소를 `ApiError` 하나로 정규화한다 (§7) |
+| `@tanstack/react-query` | `^5.90.21` | 서버 상태 캐시. keep-alive 와 맞물리는 지점은 §7 |
+| `keepalive-for-react` | `^5.0.11` | 탭 전환 시 화면을 언마운트하지 않는다. DOM 에서 분리(detach)라 `display:none` 보다 낫다 |
 | `zustand` | `^5.0.15` | 테마 / 열린 탭 / 사이드바 펼침 / 뷰어(권한) — **localStorage에 붙는 전역 UI 상태**만 담당. `persist` 미들웨어가 원본의 `lsGet/lsSet`을 그대로 대체 |
 | `recharts` | `^3.10.1` | 차트. **SVG 렌더링**이라 `var(--colors-*)`를 그대로 먹어서 다크 모드가 리렌더 없이 따라온다 (§9.1) |
 | `qrcode.react` | `^4.2.0` | TOTP 등록 QR (§16.3). `QRCodeSVG` 로 **SVG** 를 그린다 — 확대·인쇄해도 뭉개지지 않고, canvas 와 달리 스캐너가 읽을 픽셀을 브라우저가 알아서 맞춘다. `SecurityPage` 청크에만 들어간다(gzip 약 10KB, 첫 로드에 없음) |
@@ -70,6 +73,9 @@ Vite 8  +  React 19  +  TypeScript 6  +  Panda CSS 1  +  react-router 8
 | `@pandacss/dev` | `^1.12.0` | `panda` CLI + PostCSS 플러그인 + `styled-system` 코드젠 |
 | `postcss` | `^8.5.26` | Panda가 PostCSS 플러그인으로 동작 |
 | `eslint` `^10.9.0` · `@eslint/js` · `globals` · `typescript-eslint` `^8.67.0` · `eslint-plugin-react-hooks` `^7.1.1` · `eslint-plugin-react-refresh` `^0.5.4` | | flat config |
+| `eslint-plugin-perfectionist` | `^5.10.1` | import 정렬을 레이어 순서로 강제 (§15). `--fix` 자동 |
+| `vite-plugin-svgr` | `^5.2.0` | `?react` 로 SVG 를 컴포넌트화 (§8.4). 아이콘이 `currentColor` 를 물려받으려면 필요 |
+| `vitest` | `^4.1.11` | Vite 위에서 도는 테스트 러너. 설정을 `vite.config.ts` 가 겸한다 (§14) |
 | `prettier` | `^3.9.6` | — |
 
 **설치 중 확인된 것 세 가지**
@@ -89,7 +95,7 @@ Vite 8  +  React 19  +  TypeScript 6  +  Panda CSS 1  +  react-router 8
 | `zod` | `^4.4.3` | 위 폼의 검증 + API 응답 파싱 |
 | `@tanstack/react-query` | latest | 실제 API 연동 시 |
 | `date-fns` | `^4.4.0` | 기간 설정 / 예약 발행 등 날짜 연산이 실제로 생길 때. 단순 포맷만이면 `Intl.DateTimeFormat`으로 충분하니 넣지 않는다 |
-| `vitest` `^4.1.11` + `@testing-library/react` `^16.3.2` + `jsdom` `^30.0.1` | 권한(scope) 게이팅·탭 스택 같은 **로직**에 테스트를 붙일 때 |
+| `@testing-library/react` + `jsdom` | **컴포넌트** 테스트를 시작할 때. `vitest` 는 이미 들어와 있고 `domain/` 순수 함수를 덮고 있다 — `vite.config.ts` 의 `test.include` 가 `.test.ts` 만 잡아 그 경계를 강제한다 |
 
 ---
 
@@ -103,7 +109,7 @@ Vite 8  +  React 19  +  TypeScript 6  +  Panda CSS 1  +  react-router 8
 
 대신 아래 표의 **역할** 열을 `panda.config.ts`에 주석으로 함께 남겨 가독성을 확보한다.
 
-### 3.2 토큰 표 (43개)
+### 3.2 토큰 표 (45개)
 
 **표면 / 구조**
 
@@ -166,7 +172,8 @@ Vite 8  +  React 19  +  TypeScript 6  +  Panda CSS 1  +  react-router 8
 | 토큰 | light | dark | 역할 |
 |---|---|---|---|
 | `dot` | `#22A06B` | `#34C98A` | 라이브 상태 점 |
-| `avB`/`avF` | `#DCE6F6` / `#22314A` · `#2A5FA8` / `#A9C7F5` | | 아바타 배경/글자 |
+| `avB`/`avF` | `#DCE6F6` / `#22314A` | `#2A5FA8` / `#A9C7F5` | 아바타 배경/글자 |
+| `tilePaid` | `#14122B` | `#14122B` | 유료 아이템 타일 배경 (양쪽 동일) |
 | `onDanger` | `#ffffff` | `#2A1013` | 위험 버튼 위 텍스트 |
 
 ### 3.3 다크 모드 조건
@@ -476,7 +483,7 @@ error  '@/mocks/items' import is restricted from being used by a pattern.
 라벨·경로·권한이 5군데(`NAV`, `FILEOF`, `SCRL`, `CRUMB`, 라우터)에 흩어져 있으면 반드시 어긋난다. **하나로 합친다.**
 
 ```ts
-// src/app/screens.ts
+// src/domain/screens.ts
 export const SCREENS = {
   dash:  { path: '/dashboard', label: '지표',        scope: 'dash'  },
   items: { path: '/items',     label: '아이템 목록',  scope: 'items', section: 'items' },
@@ -589,7 +596,7 @@ interface Item {
 ```
 
 > **표시 문자열이 곧 타입인 문제**: 원본은 `'노출'`·`'유료'` 같은 한글 표시값을 그대로 상태값으로 쓴다. 실서버는 `VISIBLE`/`PAID` 같은 코드를 줄 가능성이 높다.
-> → **도메인 타입은 코드값(`'VISIBLE'`)으로 정의하고, 한글은 `shared/lib/labels.ts`의 표시 매핑으로 분리**할 것을 권장. 지금 목 데이터에서 잡아두지 않으면 API 연동 시 전 화면을 손봐야 한다. **(결정 필요 — §11)**
+> → **도메인 타입은 코드값(`'VISIBLE'`)으로 정의하고, 한글은 `domain/<entity>/labels.ts`의 표시 매핑으로 분리**할 것을 권장. 지금 목 데이터에서 잡아두지 않으면 API 연동 시 전 화면을 손봐야 한다. **(결정 필요 — §11)**
 
 ---
 
@@ -786,7 +793,7 @@ manualChunks: (id) => (/node_modules\/recharts/.test(id) ? 'charts' : undefined)
 
 | # | 항목 | 결정 | 비고 |
 |---|---|---|---|
-| 1 | 도메인 상태값 표기 (§7.3) | **코드값 + 라벨 매핑** | `shared/types/domain.ts` 에 `'VISIBLE'` 등으로 정의, 한글은 `shared/lib/labels.ts`. 배지 tone 분기도 여기로 모았다 |
+| 1 | 도메인 상태값 표기 (§7.3) | **코드값 + 라벨 매핑** | `domain/<entity>/types.ts` 에 `'VISIBLE'` 등으로 정의, 한글은 같은 폴더의 `labels.ts`. 배지 tone 분기도 여기로 모았다 |
 | 2 | 디자인 원본 | **커밋하지 않는다 (`design/` gitignore)** | 대신 **산출물**(`src/assets/icons`·`images`)을 커밋한다. 입력과 산출물을 둘 다 빼면 깨끗한 클론에서 `@/assets/icons` 가 없어 빌드가 안 된다 — 둘 중 하나는 저장소에 있어야 한다. 포팅·재생성이 필요하면 Claude Design 에서 내려받아 `design/` 에 두고 `bun run assets` |
 | 3 | Pretendard | **일단 CDN** | `index.html` 에 TODO 로 표시. self-host 로 바꾸려면 `public/fonts/` 에 넣고 `<link>` 만 교체하면 된다 |
 | 4 | 나머지 20개 화면 | **착수 시점에 하나씩** | 지금은 라우트 + placeholder |
