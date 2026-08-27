@@ -1,0 +1,94 @@
+/**
+ * 권한 도메인.
+ *
+ * 이 규칙들은 원래 `stores/viewerStore.ts` 안에 있었다. zustand 스토어는 상태를 담는
+ * 그릇일 뿐인데 권한 판정 규칙이 거기 얹혀 있으면 스토어를 바꿀 때 규칙이 딸려 간다.
+ * 상태(누가 보고 있나)와 규칙(무엇을 볼 수 있나)을 분리한다.
+ *
+ * ⚠️ **UI 게이팅일 뿐 보안이 아니다.** 실제 검증은 서버에서 해야 한다.
+ */
+import { NAV, type NavGroup } from './nav'
+import { SCREENS, type ScopeId, type ScreenId } from './screens'
+
+export type ViewerRole = 'top' | 'operator'
+
+export type Viewer = {
+  role: ViewerRole
+  name: string
+  /** 로그인 아이디. 인증 앱에 표시될 계정 이름이기도 하다 (`domain/totp.ts`) */
+  email: string
+  /** operator 일 때만 의미가 있다. top 은 전체 접근. */
+  scopes: ScopeId[]
+}
+
+export const TOP_VIEWER: Viewer = {
+  role: 'top',
+  name: '김하늘',
+  email: 'sky@riruti.co',
+  scopes: [],
+}
+
+export type Credentials = {
+  email: string
+  password: string
+}
+
+/**
+ * 로그인 1차(비번) 결과.
+ *
+ * 2FA 가 켜진 계정은 여기서 끝나지 않는다 — `challenge` 를 들고 코드 검증으로 넘어간다.
+ * challenge 는 짧게 사는 일회용 토큰이라 **저장하지 않는다** (메모리에만).
+ */
+export type LoginResult =
+  | { status: 'authenticated'; viewer: Viewer }
+  | { status: 'totp_required'; challenge: string }
+
+/**
+ * 로그인 입력 검증. 통과하면 null, 아니면 사용자에게 보일 메시지.
+ *
+ * 서버도 같은 검증을 하지만 여기서 먼저 걸러 왕복을 아낀다.
+ * 규칙(회사 이메일 형식·8자 이상)은 디자인 원본에서 가져왔다.
+ *
+ * (2단계 인증 코드 검증은 `domain/totp.ts` — 인가가 아니라 인증 수단이다.)
+ */
+export function validateCredentials(c: Credentials): string | null {
+  if (!c.email.trim() || !c.password) return '아이디와 비밀번호를 모두 입력해 주세요.'
+  if (!/\S+@\S+\.\S+/.test(c.email.trim())) return '아이디는 회사 이메일 형식이어야 합니다.'
+  if (c.password.length < 8) return '비밀번호는 8자 이상입니다. 다시 확인해 주세요.'
+  return null
+}
+
+/** 해당 스코프에 접근 가능한가 */
+export function canAccess(viewer: Viewer, scope: ScopeId): boolean {
+  // 자기 계정 설정은 권한과 무관하다 — 스코프가 하나도 없는 사람도 2단계 인증은 켤 수 있어야 한다.
+  if (scope === 'me') return true
+  if (viewer.role === 'top') return true
+  if (scope === 'admin') return false // 관리자 모듈은 최고 관리자 전용
+  return viewer.scopes.includes(scope)
+}
+
+/** 해당 화면에 접근 가능한가 */
+export function canOpen(viewer: Viewer, id: ScreenId): boolean {
+  return canAccess(viewer, SCREENS[id].scope)
+}
+
+/** 뷰어 권한으로 걸러낸 내비 트리 */
+export function visibleNav(viewer: Viewer): NavGroup[] {
+  return NAV.filter((g) => canAccess(viewer, g.scope))
+}
+
+/**
+ * 뷰어가 접근할 수 있는 첫 화면 — 권한 밖 URL 진입 시 보낼 곳.
+ *
+ * ⚠️ **여기가 권한 밖이면 리다이렉트가 무한히 돈다.** `AdminLayout` 이 "못 여는 화면 →
+ *    firstScreen" 으로 보내는데, 보낸 곳도 못 열면 같은 판정이 다시 나서 에러도 없이 멈춘다.
+ *
+ * 스코프가 하나도 없는 계정(모듈 배정 전의 새 관리자)은 내비가 비어서 예전에는 `dash` 로
+ * 보냈는데, `dash` 도 스코프가 필요해서 정확히 그 루프에 빠졌다. `me` 스코프인
+ * 내 계정 보안은 **누구나 열 수 있어** 안전한 착지점이고, 거기서 2단계 인증이라도 켤 수 있다.
+ */
+export function firstScreen(viewer: Viewer): ScreenId {
+  const first = visibleNav(viewer)[0]
+  if (!first) return 'security'
+  return first.screen ?? first.children![0]!.screen
+}
