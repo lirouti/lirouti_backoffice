@@ -31,6 +31,15 @@ export const TOP_VIEWER: Viewer = {
 export type Credentials = {
   email: string
   password: string
+  /**
+   * "로그인 상태 유지" 체크 여부.
+   *
+   * **결정은 서버가 한다** — 세션 쿠키의 Max-Age 를 길게 줄지 브라우저를 닫으면
+   * 사라지게 할지는 HttpOnly 쿠키를 심는 쪽의 몫이다. 클라이언트는 사용자의
+   * 선택을 전달만 한다. 이 값을 안 보내면 체크박스가 아무 일도 하지 않는
+   * 장식이 된다.
+   */
+  keepSignedIn?: boolean
 }
 
 /**

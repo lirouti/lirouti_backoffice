@@ -35,14 +35,24 @@ axiosInstance.interceptors.response.use(
   (res) => res,
   (raw) => {
     const err = toApiError(raw)
-    if (err.kind === 'http' && err.status === 401) onUnauthorized?.()
+    // 401 이 전부 "세션 만료"인 것은 아니다. **로그인·2차 인증 자체가 실패했을 때도
+    // 401 이다** — 비밀번호나 코드가 틀린 것이지 세션이 끊긴 게 아니다. 여기서
+    // 구분하지 않으면 코드를 한 번 잘못 넣었을 때 에러 배너를 띄우면서 동시에
+    // 스토어를 비우고 로그인으로 튕긴다. 그 요청들은 `skipSessionExpiry` 로 뺀다.
+    const skip = (raw as { config?: RequestConfig })?.config?.skipSessionExpiry
+    if (!skip && err.kind === 'http' && err.status === 401) onUnauthorized?.()
     // 화면과 react-query 는 ApiError 만 본다.
     return Promise.reject(err)
   },
 )
 
-/** 요청 옵션. `params` · `signal` · `headers` 를 주로 쓴다. */
-export type RequestConfig = AxiosRequestConfig
+/**
+ * 요청 옵션. `params` · `signal` · `headers` 를 주로 쓴다.
+ *
+ * `skipSessionExpiry` 는 **자격증명을 확인하는 요청**(로그인·2차 인증)에 붙인다.
+ * 그 401 은 "틀렸다"는 답이지 "세션이 끊겼다"가 아니다.
+ */
+export type RequestConfig = AxiosRequestConfig & { skipSessionExpiry?: boolean }
 
 /**
  * 실제로 쓰는 HTTP 함수들.

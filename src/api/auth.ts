@@ -23,7 +23,7 @@ import {
 import { validateTotpCode } from '@/domain/totp'
 
 import { http, mockDelay, queryClient, USE_MOCK } from './core'
-import { apiError } from './error'
+import { apiError, isApiError } from './error'
 
 /** 목 계정의 역할 — `op@` 로 시작하면 운영자, 그 외 최고 관리자. */
 function mockViewer(email: string): Viewer {
@@ -46,11 +46,13 @@ export async function login(c: Credentials): Promise<LoginResult> {
   if (USE_MOCK) {
     await mockDelay(600)
     // 목에서는 모든 계정이 2FA 를 쓴다 — 실제로도 어드민은 전원 필수가 맞다.
+    // `keepSignedIn` 은 쿠키 수명을 정하는 값이라 목에서는 할 일이 없다.
+    // 그래도 화면에서 여기까지 실어 보낸다 — 서버가 붙는 순간 동작하게.
     return { status: 'totp_required', challenge: `mock-${c.email.trim()}` }
   }
 
   // TODO(백엔드 스펙 확정 후): 응답 DTO → LoginResult 매핑
-  return http.post<LoginResult>('/admin/auth/login', c)
+  return http.post<LoginResult>('/admin/auth/login', c, { skipSessionExpiry: true })
 }
 
 export type TotpVerification = {
@@ -75,7 +77,7 @@ export async function verifyTotp(v: TotpVerification): Promise<Viewer> {
     return mockViewer(v.challenge.replace(/^mock-/, ''))
   }
 
-  return http.post<Viewer>('/admin/auth/totp/verify', v)
+  return http.post<Viewer>('/admin/auth/totp/verify', v, { skipSessionExpiry: true })
 }
 
 export async function logout(): Promise<void> {
@@ -94,8 +96,13 @@ export async function getSession(): Promise<Viewer | null> {
   if (USE_MOCK) return null // 목에서는 스토어에 저장된 값을 그대로 믿는다
   try {
     return await http.get<Viewer>('/admin/auth/session')
-  } catch {
-    return null
+  } catch (e) {
+    // **401 만 "세션 없음"이다.** 네트워크 끊김·타임아웃·5xx 까지 null 로 뭉개면
+    // 서버가 잠깐 흔들렸을 뿐인데 로그인한 사람을 로그인 화면으로 쫓아낸다.
+    // 확인에 실패한 것과 로그아웃 상태는 다르므로, 나머지는 그대로 올려보내
+    // 부르는 쪽이 "오류" 또는 "재시도"를 보여줄 수 있게 한다.
+    if (isApiError(e) && e.kind === 'http' && e.status === 401) return null
+    throw e
   }
 }
 

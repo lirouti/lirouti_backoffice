@@ -52,7 +52,7 @@ export default function LoginPage() {
   const submit = (e: FormEvent) => {
     e.preventDefault()
     mutate(
-      { email, password },
+      { email, password, keepSignedIn },
       {
         onSuccess: (result) => {
           // 세션은 2차까지 통과해야 열린다. 1차만으로 들여보내면 2FA 가 무의미하다.
