@@ -93,7 +93,7 @@ Vite 8  +  React 19  +  TypeScript 6  +  Panda CSS 1  +  react-router 8
 | `react-hook-form` | `^7.85.0` | 아이템 등록 / 챌린지 등록 / 지급·회수 폼 착수 시 (원본의 `f`, `cf`, `gf` state) |
 | `zod` | `^4.4.3` | 위 폼의 검증 + API 응답 파싱 |
 | `date-fns` | `^4.4.0` | 기간 설정 / 예약 발행 등 날짜 연산이 실제로 생길 때. 단순 포맷만이면 `Intl.DateTimeFormat`으로 충분하니 넣지 않는다 |
-| `@testing-library/react` `^16.3.2` + `jsdom` `^30.0.1` | 위 버전 | **컴포넌트** 테스트를 시작할 때. `vitest` 는 이미 들어와 `domain/` 순수 함수를 덮고 있다. 켤 때는 `vite.config.ts` 의 `test.include` 에 `'src/**/*.test.tsx'` 를 더하고 `test.environment` 를 `'jsdom'` 으로 바꾼다 — 지금 `.test.ts` 만 잡는 건 실수가 아니라 **그 결정을 하기 전까지 순수 함수 테스트만 존재하게 하는 경계**다 |
+| `@testing-library/react` `^16.3.2` + `@testing-library/dom` `^10.0.0` + `jsdom` `^30.0.1` | 위 버전 | **컴포넌트** 테스트를 시작할 때. `vitest` 는 이미 들어와 `domain/` 순수 함수를 덮고 있다. 켤 때는 `vite.config.ts` 의 `test.include` 에 `'src/**/*.test.tsx'` 를 더하고 `test.environment` 를 `'jsdom'` 으로 바꾼다 — 지금 `.test.ts` 만 잡는 건 실수가 아니라 **그 결정을 하기 전까지 순수 함수 테스트만 존재하게 하는 경계**다. `@testing-library/dom` 은 v16 부터 peer 로 빠져서 **직접 설치해야 한다** |
 
 ---
 
@@ -571,7 +571,7 @@ export async function listItems(q: ItemQuery): Promise<Paged<Item>> {
 원본 `build()`의 **시드 RNG를 반드시 유지**한다 (`rng(seed)` → `s = (s*9301+49297) % 233280`). 랜덤이 아니라 결정적이어야 새로고침할 때마다 숫자가 튀지 않고, 스크린샷 비교/리뷰가 가능하다.
 
 - `src/mocks/assetTable.ts` — 원본 `A` 테이블. `[ref, name, sub, raw]` 튜플 → 명명 필드 객체로 변환. `raw`가 `'P'`로 시작하면 **유료(프리미엄)** 등급.
-- 파생 규칙도 원본 그대로: 가격 `[480,720,960,1200][i%4]`, 노출 상태 8% 미노출 / 8% 예약, 챌린지 `일상/주간/시즌` × 6개 = 18개.
+- 파생 규칙도 원본 그대로: 가격 `tier === 'PAID' ? [480,720,960,1200][i%4] : 0`(무료는 0 — §7.3 의 `Item.price`), 노출 상태 8% 미노출 / 8% 예약, 챌린지 `일상/주간/시즌` × 6개 = 18개.
 
 ### 7.3 도메인 타입
 
@@ -618,6 +618,8 @@ export type Item = {
 
 ```ts
 // src/domain/item/labels.ts — 코드값 → 한글 + 배지 tone
+import type { Slot } from './types' // domain 내부는 배럴이 아니라 파일 직접 (§4.4.1)
+
 export const SLOT_LABEL: Record<Slot, string> = {
   HEAD: '머리', BODY: '몸', HAND: '손', FACE: '얼굴',
 }
@@ -717,24 +719,33 @@ import { LOGO } from '@/assets/brand'
 
 ## 9. 공용 컴포넌트 인벤토리
 
-디자인에서 **반복 사용이 확인된 것만** 추출. 추측으로 미리 만들지 않는다.
+디자인에서 **반복 사용이 확인된 것만** 추출한다. 추측으로 미리 만들지 않는다.
 
-| 컴포넌트 | Panda 레시피 variants | 디자인 근거 |
+`shared/ui` 는 **도메인을 모른다.** 도메인 타입을 prop 으로 받으면 `shared ⇄ domain`
+순환이 생기므로, 필요한 모양을 자기 prop 계약으로 선언한다 (§4.4).
+
+**Panda 레시피(`cva`)는 variants 가 실제로 여러 개일 때만 쓴다.** 하나뿐이면 평범한
+prop 이 읽기 쉽다 — 아래 "레시피 없음" 은 미완성이 아니라 그 판단의 결과다.
+
+| 컴포넌트 | 현재 API | 디자인 근거 |
 |---|---|---|
-| `Button` | `variant`: `primary`\|`secondary`\|`ghost` / `size`: `sm`\|`md` | `style-hover`/`style-active`/`style-focus` 3종 상태가 모든 버튼에 반복 |
-| `Card` | `padding`: `sm`\|`md` | `surf` + `1px bd` + `radius 12` — 전 화면 공통 |
-| `StatCard` | `trend`: `up`\|`down`\|`flat` | KPI 6종 (`▲ +6.2% 전주 대비`) |
-| `Badge` | `tone`: `success`\|`warn`\|`danger`\|`purple`\|`teal`\|`neutral`\|`gold`\|`brand` | 8개 fg/bg 쌍이 그대로 tone이 된다 (§3.2) |
-| `Segmented` | `size` | 원본 `tabOf()`/`seg()` — 슬롯/등급/챌린지 종류 필터 |
-| `Switch` | — | `formFlags` (상점 노출·가챠 포함·선물 가능) |
-| `ProgressBar` | `tone` (rate ≥60 `gFg`, ≥35 `pri`, 그 외 주황) | 챌린지 달성률 |
-| `Icon` | `size` | svgr 컴포넌트 래퍼 (currentColor 상속) |
-| `AssetThumb` | `size`, `tier` (유료 시 `#14122B` 어두운 배경) | 아이템/배경/둥지 썸네일 |
-| `LineChart` / `BarChart` | — | Recharts 래퍼. DAU 추이 / 젬 유입·소비 (§9.1) |
-| `Breadcrumbs` `TabBar` `Sidebar` | — | 레이아웃 전용 |
-| **2단계** `Table` `Pagination` `EmptyState` `Field` `Input` `Select` `Textarea` `Dialog` `Toast` | — | 목록·폼 화면 착수 시 |
+| `Button` | cva — `variant`: `primary`\|`secondary`\|`ghost` / `size`: `sm`\|`md`\|`icon` | `style-hover`/`style-active`/`style-focus` 3종 상태가 모든 버튼에 반복 |
+| `Badge` | cva — `tone` 8종 / `size`: `sm`\|`md` | 8개 fg/bg 쌍이 그대로 tone 이 된다 (§3.2) |
+| `Card` | `className` 만. 여백은 부르는 쪽이 정한다 | `surf` + `1px bd` + `radius 12` — 전 화면 공통 |
+| `StatCard` | `label` `value` `delta` `direction`(`up`\|`down`) `note` | KPI 6종 (`▲ +6.2% 전주 대비`) |
+| `ProgressBar` | `rate` `label`(필수). 색은 rate 로 정한다(≥60 `gFg`, ≥35 `pri`, 그 외 주황) | 챌린지 달성률 |
+| `Icon` | `name`(IconId) `size` | svgr 컴포넌트 래퍼 (currentColor 상속, §8.4) |
+| `AssetThumb` | `assetId` `size` `paid` `alt` | 아이템/배경/둥지 썸네일. `paid` 면 타일 배경을 어둡게(`tilePaid`) |
+| `OtpInput` | `value` `onChange` `length` `invalid` `aria-label`(필수) | 2단계 인증 코드 입력 (§16) |
+| `Checkbox` `ErrorBanner` | — | `features/auth` 에서 만들어졌다가 보안 화면이 두 번째 사용처가 되어 승격 (§4.4) |
+| `LineChart` / `BarChart` | Recharts 래퍼 | DAU 추이 / 젬 유입·소비 (§9.1) |
+| **미구현** `Segmented` `Switch` `Table` `Pagination` `EmptyState` `Field` `Input` `Select` `Textarea` `Dialog` `Toast` | — | 목록·폼 화면 착수 시. `Dialog` 는 `TabBar` 의 `window.confirm` 을 대체할 자리이기도 하다 |
 
-> 참고: Claude Design 프로젝트에 이미 `components/forms/Button.jsx`, `components/data/Table.jsx` 등 **레퍼런스 구현과 `.prompt.md`가 존재**한다. 2단계 컴포넌트 작업 시 먼저 가져와 대조할 것.
+> `Field`(TextField/PasswordField)는 지금 `features/auth` 안에 있다. **두 번째 폼 화면이
+> 생길 때** `shared/ui` 로 올린다 — 미리 올리면 로그인의 사정이 공용 컴포넌트에 스며든다 (§4.4).
+
+> 참고: Claude Design 프로젝트에 이미 `components/forms/Button.jsx`, `components/data/Table.jsx` 등
+> **레퍼런스 구현과 `.prompt.md` 가 존재**한다. 미구현 컴포넌트 착수 시 먼저 가져와 대조할 것.
 
 ### 9.1 차트 — Recharts
 
@@ -852,7 +863,7 @@ manualChunks: (id) => (/node_modules\/recharts/.test(id) ? 'charts' : undefined)
 - 라이트/다크 전환, FOUC 방지 포함
 - 45개 화면 전부 라우트 등록 — 구현 2개(`dash` · `security`), 나머지 43개는 placeholder
 - 탭 섹션 접힘 검증: `/items/3` 진입 시 탭은 "아이템 목록" 하나, 사이드바는 부모 항목 활성
-- 번들: `index` 324KB (gzip 103KB, 아이콘 15개 인라인 포함) + `DashboardPage` 55KB (gzip 14KB)
+- 번들: **첫 로드 143KB gzip** (엔트리 + 공용 청크 + CSS). 화면은 라우트 단위 lazy 라 `DashboardPage` 111KB gzip(recharts 포함)·`SecurityPage` 10KB gzip 은 그 화면에 들어갈 때 받는다 (§9.2·§9.3)
 - 에셋 SVG 50개는 개별 파일로 방출 — 대시보드 최초 로드에서 실제 요청은 **4건 / 22KB**
 - **`design/` 없이도 클린 체크아웃에서 빌드된다** — 에셋 산출물을 커밋하기 때문 (임시 디렉터리에 `git checkout-index` 후 `bun install && bun run build` 로 검증)
 
