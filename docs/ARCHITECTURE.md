@@ -773,10 +773,11 @@ import { token } from 'styled-system/tokens'
 
 | | 이유 |
 |---|---|
-| `features/*` 화면 | 44개인데 사용자는 한 번에 하나만 본다. 대시보드만 해도 recharts 를 안고 gzip 117KB — eager 로 두면 첫 로드가 252KB 가 된다 |
+| `features/*` 화면 | 45개인데 사용자는 한 번에 하나만 본다. 대시보드만 해도 recharts 를 안고 **gzip 111KB** — eager 로 두면 첫 로드에 그게 얹힌다 |
 | `LoginPage` | **미인증 사용자의 첫 화면.** lazy 로 만들면 `index` 받고 → 다시 요청 → 그 사이 폴백이 깜빡인다 |
 
-측정 (로그인 화면 첫 로드, gzip):
+측정 (로그인 화면 첫 로드, gzip). **아래 두 표는 그 결정을 내릴 때의 A/B 값이다** —
+같은 빌드에서 한 쪽만 바꿔 비교한 것이라 절대값은 지금과 다르다. 현재 수치는 §12 를 본다.
 
 | LoginPage | 첫 로드 | 요청 수 |
 |---|---|---|
@@ -802,7 +803,7 @@ manualChunks: (id) => (/node_modules\/recharts/.test(id) ? 'charts' : undefined)
 그 순간 엔트리가 charts 를 정적으로 의존하게 되고(`import{i as d,o as u}from"./charts-*.js"`),
 `index.html` 의 modulepreload 에 올라 **로그인 화면에서도 105KB 를 받는다.**
 
-측정값 (gzip, 로그인 화면 첫 로드):
+측정값 (gzip, 로그인 화면 첫 로드 — 위와 같은 시점의 A/B):
 
 | | 첫 로드 | 대시보드 진입 시 추가 |
 |---|---|---|
@@ -863,7 +864,7 @@ manualChunks: (id) => (/node_modules\/recharts/.test(id) ? 'charts' : undefined)
 - 라이트/다크 전환, FOUC 방지 포함
 - 45개 화면 전부 라우트 등록 — 구현 2개(`dash` · `security`), 나머지 43개는 placeholder
 - 탭 섹션 접힘 검증: `/items/3` 진입 시 탭은 "아이템 목록" 하나, 사이드바는 부모 항목 활성
-- 번들: **첫 로드 143KB gzip** (엔트리 + 공용 청크 + CSS). 화면은 라우트 단위 lazy 라 `DashboardPage` 111KB gzip(recharts 포함)·`SecurityPage` 10KB gzip 은 그 화면에 들어갈 때 받는다 (§9.2·§9.3)
+- 번들 (**현재 수치의 단일 출처.** §9.2·§9.3 의 표는 결정 당시의 A/B 값이다): **첫 로드 143KB gzip** — 엔트리 + 공용 청크 + CSS. 화면은 라우트 단위 lazy 라 `DashboardPage` 111KB gzip(recharts 포함) · `SecurityPage` 10KB gzip 은 그 화면에 들어갈 때 받는다
 - 에셋 SVG 50개는 개별 파일로 방출 — 대시보드 최초 로드에서 실제 요청은 **4건 / 22KB**
 - **`design/` 없이도 클린 체크아웃에서 빌드된다** — 에셋 산출물을 커밋하기 때문 (임시 디렉터리에 `git checkout-index` 후 `bun install && bun run build` 로 검증)
 
