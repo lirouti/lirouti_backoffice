@@ -48,7 +48,7 @@ Vite 8  +  React 19  +  TypeScript 6  +  Panda CSS 1  +  react-router 8
 | `react-dom` | `^19.2.8` | — |
 | `react-router` | `^8.3.0` | SPA 라우팅. v7부터 `react-router-dom`이 아니라 **`react-router`** 단일 패키지. `createBrowserRouter` 기반 **Data Router**(`<BrowserRouter>`+`<Routes>` 의 Declarative 모드가 아니다) |
 | `axios` | `^1.19.0` | HTTP. 응답 있음/네트워크 끊김/타임아웃/취소를 `ApiError` 하나로 정규화한다 (§7) |
-| `@tanstack/react-query` | `^5.90.21` | 서버 상태 캐시. keep-alive 와 맞물리는 지점은 §7 |
+| `@tanstack/react-query` | `^5.102.4` | 서버 상태 캐시. keep-alive 와 맞물리는 지점은 §7 |
 | `keepalive-for-react` | `^5.0.11` | 탭 전환 시 화면을 언마운트하지 않는다. DOM 에서 분리(detach)라 `display:none` 보다 낫다 |
 | `zustand` | `^5.0.15` | 테마 / 열린 탭 / 사이드바 펼침 / 뷰어(권한) — **localStorage에 붙는 전역 UI 상태**만 담당. `persist` 미들웨어가 원본의 `lsGet/lsSet`을 그대로 대체 |
 | `recharts` | `^3.10.1` | 차트. **SVG 렌더링**이라 `var(--colors-*)`를 그대로 먹어서 다크 모드가 리렌더 없이 따라온다 (§9.1) |
@@ -59,7 +59,6 @@ Vite 8  +  React 19  +  TypeScript 6  +  Panda CSS 1  +  react-router 8
 > **의도적으로 넣지 않은 것**
 > - **canvas 기반 차트(Chart.js / ECharts)** — 우리 색은 전부 CSS 변수라, canvas 는 `var(--colors-pri)`를 해석하지 못해 테마 토글마다 `getComputedStyle`로 읽어 강제 리렌더해야 한다. SVG 기반인 Recharts 를 쓴다.
 > - **UI 킷(MUI/Chakra/shadcn)** — 디자인 시스템이 이미 완성되어 있다. 킷을 얹으면 override 비용만 생긴다.
-> - **@tanstack/react-query** — 지금은 목 데이터라 불필요. §7의 API 파사드가 도입 지점을 미리 열어둔다.
 
 ### 2.3 devDependencies
 
@@ -93,9 +92,8 @@ Vite 8  +  React 19  +  TypeScript 6  +  Panda CSS 1  +  react-router 8
 | `@tanstack/react-table` | `^9.1.2` | 아이템/챌린지/결제/감사로그 등 **정렬·페이지네이션 있는 목록** 착수 시. 목록 화면이 10개 이상이라 결국 필요 |
 | `react-hook-form` | `^7.85.0` | 아이템 등록 / 챌린지 등록 / 지급·회수 폼 착수 시 (원본의 `f`, `cf`, `gf` state) |
 | `zod` | `^4.4.3` | 위 폼의 검증 + API 응답 파싱 |
-| `@tanstack/react-query` | latest | 실제 API 연동 시 |
 | `date-fns` | `^4.4.0` | 기간 설정 / 예약 발행 등 날짜 연산이 실제로 생길 때. 단순 포맷만이면 `Intl.DateTimeFormat`으로 충분하니 넣지 않는다 |
-| `@testing-library/react` + `jsdom` | **컴포넌트** 테스트를 시작할 때. `vitest` 는 이미 들어와 있고 `domain/` 순수 함수를 덮고 있다 — `vite.config.ts` 의 `test.include` 가 `.test.ts` 만 잡아 그 경계를 강제한다 |
+| `@testing-library/react` + `jsdom` | latest | **컴포넌트** 테스트를 시작할 때. `vitest` 는 이미 들어와 `domain/` 순수 함수를 덮고 있고, `vite.config.ts` 의 `test.include` 가 `.test.ts` 만 잡아 그 경계를 강제한다 |
 
 ---
 
@@ -596,7 +594,7 @@ interface Item {
 ```
 
 > **표시 문자열이 곧 타입인 문제**: 원본은 `'노출'`·`'유료'` 같은 한글 표시값을 그대로 상태값으로 쓴다. 실서버는 `VISIBLE`/`PAID` 같은 코드를 줄 가능성이 높다.
-> → **도메인 타입은 코드값(`'VISIBLE'`)으로 정의하고, 한글은 `domain/<entity>/labels.ts`의 표시 매핑으로 분리**할 것을 권장. 지금 목 데이터에서 잡아두지 않으면 API 연동 시 전 화면을 손봐야 한다. **(결정 필요 — §11)**
+> → **도메인 타입은 코드값(`'VISIBLE'`)으로 정의하고, 한글은 `domain/<entity>/labels.ts`의 표시 매핑으로 분리한다.** 목 데이터에서 잡아두지 않으면 API 연동 시 전 화면을 손봐야 한다. **(결정됨 — §11-1. 배지 tone 분기도 `labels.ts` 로 모았다)**
 
 ---
 
