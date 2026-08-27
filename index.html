@@ -19,11 +19,26 @@
       }
     </script>
 
-    <!-- TODO(docs/ARCHITECTURE.md §11-3): 폐쇄망 대비 self-host 로 교체 검토 -->
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+    <!--
+      Pretendard — 지금은 CDN.
+
+      `/gh/` 경로는 GitHub 저장소의 **태그를 그대로** 서빙한다. 태그는 옮길 수 있으므로
+      같은 URL 이 다른 내용을 줄 수 있고, 어드민 로그인 화면에 임의 CSS 가 들어오면
+      폼 위에 가짜를 덮거나 속성 선택자 + background-image 로 값을 새어 보낼 수 있다.
+      그래서 **SRI 로 바이트를 고정**한다 — 내용이 1비트라도 바뀌면 브라우저가 거부한다.
+      (cross-origin 에 SRI 를 걸려면 `crossorigin` 이 함께 있어야 한다.)
+
+      ⚠️ SRI 는 이 CSS 만 고정한다. CSS 가 상대경로로 부르는 woff2(2.0MB)는 못 덮는다.
+         완전히 닫으려면 self-host 여야 한다 — 폐쇄망 요구와 함께 처리한다.
+         TODO(docs/ARCHITECTURE.md §11-3)
+    -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css"
+      integrity="sha384-f9iEnfDmuRSuBrXQjpPibejnfJMrZ2yI+715EjxlzBsPFIpaD1NxMh1MIzthxtCh"
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
     />
   </head>
   <body>
