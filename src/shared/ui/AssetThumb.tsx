@@ -52,7 +52,15 @@ export function AssetThumb({ assetId, size = 42, paid = false, alt, className }:
         />
       ) : (
         // 원본이 잘려 빠진 에셋(as_face_9 등). 조용히 비우지 않고 표시해 둔다.
+        //
+        // ⚠️ 대체 표시에서도 `alt` 를 **접근 가능한 이름으로** 살려야 한다.
+        //    `title` 만으로는 보장되지 않는다 — 접근 가능한 이름 계산에서 최후순위이고
+        //    무시하는 스크린리더가 있다. 그러면 아이템 이름 대신 "물음표"가 읽힌다.
+        //    지금 실제로 `as_face_9`(광대코)가 이 경로를 탄다.
         <span
+          role={alt ? 'img' : undefined}
+          aria-label={alt || undefined}
+          aria-hidden={alt ? undefined : true}
           title={`에셋 없음: ${assetId}`}
           className={css({ textStyle: 'micro', color: 'faint' })}
         >

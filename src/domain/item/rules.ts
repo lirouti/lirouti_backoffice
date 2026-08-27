@@ -6,9 +6,14 @@
  */
 import type { Item, Slot, Tier } from './types'
 
-/** 판매량 상위 N개 */
+/**
+ * 판매량 상위 N개.
+ *
+ * `n` 을 그대로 `slice` 에 넘기지 않는다 — 음수면 `slice(0, -1)` 이 되어
+ * **마지막 항목만 빠진 전체 목록**이 나온다. "상위 N개" 라는 계약과 정반대다.
+ */
 export function topSelling(items: Item[], n: number): Item[] {
-  return [...items].sort((a, b) => b.sold - a.sold).slice(0, n)
+  return [...items].sort((a, b) => b.sold - a.sold).slice(0, Math.max(0, n))
 }
 
 export type ItemFilter = {

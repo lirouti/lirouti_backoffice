@@ -144,7 +144,9 @@ export type ScreenId = keyof typeof SCREENS
 
 export const SCREEN_IDS = Object.keys(SCREENS) as ScreenId[]
 
-export const isScreenId = (v: string): v is ScreenId => v in SCREENS
+// `v in SCREENS` 는 프로토타입 체인까지 본다 — 'toString' 도 true 가 되어
+// ScreenId 로 좁혀지고, 이후 SCREENS[id] 조회가 화면이 아닌 함수를 집는다.
+export const isScreenId = (v: string): v is ScreenId => Object.hasOwn(SCREENS, v)
 
 /**
  * 부모 섹션 id. 상세 화면(`item`)은 목록 화면(`items`)으로 환원된다.
