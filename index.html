@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>리루티 운영 어드민</title>
+
+    <!--
+      FOUC 방지: zustand persist 는 React 마운트 이후에 읽힌다.
+      그 전에 흰 화면이 번쩍이므로 여기서 data-theme 을 먼저 세팅한다.
+      키는 src/stores/themeStore.ts 의 THEME_KEY 와 반드시 일치해야 한다.
+    -->
+    <script>
+      try {
+        var s = JSON.parse(localStorage.getItem('riruti_admin_theme_v1'))
+        document.documentElement.dataset.theme = s?.state?.theme === 'dark' ? 'dark' : 'light'
+      } catch (e) {
+        document.documentElement.dataset.theme = 'light'
+      }
+    </script>
+
+    <!-- TODO(docs/ARCHITECTURE.md §11-3): 폐쇄망 대비 self-host 로 교체 검토 -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

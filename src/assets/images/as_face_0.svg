@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="298 -6 341 491">
+  <circle cx="420" cy="177" r="29" fill="#EAF2FE" fill-opacity="0.45"/><circle cx="514" cy="177" r="29" fill="#EAF2FE" fill-opacity="0.45"/>
+<defs><clipPath id="aface0_ga"><circle cx="420" cy="177" r="29"/></clipPath><clipPath id="aface0_gb"><circle cx="514" cy="177" r="29"/></clipPath></defs>
+<g clip-path="url(#aface0_ga)"><path d="M398,196 L424,152 L438,152 L410,200 Z" fill="#fff" opacity="0.6"/><path d="M414,202 L436,166 L444,166 L424,204 Z" fill="#fff" opacity="0.35"/></g>
+<g clip-path="url(#aface0_gb)"><path d="M492,196 L518,152 L532,152 L504,200 Z" fill="#fff" opacity="0.6"/><path d="M508,202 L530,166 L538,166 L518,204 Z" fill="#fff" opacity="0.35"/></g>
+<circle cx="420" cy="177" r="29" fill="none" stroke="#4A5570" stroke-width="6.5"/><circle cx="514" cy="177" r="29" fill="none" stroke="#4A5570" stroke-width="6.5"/>
+<circle cx="420" cy="177" r="23.5" fill="none" stroke="#7c88a4" stroke-width="2.4" opacity="0.6"/><circle cx="514" cy="177" r="23.5" fill="none" stroke="#7c88a4" stroke-width="2.4" opacity="0.6"/>
+<path d="M449,172 C459,163 475,163 485,172" fill="none" stroke="#4A5570" stroke-width="6.5" stroke-linecap="round"/>
+<circle cx="391" cy="171" r="4.5" fill="#4A5570"/><circle cx="543" cy="171" r="4.5" fill="#4A5570"/>
+<path d="M391,171 C372,173 360,180 353,189" fill="none" stroke="#4A5570" stroke-width="6" stroke-linecap="round"/>
+<path d="M543,171 C562,173 574,180 581,189" fill="none" stroke="#4A5570" stroke-width="6" stroke-linecap="round"/>
+</svg>

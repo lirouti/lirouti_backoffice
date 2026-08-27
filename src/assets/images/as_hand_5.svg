@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="298 -6 341 491">
+  <g transform="translate(576,366) scale(0.82) translate(-592,-392)"><path d="M584,404 C598,330 616,250 636,178" fill="none" stroke="#B99A6B" stroke-width="9" stroke-linecap="round"/>
+<path d="M584,404 C598,330 616,250 636,178" fill="none" stroke="#d8bd90" stroke-width="3.4" stroke-linecap="round" opacity="0.7"/>
+<path d="M600,332 l-9,-4 M612,286 l-9,-4 M624,238 l-9,-4" fill="none" stroke="#8E9BAC" stroke-width="4.5" stroke-linecap="round"/>
+<circle cx="595" cy="356" r="15" fill="#8B98A9" stroke="#5C6A7C" stroke-width="5.5"/>
+<circle cx="595" cy="356" r="5" fill="#5C6A7C"/>
+<path d="M606,352 l11,-5" fill="none" stroke="#5C6A7C" stroke-width="5" stroke-linecap="round"/>
+<circle cx="619" cy="346" r="4.5" fill="#E8757F" stroke="#5C6A7C" stroke-width="3"/>
+<path d="M636,178 C654,196 660,232 652,270 C646,300 638,326 640,352" fill="none" stroke="#9AA7B8" stroke-width="3.4" stroke-linecap="round"/>
+<ellipse cx="640" cy="360" rx="10" ry="12" fill="#E8757F"/>
+<path d="M630,360 A10,12 0 0 0 650,360 Z" fill="#F7F3E8"/>
+<ellipse cx="640" cy="360" rx="10" ry="12" fill="none" stroke="#BE6161" stroke-width="4"/>
+<ellipse cx="637" cy="354" rx="2.6" ry="3.4" fill="#fff" opacity="0.8"/></g><defs><clipPath id="ahand5_grip6" clipPathUnits="userSpaceOnUse"><ellipse cx="570" cy="358" rx="17" ry="14" transform="rotate(-24 570 358)"/></clipPath></defs><g clip-path="url(#ahand5_grip6)"></g>
+</svg>
