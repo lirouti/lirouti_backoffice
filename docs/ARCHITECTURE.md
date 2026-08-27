@@ -93,7 +93,7 @@ Vite 8  +  React 19  +  TypeScript 6  +  Panda CSS 1  +  react-router 8
 | `react-hook-form` | `^7.85.0` | 아이템 등록 / 챌린지 등록 / 지급·회수 폼 착수 시 (원본의 `f`, `cf`, `gf` state) |
 | `zod` | `^4.4.3` | 위 폼의 검증 + API 응답 파싱 |
 | `date-fns` | `^4.4.0` | 기간 설정 / 예약 발행 등 날짜 연산이 실제로 생길 때. 단순 포맷만이면 `Intl.DateTimeFormat`으로 충분하니 넣지 않는다 |
-| `@testing-library/react` + `jsdom` | latest | **컴포넌트** 테스트를 시작할 때. `vitest` 는 이미 들어와 `domain/` 순수 함수를 덮고 있고, `vite.config.ts` 의 `test.include` 가 `.test.ts` 만 잡아 그 경계를 강제한다 |
+| `@testing-library/react` `^16.3.2` + `jsdom` `^30.0.1` | 위 버전 | **컴포넌트** 테스트를 시작할 때. `vitest` 는 이미 들어와 `domain/` 순수 함수를 덮고 있다. 켤 때는 `vite.config.ts` 의 `test.include` 에 `'src/**/*.test.tsx'` 를 더하고 `test.environment` 를 `'jsdom'` 으로 바꾼다 — 지금 `.test.ts` 만 잡는 건 실수가 아니라 **그 결정을 하기 전까지 순수 함수 테스트만 존재하게 하는 경계**다 |
 
 ---
 
@@ -573,28 +573,62 @@ export async function listItems(q: ItemQuery): Promise<Paged<Item>> {
 - `src/mocks/assetTable.ts` — 원본 `A` 테이블. `[ref, name, sub, raw]` 튜플 → 명명 필드 객체로 변환. `raw`가 `'P'`로 시작하면 **유료(프리미엄)** 등급.
 - 파생 규칙도 원본 그대로: 가격 `[480,720,960,1200][i%4]`, 노출 상태 8% 미노출 / 8% 예약, 챌린지 `일상/주간/시즌` × 6개 = 18개.
 
-### 7.3 도메인 타입 (초안)
+### 7.3 도메인 타입
+
+원본은 **표시 문자열을 그대로 상태값으로** 썼다.
 
 ```ts
-type Slot = 'head' | 'body' | 'hand' | 'face'          // 머리·몸·손·얼굴
 type Tier = '무료' | '유료'
 type ItemStatus = '노출' | '예약' | '미노출'
-type ChallengeKind = '일상' | '주간' | '시즌'
-type ChallengeStatus = '진행' | '예약' | '종료'
+```
 
-interface Item {
-  key: number; code: string          // 'IT-1001'
-  assetId: string                    // src/assets/images 의 파일 id (§8)
-  name: string; sub: string
-  slot: Slot; tier: Tier; price: number
-  source: '상점' | '챌린지 보상' | '업적 보상' | '레벨 해금' | '시즌 패스'
-  sold: number; own: number          // 판매 건수, 보유율(%)
-  status: ItemStatus; season: string; made: string
+실서버는 `PAID`·`VISIBLE` 같은 코드를 줄 가능성이 높다. 한글이 곧 타입이면 API 값이
+정해지는 순간 전 화면을 손봐야 하고, 표시 문구를 다듬는 것과 상태를 바꾸는 것이
+구분되지 않는다. 그래서 **코드값으로 정의하고 한글은 `labels.ts` 로 분리한다.**
+(결정됨 — §11-1)
+
+```ts
+// src/domain/item/types.ts — React 를 모르는 순수 타입
+export type Slot = 'HEAD' | 'BODY' | 'HAND' | 'FACE'
+export type Tier = 'FREE' | 'PAID'
+export type ItemStatus = 'VISIBLE' | 'SCHEDULED' | 'HIDDEN'
+export type ItemSource = 'SHOP' | 'CHALLENGE' | 'ACHIEVEMENT' | 'LEVEL' | 'SEASON_PASS'
+
+export type Item = {
+  key: number
+  /** 표시용 코드 — 'IT-1001' */
+  code: string
+  /** 에셋 파일 id — 'as_head_0' (§8) */
+  assetId: string
+  name: string
+  sub: string
+  slot: Slot
+  tier: Tier
+  /** 젬 가격. 무료면 0 */
+  price: number
+  source: ItemSource
+  sold: number
+  /** 보유율 (%) */
+  own: number
+  status: ItemStatus
+  season: string
+  madeAt: string
 }
 ```
 
-> **표시 문자열이 곧 타입인 문제**: 원본은 `'노출'`·`'유료'` 같은 한글 표시값을 그대로 상태값으로 쓴다. 실서버는 `VISIBLE`/`PAID` 같은 코드를 줄 가능성이 높다.
-> → **도메인 타입은 코드값(`'VISIBLE'`)으로 정의하고, 한글은 `domain/<entity>/labels.ts`의 표시 매핑으로 분리한다.** 목 데이터에서 잡아두지 않으면 API 연동 시 전 화면을 손봐야 한다. **(결정됨 — §11-1. 배지 tone 분기도 `labels.ts` 로 모았다)**
+```ts
+// src/domain/item/labels.ts — 코드값 → 한글 + 배지 tone
+export const SLOT_LABEL: Record<Slot, string> = {
+  HEAD: '머리', BODY: '몸', HAND: '손', FACE: '얼굴',
+}
+```
+
+화면은 한글 문자열을 직접 쓰지 않고 이 매핑을 거친다. **배지 색(tone) 분기도 같이 둔다** —
+원본은 상태마다 `s === '노출' ? C.gFg : …` 를 화면 코드에서 골랐는데, 그 분기가
+화면마다 흩어지면 상태가 하나 늘 때 전부 찾아다녀야 한다.
+
+> `interface` 가 아니라 `type` 인 이유는 §13. 이 프로젝트에는 `.d.ts` 의 선언 병합을
+> 제외하면 `interface` 선언이 없다.
 
 ---
 
