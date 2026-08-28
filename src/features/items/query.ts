@@ -28,6 +28,14 @@ export const DEFAULT_QUERY: ItemsScreenQuery = { q: '', view: 'list', page: 1 }
 const TIERS: Tier[] = ['FREE', 'PAID']
 const VIEWS: ItemsView[] = ['grid', 'list']
 
+/**
+ * 이 검색어가 **주소에 실려 돌아올 값**. 공백뿐이면 안 실리므로 빈 문자열이 된다.
+ *
+ * `toSearchParams` 와 `useSearchDraft` 가 **같은 규칙을 봐야 한다.** 초안 쪽이
+ * "쓰면 무엇이 돌아오는가"를 잘못 짚으면, 쓴 값과 돌아온 값이 달라 초안이 덮인다.
+ */
+export const committedSearch = (q: string): string => (q.trim() ? q : '')
+
 /** 아는 값이면 그대로, 아니면 `undefined`. */
 const oneOf = <T extends string>(allowed: readonly T[], v: string | null): T | undefined =>
   v !== null && (allowed as readonly string[]).includes(v) ? (v as T) : undefined
@@ -68,7 +76,8 @@ export function parseItemsQuery(params: URLSearchParams): ItemsScreenQuery {
 export function toSearchParams(query: ItemsScreenQuery): URLSearchParams {
   const params = new URLSearchParams()
 
-  if (query.q.trim()) params.set('q', query.q)
+  const q = committedSearch(query.q)
+  if (q) params.set('q', q)
   if (query.slot) params.set('slot', query.slot)
   if (query.tier) params.set('tier', query.tier)
   if (query.view !== DEFAULT_QUERY.view) params.set('view', query.view)
@@ -93,4 +102,4 @@ export function patchQuery(
 
 /** 조건이 하나라도 걸려 있는가. 「필터 초기화」를 보일지 정한다. */
 export const hasFilter = (q: ItemsScreenQuery): boolean =>
-  Boolean(q.q.trim() || q.slot || q.tier)
+  Boolean(committedSearch(q.q) || q.slot || q.tier)

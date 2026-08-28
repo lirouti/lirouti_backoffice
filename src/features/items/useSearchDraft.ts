@@ -12,6 +12,8 @@
  */
 import { useEffect, useRef, useState } from 'react'
 
+import { committedSearch } from './query'
+
 /** 마지막 타건 뒤 이만큼 조용하면 주소에 쓴다. */
 const QUIET_MS = 250
 
@@ -38,9 +40,10 @@ export function useSearchDraft(
   })
 
   useEffect(() => {
-    // **다듬어서 같으면 쓰지 않는다.** 공백만 친 상태(`' '` vs `''`)를 쓰면
-    // 주소가 그 값을 안 실어 초안이 다시 덮인다 — 고치려던 그 버그다.
-    if (draft.trim() === committed.trim()) return
+    // **써 봐야 주소가 같은 값이면 쓰지 않는다.** 두 가지를 한꺼번에 막는다.
+    //   · 끝 공백만 더한 경우도 주소가 따라간다 (`왕실` → `왕실 `)
+    //   · 공백만 친 상태(`'   '` vs `''`)는 주소가 안 실으므로 매번 다시 쓰는 무한 반복이 안 된다
+    if (committedSearch(draft) === committed) return
 
     const id = window.setTimeout(() => commitRef.current(draft), QUIET_MS)
     return () => window.clearTimeout(id)
@@ -53,9 +56,10 @@ export function useSearchDraft(
   // 커밋 전에 다시 돌아 깜빡임이 없다.
   if (committed !== seen) {
     setSeen(committed)
-    // 다듬어서 같으면 같은 검색어다 — 우리가 쓴 `'   '` 이 `''` 로 돌아온 경우라
-    // 초안을 건드리면 안 된다.
-    if (committed.trim() !== draft.trim()) setDraft(committed)
+    // **우리가 쓴 것이 그대로 돌아온 것이면** 초안을 건드리지 않는다
+    // (`'   '` 을 썼는데 `''` 이 돌아온 경우). 그 외에는 밖에서 바뀐 것이므로 따른다 —
+    // 공백만 다른 주소로 앞뒤 이동한 경우도 여기서 따라가야 한다.
+    if (committedSearch(draft) !== committed) setDraft(committed)
   }
 
   return [draft, setDraft]

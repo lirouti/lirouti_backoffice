@@ -6,6 +6,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  committedSearch,
   DEFAULT_QUERY,
   hasFilter,
   parseItemsQuery,
@@ -51,6 +52,22 @@ describe('parseItemsQuery', () => {
 
   it('⚠️ 검색어의 공백을 건드리지 않는다 — 입력창의 값이 이 결과다', () => {
     expect(parse('q=%20%20로브%20%20').q).toBe('  로브  ')
+  })
+})
+
+describe('committedSearch', () => {
+  // 주소에 쓰는 쪽과 초안을 잇는 쪽이 **같은 규칙**을 봐야 한다. 초안 쪽이
+  // "쓰면 무엇이 돌아오는가" 를 잘못 짚으면 쓴 값과 돌아온 값이 달라 초안이 덮인다.
+  it('공백뿐이면 빈 문자열, 아니면 그대로', () => {
+    expect(committedSearch('   ')).toBe('')
+    expect(committedSearch('')).toBe('')
+    expect(committedSearch(' 왕실 벨벳 ')).toBe(' 왕실 벨벳 ')
+    expect(committedSearch('왕실')).toBe('왕실')
+  })
+
+  it('⚠️ `trim()` 과 다르다 — 끝 공백만 더한 편집도 주소에 반영돼야 한다', () => {
+    expect(committedSearch('왕실 ')).not.toBe(committedSearch('왕실'))
+    expect('왕실 '.trim()).toBe('왕실'.trim())
   })
 })
 
