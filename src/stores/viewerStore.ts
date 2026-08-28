@@ -21,6 +21,13 @@ type ViewerState = {
   preview: (name: string, scopes: ScopeId[]) => void
   /** 미리보기 종료 */
   exit: () => void
+  /**
+   * **서버를 부르지 않고** 로컬 세션만 끊는다.
+   *
+   * 401 을 받은 상황에서 쓴다 — 서버가 이미 "끊겼다"고 답했으므로 로그아웃을
+   * 다시 요청할 이유가 없고, 그 요청이 또 401 이면 핸들러로 되돌아와 맴돈다.
+   */
+  clear: () => void
 }
 
 /**
@@ -55,6 +62,7 @@ export const useViewerStore = create<ViewerState>()(
           viewer: { role: 'operator', name, email: s.viewer?.email ?? TOP_VIEWER.email, scopes },
         })),
       exit: () => set({ viewer: TOP_VIEWER }),
+      clear: () => set({ viewer: null }),
     }),
     { name: 'riruti_admin_view_v2' },
   ),
