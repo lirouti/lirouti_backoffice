@@ -19,15 +19,10 @@ import { useDirtyStore } from './dirtyStore'
  * ```
  */
 export type OpenTab = {
-  /** 탭의 정체성 — 사이드바에 있는 서브 메뉴 화면 */
+  /** 탭의 정체성 — 사이드바에 있는 서브 메뉴 화면. 라벨도 여기서 나온다 */
   screen: ScreenId
   /** 이 탭이 **지금 보고 있는** 경로. 파생 화면으로 들어가면 바뀐다 */
   path: string
-  /**
-   * 파생 화면에 있을 때 그 화면의 사람이 읽을 이름 ("후드").
-   * 화면이 데이터를 받은 뒤 `setLabel` 로 채운다. 서브 메뉴로 돌아오면 지워진다.
-   */
-  label?: string
 }
 
 /**
@@ -78,8 +73,6 @@ type TabsState = {
   open: (path: string) => void
   /** 서브 메뉴 단위로 닫는다 */
   close: (screen: ScreenId) => void
-  /** 파생 화면이 데이터를 받은 뒤 사람이 읽을 이름을 채운다 */
-  setLabel: (path: string, label: string) => void
 }
 
 export const useTabsStore = create<TabsState>()(
@@ -96,7 +89,7 @@ export const useTabsStore = create<TabsState>()(
           const existing = s.tabs.find((t) => t.screen === section)
           if (existing) {
             if (existing.path === path) return s
-            // 같은 탭 안에서 화면이 바뀐 것이다. 라벨은 새 화면이 다시 채운다.
+            // 같은 탭 안에서 화면이 바뀐 것이다. 탭은 그대로 두고 경로만 갈아 끼운다.
             return {
               tabs: s.tabs.map((t) => (t.screen === section ? { screen: section, path } : t)),
             }
@@ -116,21 +109,13 @@ export const useTabsStore = create<TabsState>()(
         }),
 
       close: (screen) => set((s) => ({ tabs: s.tabs.filter((t) => t.screen !== screen) })),
-
-      setLabel: (path, label) =>
-        set((s) => {
-          const t = s.tabs.find((x) => x.path === path)
-          if (!t || t.label === label) return s
-          return { tabs: s.tabs.map((x) => (x.path === path ? { ...x, label } : x)) }
-        }),
     }),
     {
       // ⚠️ **키를 올리지 않는다.** 올리면 `merge` 에 새 키의 값만 들어와서 이미 열어 둔
       //    탭이 배포와 함께 통째로 사라진다. 모양이 바뀐 건 아래 `merge` 가 흡수한다 —
       //    저장된 것에서 읽는 건 `path` 뿐이고 나머지는 다시 계산한다.
       name: 'riruti_admin_tabs_v2',
-      // 라벨은 저장하지 않는다. 화면이 마운트하면서 다시 채우고, 예전에 저장된 라벨
-      // ("아이템 상세 #3")은 지금 규칙과 뜻이 달라 그대로 쓰면 이상하게 보인다.
+      // 저장하는 건 이 둘뿐이다. 라벨은 `screen` 에서 나온다.
       partialize: (s) => ({ tabs: s.tabs.map(({ screen, path }) => ({ screen, path })) }),
       // 저장된 경로가 더 이상 어떤 화면에도 매칭되지 않을 수 있다 (화면 삭제·경로 변경).
       merge: (persisted, current) => {

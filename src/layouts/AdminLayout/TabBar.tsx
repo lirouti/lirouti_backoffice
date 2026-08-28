@@ -79,19 +79,13 @@ function sectionOfPath(pathname: string): ScreenId | null {
 }
 
 /**
- * 탭에 쓸 이름.
+ * 탭에 쓸 이름 — **서브 메뉴 이름 그대로.**
  *
- * 서브 메뉴 이름이 뿌리고, 파생 화면에 들어가 있으면 `›` 로 덧붙인다 —
- * 탭이 늘지 않는 대신 **탭만 봐도 상세에 있는지 알 수 있어야** 한다.
- * 화면이 `setLabel` 로 사람이 읽을 이름을 채우기 전에는 화면 이름을 쓴다.
+ * 파생 화면에 들어가도 바뀌지 않는다. 한때 `아이템 목록 › 아이템 상세` 처럼 덧붙였는데,
+ * **화면 이름 둘을 이어 붙이니 읽기 나빴고** 어차피 브레드크럼이 같은 것을 이미 말한다
+ * (`리루티 › 아이템 › 아이템 목록 › 아이템 상세`). 탭은 "어느 메뉴에 있는가"만 맡는다.
  */
-function tabLabel(tab: OpenTab): string {
-  const base = SCREENS[tab.screen].label
-  if (tab.path === SCREENS[tab.screen].path) return base
-
-  const derived = matchScreen(tab.path)
-  return `${base} › ${tab.label ?? (derived ? SCREENS[derived].label : '')}`
-}
+const tabLabel = (tab: OpenTab): string => SCREENS[tab.screen].label
 
 export function TabBar() {
   const navigate = useNavigate()
