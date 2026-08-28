@@ -1,7 +1,7 @@
 import { css, cva, cx } from 'styled-system/css'
 
 import { count, num } from '@/shared/lib/format'
-import { pageCount, pageRange } from '@/shared/lib/pagination'
+import { clampPage, pageCount, pageRange } from '@/shared/lib/pagination'
 
 /** 화살표 넷이 크기·색·포커스 링을 공유한다. */
 const arrow = cva({
@@ -87,7 +87,9 @@ export function Pagination({ page, perPage, totalItems, onChange, className }: P
   if (!range) return null
 
   const totalPages = pageCount(totalItems, perPage)
-  const current = Math.min(Math.max(page, 1), totalPages)
+  // 표시(`4 / 20`)·화살표 잠금·`onChange` 가 모두 이 값을 쓴다. 여기서 따로 자르면
+  // `pageRange` 가 낸 구간(`61–80`)과 갈라진다.
+  const current = clampPage(page, totalPages)
   // `20 / 20` 처럼 가장 긴 조합에 맞춰 미리 자리를 잡는다.
   const positionWidth = 30 + String(totalPages).length * 2 * 8
 

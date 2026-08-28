@@ -330,8 +330,13 @@ export function Select({
         </svg>
       </button>
 
-      {/* 폼 제출용. 리스트박스는 폼 컨트롤이 아니라서 값이 실리지 않는다. */}
-      {name && <input type="hidden" name={name} value={value} />}
+      {/*
+        폼 제출용. 리스트박스는 폼 컨트롤이 아니라서 값이 실리지 않는다.
+        `disabled` 를 그대로 넘긴다 — 네이티브 `<select disabled>` 는 값을 제출하지
+        않으므로, 안 넘기면 잠긴 필드가 조용히 값을 실어 보낸다. 숨은 입력에도
+        `disabled` 는 적용된다 (`FormData` 로 확인).
+      */}
+      {name && <input type="hidden" name={name} value={value} disabled={disabled} />}
 
       <ul
         ref={listRef}

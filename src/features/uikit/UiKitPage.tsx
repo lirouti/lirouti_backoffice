@@ -17,13 +17,14 @@ import { Table, type Column } from '@/shared/ui/Table'
 
 import { useUnsavedGuard } from '@/stores/dirtyStore'
 
+/** `slot` 은 **값**을 담는다. 화면에 보이는 이름은 `SLOT_LABEL` 이 준다. */
 type Row = { code: string; name: string; slot: string; sold: number }
 
 /** 표에 보여줄 더미. 부품의 모양만 보는 자리라 목 데이터를 부르지 않는다. */
 const ROWS: Row[] = [
-  { code: 'IT-1001', name: '안경', slot: '얼굴', sold: 3589 },
-  { code: 'IT-1002', name: '왕실 벨벳 망토', slot: '몸', sold: 3553 },
-  { code: 'IT-1003', name: '산호 티아라', slot: '머리', sold: 3518 },
+  { code: 'IT-1001', name: '안경', slot: 'face', sold: 3589 },
+  { code: 'IT-1002', name: '왕실 벨벳 망토', slot: 'body', sold: 3553 },
+  { code: 'IT-1003', name: '산호 티아라', slot: 'head', sold: 3518 },
 ]
 
 const SLOTS = [
@@ -33,10 +34,12 @@ const SLOTS = [
   { value: 'back', label: '등' },
 ]
 
+const SLOT_LABEL = Object.fromEntries(SLOTS.map((s) => [s.value, s.label]))
+
 const COLUMNS: Column<Row>[] = [
   { key: 'code', label: '코드', width: '110px', nowrap: true, strong: true },
   { key: 'name', label: '이름', minWidth: '200px', truncate: true },
-  { key: 'slot', label: '슬롯', width: '90px' },
+  { key: 'slot', label: '슬롯', width: '90px', render: (r) => SLOT_LABEL[r.slot] ?? r.slot },
   { key: 'sold', label: '판매', width: '100px', align: 'right', render: (r) => r.sold.toLocaleString() },
 ]
 
@@ -58,6 +61,10 @@ export default function UiKitPage() {
   const [ask, setAsk] = useState<'none' | 'default' | 'danger'>('none')
 
   useUnsavedGuard(unsaved)
+
+  // 안내가 "고르면 목록이 걸러집니다" 라면 실제로 걸러져야 한다.
+  // 눌러도 아무 일이 없는 필터는 "이 도구는 고장났다"를 학습시킨다.
+  const rows = slot ? ROWS.filter((r) => r.slot === slot) : ROWS
 
   return (
     <div className={css({ display: 'flex', flexDirection: 'column', gap: '14px', maxWidth: '1100px' })}>
@@ -117,6 +124,16 @@ export default function UiKitPage() {
             required
             className={css({ flex: '0 1 180px' })}
           />
+          <Select
+            value="body"
+            onChange={() => undefined}
+            label="고정 슬롯"
+            options={SLOTS}
+            hint="권한이 없습니다"
+            name="fixedSlot"
+            disabled
+            className={css({ flex: '0 1 180px' })}
+          />
         </div>
         <div className={css({ mt: '14px' })}>
           <Segmented
@@ -136,12 +153,21 @@ export default function UiKitPage() {
         <CardTitle title="표" sub="Table — 행을 누르거나 Enter" />
         <Table
           columns={COLUMNS}
-          rows={ROWS}
+          rows={rows}
           rowKey={(r) => r.code}
           minWidth={620}
           onRowClick={() => undefined}
           className={css({ mt: '14px' })}
         />
+      </Card>
+
+      <Card className={css({ p: '17px 19px' })}>
+        {/*
+          표와 같은 카드에 두지 않는다 — 위 표는 슬롯 필터로 걸러지는 3행짜리 더미고
+          여기 숫자는 384건짜리 가짜다. 붙여 두면 서로 딸린 숫자처럼 읽혀서
+          "1행인데 384건 중 61–80" 이 된다.
+        */}
+        <CardTitle title="페이지 바" sub="Pagination — 옮겨도 폭이 변하지 않는다" />
         <Pagination
           page={page}
           perPage={20}

@@ -1,7 +1,26 @@
 /** 페이지 계산. 마지막 쪽의 나머지와 범위 밖 입력이 전부다. */
 import { describe, expect, it } from 'vitest'
 
-import { pageCount, pageRange } from './pagination'
+import { clampPage, pageCount, pageRange } from './pagination'
+
+describe('clampPage', () => {
+  it('1 이상 totalPages 이하의 정수로 만든다', () => {
+    expect(clampPage(0, 20)).toBe(1)
+    expect(clampPage(99, 20)).toBe(20)
+    expect(clampPage(2.9, 20)).toBe(2)
+    expect(clampPage(NaN, 20)).toBe(1)
+  })
+
+  it('URL 파라미터처럼 문자열로 와도 받는다 — 3쪽을 보려는데 1쪽이 뜨면 안 된다', () => {
+    expect(clampPage('3' as unknown as number, 20)).toBe(3)
+    expect(clampPage('' as unknown as number, 20)).toBe(1)
+    expect(clampPage('abc' as unknown as number, 20)).toBe(1)
+  })
+
+  it('totalPages 가 0 이어도 1 아래로 내려가지 않는다', () => {
+    expect(clampPage(5, 0)).toBe(1)
+  })
+})
 
 describe('pageCount', () => {
   it('나머지가 있으면 한 장 더', () => {
@@ -43,6 +62,23 @@ describe('pageRange', () => {
   it('범위를 벗어난 page 는 안쪽으로 당긴다', () => {
     expect(pageRange(0, 20, 384)).toEqual(pageRange(1, 20, 384))
     expect(pageRange(99, 20, 384)).toEqual(pageRange(20, 20, 384))
+  })
+
+  it('소수 쪽은 잘라 쓴다 — 2.5쪽이 31–50 이 되면 안 된다', () => {
+    expect(pageRange(2.5, 20, 384)).toEqual(pageRange(2, 20, 384))
+    expect(pageRange(2.9, 20, 384)).toEqual({ from: 21, to: 40 })
+  })
+
+  it('셀 수 없는 값은 첫 쪽으로', () => {
+    for (const bad of [NaN, Infinity, -Infinity]) {
+      expect(pageRange(bad, 20, 384)).toEqual({ from: 1, to: 20 })
+    }
+  })
+
+  it('perPage 가 소수여도 구간이 정수로 나온다', () => {
+    const r = pageRange(2, 7.5, 384)!
+    expect(Number.isInteger(r.from) && Number.isInteger(r.to)).toBe(true)
+    expect(r).toEqual({ from: 8, to: 14 })
   })
 
   it('보여줄 것이 없으면 null', () => {
