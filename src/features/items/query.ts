@@ -39,12 +39,18 @@ const oneOf = <T extends string>(allowed: readonly T[], v: string | null): T | u
  *    `?slot=WING` 이나 `?view=hologram` 이 화면을 깨뜨리면 안 된다.
  *    쪽 번호는 여기서 자르지 않는다. 전체 쪽 수를 알아야 자를 수 있고,
  *    그건 `Pagination`·`pageRange` 가 `clampPage` 로 한다 (§9).
+ *
+ * ⚠️ **검색어를 손대지 않는다.** 입력창의 값이 이 함수의 결과라서, 여기서 `trim()`
+ *    하면 **사용자가 친 공백이 화면에서 사라진다.** `왕실 벨벳` 을 치면 공백이
+ *    먹혀 `왕실벨벳` 이 되고, 이 목록의 아이템 이름은 전부 공백을 포함해서
+ *    검색이 아예 안 됐다. 다듬는 것은 **주소에 쓸 때**(`toSearchParams`)와
+ *    **거를 때**(`filterItems`)가 한다.
  */
 export function parseItemsQuery(params: URLSearchParams): ItemsScreenQuery {
   const page = Number(params.get('page'))
 
   return {
-    q: params.get('q')?.trim() ?? DEFAULT_QUERY.q,
+    q: params.get('q') ?? DEFAULT_QUERY.q,
     slot: oneOf(SLOT_ORDER, params.get('slot')),
     tier: oneOf(TIERS, params.get('tier')),
     view: oneOf(VIEWS, params.get('view')) ?? DEFAULT_QUERY.view,
@@ -52,11 +58,17 @@ export function parseItemsQuery(params: URLSearchParams): ItemsScreenQuery {
   }
 }
 
-/** 화면 상태를 주소로 쓴다. **기본값은 적지 않는다.** */
+/**
+ * 화면 상태를 주소로 쓴다. **기본값은 적지 않는다.**
+ *
+ * 공백뿐인 검색어도 안 적는다 — 거르는 쪽에서 어차피 무시하는데(`filterItems` 가
+ * `trim()` 한다) 주소에만 `?q=+++` 가 남으면 조건이 걸린 것처럼 보인다.
+ * 값 자체는 그대로 쓴다. `왕실 벨벳 ` 의 끝 공백을 여기서 털면 입력창에서도 사라진다.
+ */
 export function toSearchParams(query: ItemsScreenQuery): URLSearchParams {
   const params = new URLSearchParams()
 
-  if (query.q) params.set('q', query.q)
+  if (query.q.trim()) params.set('q', query.q)
   if (query.slot) params.set('slot', query.slot)
   if (query.tier) params.set('tier', query.tier)
   if (query.view !== DEFAULT_QUERY.view) params.set('view', query.view)
@@ -80,4 +92,5 @@ export function patchQuery(
 }
 
 /** 조건이 하나라도 걸려 있는가. 「필터 초기화」를 보일지 정한다. */
-export const hasFilter = (q: ItemsScreenQuery): boolean => Boolean(q.q || q.slot || q.tier)
+export const hasFilter = (q: ItemsScreenQuery): boolean =>
+  Boolean(q.q.trim() || q.slot || q.tier)

@@ -49,8 +49,23 @@ describe('parseItemsQuery', () => {
     }
   })
 
-  it('검색어는 앞뒤 공백을 턴다', () => {
-    expect(parse('q=%20%20로브%20%20').q).toBe('로브')
+  it('⚠️ 검색어의 공백을 건드리지 않는다 — 입력창의 값이 이 결과다', () => {
+    expect(parse('q=%20%20로브%20%20').q).toBe('  로브  ')
+  })
+})
+
+describe('타이핑 왕복', () => {
+  // 입력창은 `parse` 의 결과를 그대로 그린다. `parse` 가 `trim()` 하면 사용자가 친
+  // 공백이 화면에서 사라지고, 이 목록의 아이템 이름은 전부 공백을 포함한다.
+  const type = (text: string) => {
+    let shown = ''
+    for (const ch of text) shown = parseItemsQuery(toSearchParams({ ...DEFAULT_QUERY, q: shown + ch })).q
+    return shown
+  }
+
+  it('공백이 든 이름을 그대로 칠 수 있다', () => {
+    expect(type('왕실 벨벳')).toBe('왕실 벨벳')
+    expect(type('성좌의 로브')).toBe('성좌의 로브')
   })
 })
 
@@ -58,6 +73,15 @@ describe('toSearchParams', () => {
   it('기본값은 적지 않는다 — 첫 진입부터 주소창이 지저분해지면 안 된다', () => {
     expect(write(DEFAULT_QUERY)).toBe('')
     expect(write({ ...DEFAULT_QUERY, view: 'list', page: 1 })).toBe('')
+  })
+
+  it('공백뿐인 검색어는 적지 않는다 — 조건이 걸린 것처럼 보인다', () => {
+    expect(write({ ...DEFAULT_QUERY, q: '   ' })).toBe('')
+    expect(write({ ...DEFAULT_QUERY, q: '\t\n' })).toBe('')
+  })
+
+  it('값 자체는 다듬지 않는다 — 끝 공백을 털면 입력창에서도 사라진다', () => {
+    expect(write({ ...DEFAULT_QUERY, q: '왕실 ' })).toBe('q=%EC%99%95%EC%8B%A4+')
   })
 
   it('기본과 다른 것만 적는다', () => {
@@ -103,6 +127,8 @@ describe('hasFilter', () => {
     expect(hasFilter(DEFAULT_QUERY)).toBe(false)
     expect(hasFilter({ ...DEFAULT_QUERY, view: 'grid', page: 9 })).toBe(false)
     expect(hasFilter({ ...DEFAULT_QUERY, q: '로브' })).toBe(true)
+    // 공백뿐이면 거르는 쪽이 무시하므로 「필터 초기화」를 띄울 이유가 없다
+    expect(hasFilter({ ...DEFAULT_QUERY, q: '   ' })).toBe(false)
     expect(hasFilter({ ...DEFAULT_QUERY, slot: 'HEAD' })).toBe(true)
     expect(hasFilter({ ...DEFAULT_QUERY, tier: 'FREE' })).toBe(true)
   })

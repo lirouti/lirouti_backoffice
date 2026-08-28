@@ -189,9 +189,12 @@ export default function ItemsPage() {
 
           <div className={css({ flex: '1' })} />
 
-          {/* 걸러진 전체 건수. 페이지 바의 `384건 중 61–80` 과 달리 필터의 결과를 말한다 */}
+          {/*
+            걸러진 전체 건수. 페이지 바의 `50건 중 1–12` 와 달리 필터의 결과를 말한다.
+            아직 못 받았으면 `—` 다 — 못 불러온 것을 "총 0건" 이라고 하면 안 된다.
+          */}
           <span className={css({ textStyle: 'caption', color: 'sub' })}>
-            총 <b className={css({ color: 'ink' })}>{count(total)}</b>
+            총 <b className={css({ color: 'ink' })}>{data ? count(total) : '—'}</b>
           </span>
 
           <Segmented
@@ -205,9 +208,16 @@ export default function ItemsPage() {
 
       {error && <ErrorBanner message={error.message} />}
 
+      {/*
+        ⚠️ **아직 아무것도 못 받았으면 배너만 남긴다.** 조회가 실패해도 `isPending` 은
+           false 이고 `items` 는 빈 배열이라, 그냥 두면 오류 배너 아래에 "조건에 맞는
+           아이템이 없습니다" 가 같이 뜬다 — **걸러서 없는 것과 못 불러온 것이 구분되지
+           않는다.** 반대로 데이터가 있는 채로 재조회만 실패한 경우에는 이전 결과를
+           그대로 두는 게 맞다(배너가 따로 알린다).
+      */}
       {isPending ? (
         <Skeleton rows={6} />
-      ) : items.length === 0 ? (
+      ) : !data ? null : items.length === 0 ? (
         <EmptyState
           icon={<Icon name="ic_shirt" size={22} />}
           title="조건에 맞는 아이템이 없습니다"
