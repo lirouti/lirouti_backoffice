@@ -45,12 +45,21 @@ export function Input({
   suffix,
   size = 'md',
   className,
+  // `...rest` 는 아래에서 **먼저** 펼친다. 그런데 이 둘만은 우리가 label·메시지와
+  // 이어 붙여야 해서 따로 꺼낸다 — 그냥 덮어쓰게 두면 호출자가 `id` 를 줬을 때
+  // `<label htmlFor>` 이 다른 것을 가리키고, `aria-describedby` 를 줬을 때
+  // error·hint 연결이 통째로 사라진다.
+  id: idProp,
+  'aria-describedby': describedByProp,
   ...rest
 }: InputProps) {
-  const id = useId()
+  const autoId = useId()
 
-  const describedBy = error ? `${id}-error` : hint ? `${id}-hint` : undefined
+  const id = idProp ?? autoId
   const lg = size === 'lg'
+  const ownDescribedBy = error ? `${id}-error` : hint ? `${id}-hint` : undefined
+  // 바깥 설명과 우리 메시지를 **둘 다** 남긴다. aria-describedby 는 공백으로 여러 개를 받는다.
+  const describedBy = [describedByProp, ownDescribedBy].filter(Boolean).join(' ') || undefined
 
   return (
     <div className={className}>
@@ -93,6 +102,7 @@ export function Input({
           </span>
         )}
         <input
+          {...rest}
           id={id}
           value={value}
           onChange={(e) => onChange(e.target.value)}
@@ -134,7 +144,6 @@ export function Input({
             borderTopRightRadius: suffix ? 0 : undefined,
             borderBottomRightRadius: suffix ? 0 : undefined,
           }}
-          {...rest}
         />
         {suffix && (
           <span

@@ -64,7 +64,18 @@ export default function UiKitPage() {
             className={css({ flex: '1 1 240px' })}
           />
           <Input value="720" onChange={() => undefined} label="가격" suffix="젬" required className={css({ flex: '0 1 180px' })} />
-          <Input value="" onChange={() => undefined} label="코드" error="이미 쓰고 있는 코드입니다" className={css({ flex: '0 1 200px' })} />
+          <Input
+            value=""
+            onChange={() => undefined}
+            label="코드"
+            error="이미 쓰고 있는 코드입니다"
+            id="uikit-code"
+            aria-describedby="uikit-extra"
+            className={css({ flex: '0 1 200px' })}
+          />
+          <span id="uikit-extra" className={css({ srOnly: true })}>
+            바깥에서 준 설명
+          </span>
         </div>
         <div className={css({ mt: '14px' })}>
           <Segmented
