@@ -108,11 +108,18 @@ export async function verifyTotp(v: TotpVerification): Promise<Viewer> {
 }
 
 export async function logout(): Promise<void> {
-  // 로그아웃 요청의 401 은 "이미 끊겨 있다"는 답이지 새로 알릴 사건이 아니다.
-  // 빼지 않으면 인터셉터 → 401 핸들러 → signOut → logout 으로 **되돌아온다**.
-  if (!USE_MOCK) await http.post('/admin/auth/logout', undefined, { skipSessionExpiry: true })
-  // 다른 계정으로 다시 들어왔을 때 이전 사용자의 데이터가 보이면 안 된다.
-  queryClient.clear()
+  try {
+    // 로그아웃 요청의 401 은 "이미 끊겨 있다"는 답이지 새로 알릴 사건이 아니다.
+    // 빼지 않으면 인터셉터 → 401 핸들러 → signOut → logout 으로 **되돌아온다**.
+    if (!USE_MOCK) await http.post('/admin/auth/logout', undefined, { skipSessionExpiry: true })
+  } finally {
+    // **서버 호출이 실패해도 캐시는 반드시 비운다.** 500 이나 네트워크 끊김으로
+    // 여기 도달하지 못하면 이전 사용자의 데이터가 캐시에 남고, 다음 사람이
+    // 로그인했을 때 리페치 전에 그게 먼저 그려진다. 권한이 다른 계정이면
+    // 볼 수 없어야 할 화면의 내용이 스쳐 지나간다.
+    // `viewerStore.signOut` 도 같은 이유로 finally 에서 세션을 끊는다.
+    queryClient.clear()
+  }
 }
 
 /**
