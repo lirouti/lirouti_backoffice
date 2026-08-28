@@ -76,7 +76,7 @@ type SelectProps = {
  *    `popover="auto"` 라서 **바깥 클릭과 Esc 는 브라우저가 처리**하고 포커스도
  *    스스로 트리거로 돌려준다 — 우리가 다시 만들면 어긋날 자리다.
  *
- * ⚠️ **keep-alive 와 맞물린다.** 비활성 탭은 DOM 에서 분리되는데(docs/ARCHITECTURE.md §10)
+ * ⚠️ **keep-alive 와 맞물린다.** 비활성 탭은 DOM 에서 분리되는데(docs/ARCHITECTURE.md §6.3)
  *    분리된 노드에 `showPopover()` 를 부르면 throw 한다. `isConnected` 로 막는다.
  */
 export function Select({
