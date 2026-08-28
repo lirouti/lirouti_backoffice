@@ -44,7 +44,9 @@ const LEDGER_COLUMNS: Column<LedgerEntry>[] = [
     render: (e) => <Badge tone={LEDGER_KIND_TONE[e.kind]}>{LEDGER_KIND_LABEL[e.kind]}</Badge>,
   },
   { key: 'target', label: '대상', width: '130px', strong: true },
-  { key: 'qty', label: '수량', width: '80px', align: 'right', render: (e) => num(e.qty) },
+  // 「수량」 만 두면 "한 사람이 21개 받았다" 로 읽힌다. 착용 아이템은 계정당 하나뿐이라
+  // 이 숫자는 **몇 계정에 나갔는가** 다 (docs/ARCHITECTURE.md §18.6).
+  { key: 'qty', label: '계정 수', width: '84px', align: 'right', render: (e) => num(e.qty) },
   { key: 'reason', label: '사유', minWidth: '160px', truncate: true },
   { key: 'by', label: '처리자', width: '90px' },
 ]
