@@ -10,6 +10,7 @@ import { AdminLayout } from '@/layouts/AdminLayout'
 // lazy 로 만들면 왕복이 한 번 더 늘고 Suspense 폴백이 깜빡인다.
 // 측정: lazy 138.02KB/4요청 → eager 135.92KB/2요청 (docs/ARCHITECTURE.md §9.2)
 import LoginPage from '@/features/auth/LoginPage'
+import { EmptyWorkspace } from '@/features/EmptyWorkspace'
 import { PlaceholderPage } from '@/features/PlaceholderPage'
 
 import { RequireAuth } from './RequireAuth'
@@ -49,7 +50,10 @@ export const router = createBrowserRouter([
       </RequireAuth>
     ),
     children: [
-      { index: true, element: <Navigate to={SCREENS.dash.path} replace /> },
+      // `/` 는 **열린 탭이 없는 상태**다. 지표로 보내지 않는다 — 마지막 탭을 닫았을 때
+      // 갈 곳이 필요하고, 어느 화면에도 매칭되지 않아야 사이드바·브레드크럼이 꺼진다.
+      // 로그인 뒤에는 `firstScreen` 이 화면 경로로 보내므로 여기로 오지 않는다.
+      { index: true, element: <EmptyWorkspace /> },
       ...screenRoutes,
     ],
   },

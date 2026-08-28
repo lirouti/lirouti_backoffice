@@ -170,11 +170,12 @@ export function TabBar() {
 
   const closeTab = (tab: OpenTab) => {
     close(tab.screen)
-    // 활성 탭을 닫으면 남은 마지막 탭으로 이동한다.
-    if (tab.screen === activeSection) {
-      const next = shown.filter((t) => t.screen !== tab.screen).at(-1)
-      if (next) navigate(next.path)
-    }
+    if (tab.screen !== activeSection) return
+
+    // 활성 탭을 닫으면 남은 마지막 탭으로 간다. 남은 게 없으면 `/` —
+    // **경로를 그대로 두면 사이드바가 방금 닫은 화면을 계속 가리킨다.**
+    const next = shown.filter((t) => t.screen !== tab.screen).at(-1)
+    navigate(next ? next.path : '/')
   }
 
   const onClose = (tab: OpenTab) => {
