@@ -1,3 +1,9 @@
+/**
+ * 상태 배지.
+ *
+ * 색(tone)은 `shared/ui/tone` 의 어휘를 쓴다. **도메인 상태값을 받지 않는다** —
+ * 코드값 → tone 매핑은 `domain/<entity>/labels.ts` 의 일이다 (§4.4).
+ */
 import type { ReactNode } from 'react'
 
 import { css, cva } from 'styled-system/css'

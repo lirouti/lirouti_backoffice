@@ -1,3 +1,9 @@
+/**
+ * 지표 화면.
+ *
+ * 원본 디자인의 첫 화면이고 유일하게 차트를 쓴다. recharts 를 안고 있어 청크가
+ * gzip 111KB 라, 라우터에서 lazy 로 두는 것이 전제다 (§9.2).
+ */
 import { css } from 'styled-system/css'
 
 import { Button } from '@/shared/ui/Button'
@@ -32,8 +38,8 @@ export default function DashboardPage() {
           **비활성으로 표시**한다. 지우지 않는 이유는 자리와 크기가 디자인 대조에
           쓰이고, 붙일 곳이 명확해서다 (로그인 화면의 "비밀번호 재설정"과 같은 처리).
 
-          TODO: 기간 설정 → useSearchParams 기반 기간 필터
-                리포트 내보내기 → 서버 집계 엔드포인트가 생긴 뒤
+          TODO(useSearchParams 필터 도입 시): 기간 설정
+          TODO(서버 집계 엔드포인트가 생기면): 리포트 내보내기
         */}
         <div className={css({ display: 'flex', gap: '8px' })}>
           <Button disabled title="준비 중">

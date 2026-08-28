@@ -1,3 +1,10 @@
+/**
+ * 사이드바 — 내비 트리와 하단 프로필.
+ *
+ * 트리는 `domain/nav` 에서 오고 권한 필터는 `useScopedNav` 가 한다.
+ * ⚠️ **`layouts` 는 `api` 를 부를 수 없다** (§4.3). 로그아웃은 `setSignOutHandler`
+ *    로 주입받는다 — 401 핸들러와 같은 패턴이다.
+ */
 import { NavLink, useNavigate } from 'react-router'
 
 import { css } from 'styled-system/css'

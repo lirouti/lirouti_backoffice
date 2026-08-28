@@ -1,3 +1,8 @@
+/**
+ * 진행 중 챌린지 달성률 카드.
+ *
+ * "진행 중" 판정은 `domain/challenge` 의 `activeChallenges` 가 한다.
+ */
 import { css } from 'styled-system/css'
 
 import { pct } from '@/shared/lib/format'

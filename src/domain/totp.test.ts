@@ -1,3 +1,9 @@
+/**
+ * `domain/totp` — 인증 앱에 넘길 값의 표현 규칙.
+ *
+ * 여기서 고정하는 것은 대부분 **실제로 났던 버그**다. 특히 `otpauthUri` 의 `+`
+ * 인코딩은 인증 앱에서 발급자가 "리루티+운영+어드민" 으로 뜨던 문제다.
+ */
 import { describe, expect, it } from 'vitest'
 
 import {
