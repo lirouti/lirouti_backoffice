@@ -4,6 +4,8 @@ import { useLocation, useNavigate } from 'react-router'
 
 import { css } from 'styled-system/css'
 
+import { Dialog } from '@/shared/ui/Dialog'
+
 import { canAccess } from '@/domain/access'
 import { SCREENS } from '@/domain/screens'
 
@@ -76,6 +78,8 @@ export function TabBar() {
   const dirty = useDirtyStore((s) => s.dirty)
   const viewer = useViewer()
   const [fade, setFade] = useState<'none' | 'left' | 'right' | 'both'>('none')
+  /** 미저장인데 닫으려는 탭의 경로. 확인 창이 떠 있는 동안만 값이 있다 */
+  const [pending, setPending] = useState<string | null>(null)
   const stripRef = useRef<HTMLDivElement>(null)
 
   const shown = tabs.filter((t) => canAccess(viewer, SCREENS[t.screen].scope))
@@ -143,11 +147,7 @@ export function TabBar() {
 
   if (!shown.length) return null
 
-  const onClose = (path: string) => {
-    // 탭을 닫으면 keep-alive 캐시가 파기되어 작성 중이던 내용이 사라진다.
-    // 새로고침과 달리 여기서는 문구를 우리가 정할 수 있다.
-    // TODO(shared/ui 에 Dialog 가 생기면): window.confirm 을 교체한다 (docs/ARCHITECTURE.md §9)
-    if (dirty[path] && !window.confirm('저장하지 않은 변경사항이 있습니다. 탭을 닫으시겠습니까?')) return
+  const closeTab = (path: string) => {
     close(path)
     // 활성 탭을 닫으면 남은 마지막 탭으로 이동한다.
     if (path === pathname) {
@@ -155,6 +155,14 @@ export function TabBar() {
       const next = rest[rest.length - 1]
       if (next) navigate(next.path)
     }
+  }
+
+  const onClose = (path: string) => {
+    // 탭을 닫으면 keep-alive 캐시가 파기되어 작성 중이던 내용이 사라진다.
+    // 새로고침(`beforeunload`)과 달리 여기서는 문구를 우리가 정할 수 있다
+    // (docs/ARCHITECTURE.md §9).
+    if (dirty[path]) setPending(path)
+    else closeTab(path)
   }
 
   return (
@@ -246,6 +254,20 @@ export function TabBar() {
           )
         })}
       </div>
+
+      <Dialog
+        open={pending !== null}
+        onCancel={() => setPending(null)}
+        onConfirm={() => {
+          if (pending) closeTab(pending)
+          setPending(null)
+        }}
+        tone="danger"
+        title="저장하지 않고 닫을까요?"
+        body={`"${shown.find((t) => t.path === pending)?.label ?? ''}" 탭에 저장하지 않은 변경사항이 있습니다. 닫으면 사라집니다.`}
+        confirmLabel="닫기"
+        cancelLabel="계속 편집"
+      />
     </div>
   )
 }

@@ -38,6 +38,17 @@ const button = cva({
         color: 'ink',
         _hover: { bg: 'hov', borderColor: 'faint2' },
       },
+      /**
+       * 되돌릴 수 없는 것에만 (삭제·차단·2FA 해제). 취소 버튼 옆에 놓여
+       * **어느 쪽이 파괴적인지**를 색으로 말한다.
+       */
+      danger: {
+        border: '0',
+        bg: 'rFg',
+        color: 'onDanger',
+        fontWeight: '700',
+        _hover: { filter: 'brightness(.93)' },
+      },
       ghost: {
         border: '1px solid transparent',
         bg: 'transparent',
@@ -55,7 +66,7 @@ const button = cva({
 })
 
 type ButtonProps = {
-  variant?: 'primary' | 'secondary' | 'ghost'
+  variant?: 'primary' | 'secondary' | 'danger' | 'ghost'
   size?: 'sm' | 'md' | 'icon'
 } & ButtonHTMLAttributes<HTMLButtonElement>
 

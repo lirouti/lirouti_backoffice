@@ -744,12 +744,31 @@ prop 이 읽기 쉽다 — 아래 "레시피 없음" 은 미완성이 아니라 
 | `Skeleton` | `rows` | 로딩 자리. 표가 들어올 크기를 미리 잡아 화면이 튀지 않게 한다 |
 | `Checkbox` `ErrorBanner` | — | `features/auth` 에서 만들어졌다가 보안 화면이 두 번째 사용처가 되어 승격 (§4.4) |
 | `LineChart` / `BarChart` | Recharts 래퍼 | DAU 추이 / 젬 유입·소비 (§9.1) |
-| **미구현** `Switch` `Pagination` `Select` `Textarea` `Dialog` `Toast` | — | 목록·폼 화면 착수 시. `Dialog` 는 `TabBar` 의 `window.confirm` 을 대체할 자리이기도 하다 |
+| `Select` | `value` `onChange` `options` `label` `placeholder` `hint` `error` `required` `size` | 네이티브 `<select>`. 필터·폼의 단일 선택 |
+| `Switch` | `checked` `onChange` `label`(필수) `hint` `disabled` | **즉시 반영되는 설정에만.** 저장 버튼이 있는 폼에는 `Checkbox` |
+| `Pagination` | `page`(1부터) `totalPages` `onChange` `span` | 목록 아래. 번호 계산은 `shared/lib/pagination` |
+| `Dialog` | `open` `onCancel` `onConfirm` `title` `body` `tone` `confirmLabel` `cancelLabel` | 네이티브 `<dialog>`. `TabBar` 의 탭 닫기 확인이 첫 사용처 |
+| **미구현** `Textarea` `Toast` | — | 폼 화면 착수 시 |
 
 > **`Segmented` 는 `<button role=\"radio\">` 가 아니라 네이티브 `<input type=\"radio\">` 를
 > 숨겨서 쓴다.** 역할만 선언하면 스크린리더는 "라디오 그룹"이라 알리는데 화살표 키가
 > 동작하지 않아 **없는 조작법을 약속**하게 된다. 같은 `name` 을 공유하는 네이티브
 > 라디오는 화살표 이동·roving 포커스를 브라우저가 준다. `Checkbox` 와 같은 방식이다.
+
+> **`Select`·`Dialog` 는 네이티브 요소 위에 그린다.** 직접 그린 드롭다운은 키보드 탐색·
+> 타이핑 점프·모바일 휠을, 직접 만든 모달은 포커스 가둠·Esc·배경 inert 를 전부 다시
+> 만들어야 하고, 그 중 하나만 빠져도 **마우스로는 멀쩡한데 키보드로만 고장난다.**
+> 확인함: 모달이 열린 동안 배경 버튼은 `focus()` 로도 포커스되지 않고, Tab 은
+> 페이지 밖(브라우저 UI)으로 나간다.
+
+> ⚠️ **모달 `<dialog>` 에 `margin: auto` 를 직접 준다.** 중앙 정렬은 브라우저 기본
+> 스타일의 `margin: auto` 가 하는데 Panda 리셋의 `margin: 0` 이 그걸 덮는다.
+> 빼면 창이 좌상단에 붙는데, 열어 보기 전에는 알 수 없다.
+
+> **`Switch` 의 꺼진 상태를 회색 트랙으로 칠하지 않았다.** 원본의 `track`(#D3D9E2)은
+> 흰 카드 위에서 1.42:1 이라 스위치가 있는지도 보이지 않는다 (WCAG 1.4.11 은 UI
+> 요소에 3:1). `faint2` 테두리 + `faint2` 노브로 그려 3.34:1 을 맞췄다 — `faint2` 가
+> 원래 이 용도의 토큰이다 (§11).
 
 > `Field`(TextField/PasswordField)는 지금 `features/auth` 안에 있다. **두 번째 폼 화면이
 > 생길 때** `shared/ui` 로 올린다 — 미리 올리면 로그인의 사정이 공용 컴포넌트에 스며든다 (§4.4).
@@ -1395,7 +1414,7 @@ hover(quickinfo)가 읽는 것이 그 경로다.
 
 ```ts
 // ✓ TODO(백엔드 스펙 확정 후): 서버 DTO 필드명이 다르면 여기서 매핑한다
-// ✓ TODO(shared/ui 에 Dialog 가 생기면): window.confirm 을 교체한다
+// ✓ TODO(eslint-plugin-jsx-a11y 가 ESLint 10 을 지원하면): lint 에 넣는다
 // ✗ TODO: 나중에 고치기
 ```
 
