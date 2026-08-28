@@ -102,8 +102,19 @@ export function AdminLayout() {
               ⚠️ 메모리에만 있어서 새로고침하면 사라진다.
                  폼 초안은 별도로 저장해야 한다.
             */}
-            {/* 탭당 최대 둘(서브 메뉴 + 파생 화면)이라 상한도 두 배다 */}
-            <KeepAlive aliveRef={aliveRef} activeCacheKey={pathname} max={MAX_TABS * 2}>
+            {/*
+              탭당 최대 둘(서브 메뉴 + 파생 화면)이라 상한도 두 배다.
+
+              ⚠️ **열린 탭 수를 따라가야 한다.** `MAX_TABS` 는 깨끗한 탭에만 걸리는
+                 상한이라(`evictionTarget`) 미저장 탭이 많으면 탭이 그 위로 늘어난다.
+                 여기를 고정값으로 두면 **KeepAlive 가 대신 LRU 로 밀어내** 작성 중이던
+                 화면이 사라진다 — 자동 축출을 막아 둔 뜻이 없어진다.
+            */}
+            <KeepAlive
+              aliveRef={aliveRef}
+              activeCacheKey={pathname}
+              max={Math.max(MAX_TABS, tabs.length) * 2}
+            >
               <Suspense fallback={<ScreenSkeleton />}>
                 <Outlet />
               </Suspense>

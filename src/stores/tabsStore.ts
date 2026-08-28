@@ -48,6 +48,28 @@ export function livePaths(tab: OpenTab): string[] {
   return tab.path === root ? [root] : [tab.path, root]
 }
 
+/**
+ * 상한을 넘겼을 때 **밀어낼 탭**. 없으면 `null`.
+ *
+ * ⚠️ **미저장 탭은 절대 고르지 않는다.** 밀려난 탭은 `AdminLayout` 이 keep-alive
+ *    캐시까지 파기하므로 작성 중이던 내용이 **확인 한 번 없이** 사라진다 —
+ *    손으로 닫을 때는 확인 창으로 막으면서 자동 축출로는 날아가면
+ *    `useUnsavedGuard` 가 무의미해진다.
+ *
+ * 그래서 **`MAX_TABS` 는 깨끗한 탭에만 걸리는 상한**이다. 전부 미저장이면 상한을
+ * 넘긴 채로 둔다. 무한히 늘지는 않는다 — 탭은 서브 메뉴당 하나뿐이라 천장이
+ * 서브 메뉴 개수(45개)로 이미 정해져 있고, 거기까지 가려면 45개 폼을 채워야 한다.
+ *
+ * @param keep 방금 연 탭. 이건 밀어내지 않는다
+ */
+export function evictionTarget(
+  tabs: OpenTab[],
+  keep: ScreenId,
+  isDirty: (tab: OpenTab) => boolean,
+): OpenTab | null {
+  return tabs.find((t) => t.screen !== keep && !isDirty(t)) ?? null
+}
+
 type TabsState = {
   tabs: OpenTab[]
   /**
@@ -82,15 +104,12 @@ export const useTabsStore = create<TabsState>()(
 
           const next: OpenTab[] = [...s.tabs, { screen: section, path }]
 
-          // 넘치면 밀어내는데, **저장 안 된 탭은 뒤로 미룬다.**
-          // 밀려난 탭은 AdminLayout 이 keep-alive 캐시까지 파기하므로 작성 중이던
-          // 내용이 확인 한 번 없이 사라진다 — 탭을 손으로 닫을 때는 확인 창으로
-          // 막으면서 자동 축출로는 날아가면 `useUnsavedGuard` 가 무의미해진다.
+          // 넘치면 깨끗한 탭부터 밀어낸다. 미저장뿐이면 상한을 넘긴 채로 둔다.
           const { dirty } = useDirtyStore.getState()
           const isDirty = (t: OpenTab) => livePaths(t).some((p) => dirty[p])
           while (next.length > MAX_TABS) {
-            const evictable = next.filter((t) => t.screen !== section)
-            const victim = evictable.find((t) => !isDirty(t)) ?? evictable[0] ?? next[0]!
+            const victim = evictionTarget(next, section, isDirty)
+            if (!victim) break
             next.splice(next.indexOf(victim), 1)
           }
           return { tabs: next }
@@ -106,8 +125,13 @@ export const useTabsStore = create<TabsState>()(
         }),
     }),
     {
-      // v2 는 경로 단위 탭이었다. 모양이 달라 그대로 읽으면 상세마다 탭이 하나씩 생긴다.
-      name: 'riruti_admin_tabs_v3',
+      // ⚠️ **키를 올리지 않는다.** 올리면 `merge` 에 새 키의 값만 들어와서 이미 열어 둔
+      //    탭이 배포와 함께 통째로 사라진다. 모양이 바뀐 건 아래 `merge` 가 흡수한다 —
+      //    저장된 것에서 읽는 건 `path` 뿐이고 나머지는 다시 계산한다.
+      name: 'riruti_admin_tabs_v2',
+      // 라벨은 저장하지 않는다. 화면이 마운트하면서 다시 채우고, 예전에 저장된 라벨
+      // ("아이템 상세 #3")은 지금 규칙과 뜻이 달라 그대로 쓰면 이상하게 보인다.
+      partialize: (s) => ({ tabs: s.tabs.map(({ screen, path }) => ({ screen, path })) }),
       // 저장된 경로가 더 이상 어떤 화면에도 매칭되지 않을 수 있다 (화면 삭제·경로 변경).
       merge: (persisted, current) => {
         const raw = (persisted as Partial<TabsState> | undefined)?.tabs ?? []
@@ -117,8 +141,8 @@ export const useTabsStore = create<TabsState>()(
           const screen = matchScreen(t.path)
           if (!screen) continue
           const section = sectionOf(screen)
-          // 같은 서브 메뉴가 여럿이면 마지막 것만 남긴다.
-          bySection.set(section, { screen: section, path: t.path, label: t.label })
+          // 경로 단위로 저장돼 있던 것(같은 서브 메뉴가 여럿)은 마지막 것만 남긴다.
+          bySection.set(section, { screen: section, path: t.path })
         }
         return { ...current, tabs: [...bySection.values()] }
       },
