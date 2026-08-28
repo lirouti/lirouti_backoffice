@@ -12,10 +12,15 @@
  *
  * ②의 근거: `tsc --declaration` 으로 재보면 `//` 는 `.d.ts` 에서 사라지고
  * `/** ... *\/` 만 남는다. hover(quickinfo)가 읽는 것이 그 경로다.
+ *
+ * **판정은 `comment-rules.ts` 에 있다.** 여기는 파일을 모아 넘기고 결과를 찍기만 한다 —
+ * 판정 쪽은 픽스처로 테스트한다(`comment-rules.test.ts`).
  */
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { dirname, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+
+import { checkLines } from './comment-rules'
 
 const SRC = resolve(dirname(fileURLToPath(import.meta.url)), '../src')
 
@@ -27,108 +32,10 @@ function walk(dir: string): string[] {
   })
 }
 
-/** 파일 앞부분에서 설명을 찾는 범위. 이보다 아래면 "스크롤 없이 보인다"고 할 수 없다. */
-const HEAD_LINES = 30
-
-/** 최상위 선언 — 들여쓰기가 없다. 함수 본문 안의 지역 변수는 대상이 아니다. */
-const TOP_DECL = /^(export\s+)?(default\s+)?(async\s+)?(function|const|let|class|type|interface)\s/
-
-/**
- * 타입 리터럴 안의 필드. `type X = {` 와 `interface X {` 블록 안에서만 본다.
- *
- * `interface` 는 `.d.ts` 의 선언 병합에서만 쓰지만(§13), 그 파일도 검사 대상이라
- * 함께 추적한다.
- */
-const TYPE_FIELD = /^\s+\w+\??:\s/
-const TYPE_OPEN = /^(export\s+)?(type\s+\w+.*=\s*\{|interface\s+\w+.*\{)\s*$/
-
-/**
- * 문서가 아니라 도구에 주는 지시다. JSDoc 으로 바꾸면 동작하지 않는다.
- * `TODO` 는 ③이 따로 보므로 여기서 제외한다.
- */
-const PRAGMA = /^\/\/\s*(eslint-|@ts-|prettier-|biome-|TODO|FIXME)/
-
-/** `docs/ARCHITECTURE.md §4.4` 또는 `§4.4`. 앞의 것이 파일 안에서 먼저 와야 한다. */
-const DOC_REF = /(docs\/ARCHITECTURE\.md )?§[\d.]+/
-
-/**
- * 이 줄에서 **주석에 해당하는 부분**만 돌려준다. 주석이 없으면 null.
- *
- * 줄 전체를 보면 `const LABEL = 'TODO: …'` 같은 **문자열이 위반으로 잡힌다.**
- * 문자열 리터럴을 먼저 지우고 남은 `//` 부터가 주석이다.
- */
-function commentOf(raw: string): string | null {
-  const t = raw.trim()
-  if (t.startsWith('//') || t.startsWith('*') || t.startsWith('/*')) return t
-  const noStrings = raw.replace(/'(\\.|[^'\\])*'|"(\\.|[^"\\])*"|`(\\.|[^`\\])*`/g, '""')
-  const i = noStrings.indexOf('//')
-  return i >= 0 ? noStrings.slice(i) : null
-}
-
-type Issue = { file: string; line: number; code: string; why: string }
-const issues: Issue[] = []
-
-for (const file of walk(SRC)) {
+const issues = walk(SRC).flatMap((file) => {
   const rel = relative(SRC, file)
-  const lines = readFileSync(file, 'utf8').split('\n')
-
-  // ① 앞부분 설명
-  if (!lines.slice(0, HEAD_LINES).some((l) => l.trim().startsWith('/**'))) {
-    issues.push({
-      file: rel,
-      line: 1,
-      code: lines.find((l) => l.trim()) ?? '',
-      why: `앞 ${HEAD_LINES}줄 안에 설명이 없습니다 — 파일 머리말이나 주 선언의 JSDoc 을 다세요 (§17.4)`,
-    })
-  }
-
-  // ④ 문서 참조 — 파일 안에서 처음 한 번은 전체 경로여야 한다 (§17.3)
-  const firstRef = lines.flatMap((l, i) => {
-    const m = DOC_REF.exec(l)
-    return m ? [{ line: i + 1, full: Boolean(m[1]), code: l.trim() }] : []
-  })[0]
-  if (firstRef && !firstRef.full) {
-    issues.push({
-      file: rel,
-      line: firstRef.line,
-      code: firstRef.code.slice(0, 90),
-      why: '이 파일의 첫 문서 참조는 전체 경로로 쓰세요 — `docs/ARCHITECTURE.md §4.4` (§17.3)',
-    })
-  }
-
-  let inTypeBlock = false
-  lines.forEach((raw, i) => {
-    const t = raw.trim()
-
-    if (TYPE_OPEN.test(raw)) inTypeBlock = true
-    else if (inTypeBlock && /^\}/.test(raw)) inTypeBlock = false
-
-    // ③ TODO 형식 — **주석 안의** TODO 만 본다
-    const comment = commentOf(raw)
-    if (comment?.includes('TODO') && !/TODO\([^)]+\):/.test(comment)) {
-      issues.push({
-        file: rel,
-        line: i + 1,
-        code: t.slice(0, 90),
-        why: 'TODO 에 조건을 괄호로 적으세요 — `TODO(백엔드 스펙 확정 후):` (§17.5)',
-      })
-    }
-
-    // ② 선언 위의 `//`
-    if (!t.startsWith('//') || PRAGMA.test(t)) return
-    // 주석이 이어지면 블록의 마지막 줄만 본다
-    const next = lines.slice(i + 1).find((l) => l.trim())
-    if (!next || next.trim().startsWith('//')) return
-    if (TOP_DECL.test(next) || (inTypeBlock && TYPE_FIELD.test(next))) {
-      issues.push({
-        file: rel,
-        line: i + 1,
-        code: t.slice(0, 90),
-        why: '선언 위 주석은 `/** */` 로 쓰세요 — `//` 는 hover 에 뜨지 않습니다 (§17.2)',
-      })
-    }
-  })
-}
+  return checkLines(readFileSync(file, 'utf8').split('\n')).map((x) => ({ ...x, file: rel }))
+})
 
 if (issues.length === 0) {
   console.log('주석 규약 준수 ✓')
