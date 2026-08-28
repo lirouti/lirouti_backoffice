@@ -142,9 +142,13 @@ export default function UiKitPage() {
           onRowClick={() => undefined}
           className={css({ mt: '14px' })}
         />
-        <div className={css({ display: 'flex', justifyContent: 'flex-end', mt: '14px' })}>
-          <Pagination page={page} totalPages={20} onChange={setPage} />
-        </div>
+        <Pagination
+          page={page}
+          perPage={20}
+          totalItems={384}
+          onChange={setPage}
+          className={css({ mt: '14px' })}
+        />
       </Card>
 
       <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '14px' })}>

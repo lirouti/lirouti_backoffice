@@ -1,171 +1,163 @@
 import { css, cva, cx } from 'styled-system/css'
 
-import { pageWindow } from '@/shared/lib/pagination'
+import { count, num } from '@/shared/lib/format'
+import { pageCount, pageRange } from '@/shared/lib/pagination'
 
-/**
- * 번호 칸과 앞뒤 화살표가 크기·포커스 링을 공유한다. 그 반복을 레시피로 흡수한다.
- *
- * ⚠️ **포커스 링이 두 겹이다.** 다른 입력들은 테두리를 `ringBd` 로 바꾸고 옅은
- *    후광(`ring`, 알파 .18)만 더하는데, 여기는 평상시 테두리가 없어서 후광만으로는
- *    **포커스가 어디 있는지 안 보인다.** 안쪽에 `ringBd` 실선을 깔아 대신한다.
- *
- * ⚠️ **전환 애니메이션을 넣지 않았다.** 채운 알약이 옆 칸으로 옮겨갈 때 이전 칸이
- *    서서히 빠지면 두 칸이 동시에 파랗게 보이는 순간이 생긴다 — 그게 깜빡임으로 읽힌다.
- */
-const cell = cva({
+/** 화살표 넷이 크기·색·포커스 링을 공유한다. */
+const arrow = cva({
   base: {
-    height: '32px',
+    width: '30px',
+    height: '30px',
+    flex: 'none',
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
     appearance: 'none',
     border: '0',
     bg: 'transparent',
-    font: 'inherit',
-    fontSize: '13px',
-    letterSpacing: '-0.2px',
-    fontWeight: '600',
-    // 자릿수가 달라도 글자 폭이 같다. 비례 숫자는 1 과 8 의 폭이 달라 미세하게 흔들린다.
-    fontVariantNumeric: 'tabular-nums',
-    borderRadius: '999px',
+    color: 'faint',
+    borderRadius: 'md',
     cursor: 'pointer',
+    _hover: { bg: 'hov', color: 'ink' },
+    // 흐리게(opacity) 하지 않는다. 비활성 요소는 명암비 규정(1.4.11)의 예외지만,
+    // 자리를 지키라고 두는 화살표가 1.7:1 이면 "잠겼다"가 아니라 "없다"로 읽힌다.
+    // `faint2`(3.34:1) 로 한 단계만 죽이고, 나머지는 커서와 hover 없음이 말한다.
+    _disabled: { color: 'faint2', cursor: 'not-allowed', _hover: { bg: 'transparent' } },
     _focusVisible: {
       outline: 'none',
       boxShadow: '0 0 0 2px token(colors.ringBd), 0 0 0 5px token(colors.ring)',
     },
   },
-  variants: {
-    on: {
-      true: { bg: 'pri', color: 'onPri', fontWeight: '700' },
-      false: { color: 'sub', _hover: { bg: 'hov', color: 'ink' } },
-    },
-    arrow: {
-      true: {
-        color: 'faint',
-        _hover: { bg: 'hov', color: 'ink' },
-        // 흐리게(opacity) 하지 않는다. 비활성 요소는 명암비 규정(1.4.11)의 예외지만,
-        // 자리를 지키라고 두는 화살표가 1.7:1 이면 "잠겼다"가 아니라 "없다"로 읽힌다.
-        // `faint2`(3.34:1) 로 한 단계만 죽이고, 나머지는 커서와 hover 없음이 말한다.
-        _disabled: { color: 'faint2', cursor: 'not-allowed', _hover: { bg: 'transparent' } },
-      },
-    },
-  },
-  defaultVariants: { on: false },
 })
+
+/** 화살표 넷의 아이콘. 끝으로 가는 것은 벽(세로선)을 붙여 "여기서 끝"을 말한다. */
+const PATHS = {
+  first: 'M8.6,2.2 L4.6,6 L8.6,9.8 M2.6,2.2 V9.8',
+  prev: 'M7.6,2.2 L3.6,6 L7.6,9.8',
+  next: 'M4.4,2.2 L8.4,6 L4.4,9.8',
+  last: 'M3.4,2.2 L7.4,6 L3.4,9.8 M9.4,2.2 V9.8',
+} as const
+
+type Dir = keyof typeof PATHS
+
+const LABEL: Record<Dir, string> = {
+  first: '첫 페이지',
+  prev: '이전 페이지',
+  next: '다음 페이지',
+  last: '마지막 페이지',
+}
 
 type PaginationProps = {
   /** 지금 페이지. **1부터 센다** */
   page: number
-  /** 전체 페이지 수. 1 이하면 아무것도 그리지 않는다 */
-  totalPages: number
+  /** 한 쪽에 몇 개를 보여주는가 */
+  perPage: number
+  /** 걸러진 결과의 **전체** 건수. 지금 쪽의 행 수가 아니다 */
+  totalItems: number
   onChange: (page: number) => void
-  /** 현재 페이지 양옆으로 몇 장까지 펼칠지. 칸 수도 이게 정한다 (`slotCount`) */
-  span?: number
   className?: string
 }
 
 /**
  * 목록 아래 페이지 바.
  *
- * **칸마다 테두리를 두르지 않는다.** 상자 여덟 개가 늘어서면 계산기 버튼처럼 보이고,
- * 바로 위 표의 가로줄과도 싸운다. 채운 것은 **현재 페이지 하나뿐**이라 지금 어디인지가
- * 한눈에 들어온다.
+ * **번호를 늘어놓지 않는다.** 어드민에서 "13페이지로 점프"는 거의 일어나지 않는다 —
+ * 실제 흐름은 정렬·필터를 바꾸고 앞에서부터 훑는 쪽이다. 번호 목록은 그 드문 조작을
+ * 위해 자리를 크게 먹고, 페이지를 옮길 때마다 어느 번호가 보일지가 바뀌어 **누르려던
+ * 자리에 다른 숫자가 와 있다.**
  *
- * ⚠️ **폭이 절대 변하지 않아야 한다.** 페이지 바는 보통 오른쪽 정렬이라, 폭이 1px만
- *    변해도 바 전체가 가로로 밀린다 — 방금 누른 자리에 다른 번호가 와 있고, 연달아
- *    누르면 화면이 깜빡이는 것처럼 보인다. 두 곳에서 막는다.
- *      · 칸 **개수**는 `pageWindow` 가 고정한다 (`slotCount(span)`)
- *      · 칸 **폭**은 `totalPages` 의 자릿수로 계산해 모든 칸에 똑같이 준다.
- *        `minWidth` 로 두면 `1` 과 `20` 의 칸이 서로 다른 폭이 된다
+ * 대신 번호가 하던 일을 둘로 나눈다.
  *
- * **건수 표시("총 1,234건")는 넣지 않았다.** 그건 목록이 방금 무엇을 걸렀는지에
- * 딸린 정보라 필터와 같은 줄에 있어야 하고, 여기 넣으면 페이지를 옮길 때마다
- * 같이 깜빡인다. 화면이 표 위쪽 툴바에서 직접 그린다.
+ * | 번호 목록이 주던 것 | 대신 |
+ * |---|---|
+ * | 지금 몇 번째 쪽인가 | `9 / 20` |
+ * | 얼마나 남았는가 | `384건 중 161–180` — 쪽 수보다 건수가 더 와닿는다 |
+ * | 끝으로 한 번에 | `⟨⟨` `⟩⟩` |
  *
- * 번호 계산은 `shared/lib/pagination` 의 `pageWindow` — 경계가 어긋나기 쉬워
- * 따로 테스트한다 (docs/ARCHITECTURE.md §17.6).
+ * ⚠️ **오른쪽 조작부의 좌표가 변하면 안 된다.** 폭이 1px만 변해도 방금 누른 자리에
+ *    다른 것이 와 있고, 연달아 누르면 화면이 깜빡이는 것처럼 보인다. 요약은 왼쪽에서
+ *    오른쪽으로 자라고(`space-between`), `9 / 20` 은 자릿수만큼 폭을 미리 잡고
+ *    `tabular-nums` 로 글자 폭까지 고정한다.
+ *
+ * 계산은 `shared/lib/pagination` — 1부터 세는 페이지와 마지막 쪽의 나머지가
+ * 겹치는 자리라 따로 테스트한다 (docs/ARCHITECTURE.md §17.6).
  */
-export function Pagination({ page, totalPages, onChange, span = 1, className }: PaginationProps) {
-  if (totalPages <= 1) return null
+export function Pagination({ page, perPage, totalItems, onChange, className }: PaginationProps) {
+  const range = pageRange(page, perPage, totalItems)
+  if (!range) return null
 
+  const totalPages = pageCount(totalItems, perPage)
   const current = Math.min(Math.max(page, 1), totalPages)
-  // 가장 긴 번호(= 끝 장)에 맞춘 한 칸의 폭. 32px 아래로는 누르기 어렵다.
-  const cellWidth = Math.max(32, 14 + String(totalPages).length * 9)
+  // `20 / 20` 처럼 가장 긴 조합에 맞춰 미리 자리를 잡는다.
+  const positionWidth = 30 + String(totalPages).length * 2 * 8
 
   return (
     <nav
       aria-label="페이지"
-      className={cx(css({ display: 'flex', alignItems: 'center', gap: '3px' }), className)}
-    >
-      <Arrow dir="prev" disabled={current <= 1} width={cellWidth} onClick={() => onChange(current - 1)} />
-
-      {pageWindow(current, totalPages, span).map((p, i) =>
-        p === 'gap' ? (
-          <span
-            // 생략 자리는 위치 말고 구분할 것이 없다. 앞뒤 번호가 키를 갈라 준다.
-            key={`gap-${i}`}
-            aria-hidden="true"
-            className={css({
-              height: '32px',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'faint2',
-              userSelect: 'none',
-            })}
-            style={{ width: cellWidth }}
-          >
-            …
-          </span>
-        ) : (
-          <button
-            key={p}
-            type="button"
-            // 목록 전체가 아니라 **이 번호가** 현재 페이지다
-            aria-current={p === current ? 'page' : undefined}
-            aria-label={`${p} 페이지`}
-            onClick={() => onChange(p)}
-            className={css(cell.raw({ on: p === current }))}
-            style={{ width: cellWidth }}
-          >
-            {p}
-          </button>
-        ),
+      className={cx(
+        css({
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '16px',
+          flexWrap: 'wrap',
+        }),
+        className,
       )}
+    >
+      {/* 쪽을 옮기면 표의 내용이 통째로 바뀐다. 무엇으로 바뀌었는지 알려 준다. */}
+      <p aria-live="polite" className={css({ m: '0', textStyle: 'caption', color: 'faint' })}>
+        {count(totalItems)} 중 {num(range.from)}–{num(range.to)}
+      </p>
 
-      <Arrow dir="next" disabled={current >= totalPages} width={cellWidth} onClick={() => onChange(current + 1)} />
+      {totalPages > 1 && (
+        <div className={css({ display: 'flex', alignItems: 'center', gap: '2px' })}>
+          <Arrow dir="first" disabled={current <= 1} onClick={() => onChange(1)} />
+          <Arrow dir="prev" disabled={current <= 1} onClick={() => onChange(current - 1)} />
+
+          <span
+            className={css({
+              px: '4px',
+              textAlign: 'center',
+              textStyle: 'label',
+              fontWeight: '600',
+              color: 'sub',
+              // 자릿수가 달라도 글자 폭이 같다. 비례 숫자는 1 과 8 의 폭이 달라 흔들린다.
+              fontVariantNumeric: 'tabular-nums',
+            })}
+            style={{ minWidth: positionWidth }}
+          >
+            <span aria-hidden="true">
+              <b className={css({ color: 'ink', fontWeight: '700' })}>{current}</b> / {totalPages}
+            </span>
+            <span className={css({ srOnly: true })}>
+              {totalPages} 페이지 중 {current} 페이지
+            </span>
+          </span>
+
+          <Arrow dir="next" disabled={current >= totalPages} onClick={() => onChange(current + 1)} />
+          <Arrow dir="last" disabled={current >= totalPages} onClick={() => onChange(totalPages)} />
+        </div>
+      )}
     </nav>
   )
 }
 
-function Arrow({
-  dir,
-  disabled,
-  width,
-  onClick,
-}: {
-  dir: 'prev' | 'next'
-  disabled: boolean
-  width: number
-  onClick: () => void
-}) {
-  const prev = dir === 'prev'
-
+function Arrow({ dir, disabled, onClick }: { dir: Dir; disabled: boolean; onClick: () => void }) {
   return (
     <button
       type="button"
       disabled={disabled}
-      aria-label={prev ? '이전 페이지' : '다음 페이지'}
+      aria-label={LABEL[dir]}
       onClick={onClick}
-      className={css(cell.raw({ arrow: true }))}
-      style={{ width }}
+      className={css(arrow.raw())}
     >
       <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
         <path
-          d={prev ? 'M7.3,2 L3.3,6 L7.3,10' : 'M4.7,2 L8.7,6 L4.7,10'}
+          d={PATHS[dir]}
           fill="none"
           stroke="currentColor"
-          strokeWidth="1.8"
+          strokeWidth="1.7"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
