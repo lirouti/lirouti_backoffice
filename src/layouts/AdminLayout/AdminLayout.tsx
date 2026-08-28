@@ -82,6 +82,14 @@ export function AdminLayout() {
       .getCacheNodes()
       .map((n) => n.cacheKey)
       .filter((k) => !open.has(k))
+    // ⚠️ **`destroy` 는 즉시 지우지 않는다.** 이벤트만 쏘고 실제 목록 제거는
+    //    `setTimeout(…, 0)` 안에서 일어난다(keepalive-for-react 5.0.11). 그래서
+    //    버리기로 한 경로로 **그 한 틱 안에** 되돌아오면, 이미 예약된 제거가 방금
+    //    되살아난 항목을 지워 본문이 빈 채로 남을 수 있다. 예약을 취소하는 API 는 없다.
+    //
+    //    30번 × 0~4ms 로 그 창을 훑어 봤지만 재현되지 않았다 — 되돌아가려면 입력
+    //    이벤트가 그 한 틱 안에 들어와야 한다. 짐작으로 코드를 더하지 않고 남겨 둔다.
+    //    TODO(탭을 빠르게 오갈 때 본문이 빈 채로 남는 것이 목격되면): 이 자리를 볼 것
     if (orphans.length) void alive.destroy(orphans)
   }, [tabs, pathname, aliveRef])
 
