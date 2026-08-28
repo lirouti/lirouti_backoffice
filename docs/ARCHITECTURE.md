@@ -744,7 +744,7 @@ prop 이 읽기 쉽다 — 아래 "레시피 없음" 은 미완성이 아니라 
 | `Skeleton` | `rows` | 로딩 자리. 표가 들어올 크기를 미리 잡아 화면이 튀지 않게 한다 |
 | `Checkbox` `ErrorBanner` | — | `features/auth` 에서 만들어졌다가 보안 화면이 두 번째 사용처가 되어 승격 (§4.4) |
 | `LineChart` / `BarChart` | Recharts 래퍼 | DAU 추이 / 젬 유입·소비 (§9.1) |
-| `Select` | `value` `onChange` `options` `label` `placeholder` `hint` `error` `required` `size` | 네이티브 `<select>`. 필터·폼의 단일 선택 |
+| `Select` | `value` `onChange` `options` `label` `placeholder` `hint` `error` `required` `disabled` `size` `name` | **펼친 목록까지 직접 그린다.** 필터·폼의 단일 선택 |
 | `Switch` | `checked` `onChange` `label`(필수) `hint` `disabled` | **즉시 반영되는 설정에만.** 저장 버튼이 있는 폼에는 `Checkbox` |
 | `Pagination` | `page`(1부터) `perPage` `totalItems` `onChange` | 목록 아래. **번호를 늘어놓지 않는다** — `384건 중 61–80` + `⟨⟨ ⟨ 4 / 20 ⟩ ⟩⟩` |
 
@@ -788,11 +788,45 @@ prop 이 읽기 쉽다 — 아래 "레시피 없음" 은 미완성이 아니라 
 > 동작하지 않아 **없는 조작법을 약속**하게 된다. 같은 `name` 을 공유하는 네이티브
 > 라디오는 화살표 이동·roving 포커스를 브라우저가 준다. `Checkbox` 와 같은 방식이다.
 
-> **`Select`·`Dialog` 는 네이티브 요소 위에 그린다.** 직접 그린 드롭다운은 키보드 탐색·
-> 타이핑 점프·모바일 휠을, 직접 만든 모달은 포커스 가둠·Esc·배경 inert 를 전부 다시
-> 만들어야 하고, 그 중 하나만 빠져도 **마우스로는 멀쩡한데 키보드로만 고장난다.**
-> 확인함: 모달이 열린 동안 배경 버튼은 `focus()` 로도 포커스되지 않고, Tab 은
-> 페이지 밖(브라우저 UI)으로 나간다.
+> **`Dialog` 는 네이티브 `<dialog>` 위에 그린다.** 직접 만든 모달은 포커스 가둠·Esc·
+> 배경 inert 를 전부 다시 만들어야 하고, 하나만 빠져도 **마우스로는 멀쩡한데 키보드로만
+> 고장난다.** 확인함: 모달이 열린 동안 배경 버튼은 `focus()` 로도 포커스되지 않고,
+> Tab 은 페이지 밖(브라우저 UI)으로 나간다.
+
+> **`Select` 는 네이티브를 버렸다.** `<select>` 는 닫힌 상태만 CSS 가 닿는다 — 펼쳐지는
+> 팝업의 배경·행 높이·hover 색·모서리는 브라우저와 OS 가 그리고 우리 토큰이 전혀 먹지
+> 않는다. 다크 모드에서 목록만 밝게 뜨는 것도 그래서다. 디자인을 끝까지 맞추려면
+> 리스트박스를 직접 만드는 것 말고는 방법이 없다.
+>
+> **대신 브라우저가 주던 것을 전부 우리가 만들어야 한다.** 하나라도 빠지면 마우스로는
+> 멀쩡한데 키보드·스크린리더에서만 고장난다.
+>
+> | | |
+> |---|---|
+> | 역할 | `role="combobox"` + `role="listbox"`/`option` (WAI-ARIA select-only combobox) |
+> | 포커스 | **버튼에 그대로 둔다.** 활성 항목은 `aria-activedescendant` 로 가리킨다 — 포커스를 목록으로 옮기면 닫을 때 되돌리는 일이 늘고 그 자리에서 자주 샌다 |
+> | 키보드 | ↑↓ 이동 · Home/End 양끝 · Enter/Space 고르고 닫기 · Esc 취소 · Tab 고르고 다음 필드 |
+> | 타이핑 점프 | 500ms 안에 이어 친 글자로 앞부분 일치 |
+> | 스크롤 | 활성 항목이 목록 밖이면 끌어온다. `scrollIntoView` 는 안 쓴다 — 조상까지 스크롤해서 본문이 같이 튄다 |
+>
+> ⚠️ **목록은 Popover API 로 top layer 에 올린다.** `position: absolute` 로 두면 조상의
+> `overflow: hidden`(표·카드)에 잘리고 `z-index` 싸움이 시작된다. `popover="auto"` 라서
+> **바깥 클릭과 Esc 는 브라우저가 처리**하고 포커스도 스스로 트리거로 돌려준다.
+> 좌표는 `position: fixed` + `getBoundingClientRect` 로 직접 주고, 아래 자리가 모자라면
+> 위로 뒤집는다. 스크롤은 **캡처 단계**로 받는다 — 어느 조상이 스크롤됐든 따라가야 한다.
+>
+> 확인함: 조상에 `overflow: hidden` 을 걸어도 잘리지 않고(138px 그대로), 뷰포트를
+> 420px 로 줄이면 위로 뒤집혀 화면 안에 들어온다. axe 의 `aria-required-children`·
+> `aria-required-parent`·`aria-valid-attr-value` 통과.
+>
+> ⚠️ **잃은 것도 있다.** 네이티브가 안에서 해 주던 **IME 조합 중 타이핑 점프**는
+> 보장할 수 없다 — 조합 중 `keydown` 의 `key` 는 규격상 `'Process'` 다. 버튼은 편집
+> 가능한 요소가 아니라 IME 가 아예 안 붙을 수도 있는데, 한글 라벨에서 어느 쪽인지는
+> **확인하지 못했다** (자동화로 IME 입력을 만들 수 없다).
+>
+> ⚠️ **`_closed` 로 팝오버를 숨기려 하지 말 것.** Panda 의 `_closed` 는
+> `[data-state="closed"]` 를 노리는 조건이라 팝오버에는 아무 일도 하지 않는다.
+> 닫힌 팝오버를 숨기는 건 브라우저 기본 스타일이다 — 재서 확인했다.
 
 > ⚠️ **모달 `<dialog>` 에 `margin: auto` 를 직접 준다.** 중앙 정렬은 브라우저 기본
 > 스타일의 `margin: auto` 가 하는데 Panda 리셋의 `margin: 0` 이 그걸 덮는다.
