@@ -70,14 +70,20 @@ export function AdminLayout() {
     const alive = aliveRef.current
     if (!alive) return
     // 탭이 들고 있는 화면들. 파생 화면에 있어도 서브 메뉴 화면을 함께 살려 둔다 —
-    // 상세를 보다 목록으로 돌아왔을 때 스크롤이 그대로여야 "전환됐다"로 읽힌다.
-    const open = new Set(tabs.flatMap(livePaths))
+    // 상세를 보다 목록으로 돌아왔을 때 필터가 그대로여야 "전환됐다"로 읽힌다.
+    //
+    // ⚠️ **지금 보고 있는 화면은 무슨 일이 있어도 넣는다.** 이 effect 는 `tabs` 로만
+    //    도는데 탭을 밀어 넣는 건 **다른 effect** 라, 새 경로로 막 들어온 순간에는
+    //    아직 `tabs` 에 없을 수 있다. 그때 버리면 방금 그린 화면을 도로 부순다.
+    //    (지금 순서에서는 실제로 일어나지 않지만 — 재현되지 않았다 — 라이브러리
+    //    내부의 등록 시점에 기대는 것이라 계약으로 못박아 둔다.)
+    const open = new Set([pathname, ...tabs.flatMap(livePaths)])
     const orphans = alive
       .getCacheNodes()
       .map((n) => n.cacheKey)
       .filter((k) => !open.has(k))
     if (orphans.length) void alive.destroy(orphans)
-  }, [tabs, aliveRef])
+  }, [tabs, pathname, aliveRef])
 
   // 권한 밖 URL 로 직접 들어온 경우 접근 가능한 첫 화면으로 보낸다.
   if (current && !allowed) {
