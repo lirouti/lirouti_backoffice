@@ -27,6 +27,13 @@ export default defineConfig({
   test: {
     // `domain/` 은 React 도 DOM 도 쓰지 않는다 — jsdom 을 띄울 이유가 없다.
     environment: 'node',
+    // **시간대를 고정한다.** `date()` 는 오프셋이 붙은 값을 파싱한 뒤 지역 시간으로
+    // 찍으므로, 실행 환경의 TZ 에 따라 하루가 밀린다 — `'…T09:20:00+09:00'` 은
+    // UTC 서쪽에서 전날이 된다. 고정하지 않으면 개발자 노트북에서는 통과하고
+    // CI 에서만 깨지는(또는 그 반대인) 테스트가 된다. (TZ=America/New_York 로 재현함)
+
+    env: { TZ: 'Asia/Seoul' },
+
     // **`.test.ts` 만** 잡는다. `.tsx` 를 빼 둔 건 실수가 아니라 경계다 —
     // 컴포넌트 테스트를 시작하려면 jsdom·Testing Library 를 같이 들여야 하므로,
     // 그 결정을 하기 전까지는 순수 함수 테스트만 존재한다는 뜻이 된다.
