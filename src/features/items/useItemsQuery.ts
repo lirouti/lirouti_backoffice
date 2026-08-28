@@ -16,8 +16,7 @@ import { parseItemsQuery, patchQuery, toSearchParams, type ItemsScreenQuery } fr
  * ⚠️ **쪽 이동만 히스토리에 쌓는다.** 쪽을 넘긴 뒤 뒤로가기가 이전 쪽으로 가야 하지만,
  *    검색어는 한 글자마다 항목이 쌓여 **뒤로가기 열 번을 눌러야 목록을 벗어나게** 된다.
  *
- * TODO(실서버 목록으로 바꾸면): 검색어의 주소 반영을 디바운스한다.
- *   지금은 목이 로컬이라 매 타건에 다시 걸러도 티가 나지 않는다.
+ * 검색어는 매 타건에 오지 않는다 — `useSearchDraft` 가 조용해질 때까지 모은다.
  */
 export function useItemsQuery(): [ItemsScreenQuery, (patch: Partial<ItemsScreenQuery>) => void] {
   const [params, setParams] = useSearchParams()

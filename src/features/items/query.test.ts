@@ -54,18 +54,21 @@ describe('parseItemsQuery', () => {
   })
 })
 
-describe('타이핑 왕복', () => {
-  // 입력창은 `parse` 의 결과를 그대로 그린다. `parse` 가 `trim()` 하면 사용자가 친
-  // 공백이 화면에서 사라지고, 이 목록의 아이템 이름은 전부 공백을 포함한다.
-  const type = (text: string) => {
-    let shown = ''
-    for (const ch of text) shown = parseItemsQuery(toSearchParams({ ...DEFAULT_QUERY, q: shown + ch })).q
-    return shown
-  }
+describe('검색어 왕복', () => {
+  // 주소를 거쳐 돌아온 값이 입력창에 다시 그려진다. 여기서 한 글자라도 달라지면
+  // 화면에서 글자가 사라진다 — `왕실 벨벳` 의 가운데 공백이 실제로 그렇게 먹혔다.
+  // (매 타건마다 왕복하지는 않는다. 초안은 `useSearchDraft` 가 따로 들고 있다)
+  const roundTrip = (q: string) => parseItemsQuery(toSearchParams({ ...DEFAULT_QUERY, q })).q
 
-  it('공백이 든 이름을 그대로 칠 수 있다', () => {
-    expect(type('왕실 벨벳')).toBe('왕실 벨벳')
-    expect(type('성좌의 로브')).toBe('성좌의 로브')
+  it('공백을 어디에 넣든 그대로 돌아온다', () => {
+    for (const q of ['왕실 벨벳', ' 왕실 벨벳', '왕실 벨벳 ', '  성좌의 로브  ', '왕실  벨벳']) {
+      expect(roundTrip(q)).toBe(q)
+    }
+  })
+
+  it('공백뿐이면 주소에 안 실리므로 빈 값으로 돌아온다', () => {
+    // 그래서 `useSearchDraft` 가 "다듬어서 같으면 쓰지 않는다" 로 이 왕복 자체를 막는다
+    expect(roundTrip('   ')).toBe('')
   })
 })
 

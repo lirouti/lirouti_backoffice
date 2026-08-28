@@ -42,6 +42,7 @@ import { useItems } from '@/api/items'
 import { ItemGrid } from './ItemGrid'
 import { DEFAULT_QUERY, hasFilter, type ItemsView } from './query'
 import { useItemsQuery } from './useItemsQuery'
+import { useSearchDraft } from './useSearchDraft'
 
 /** 한 쪽에 보여줄 개수. 디자인 원본의 `PER = 12` 를 그대로 쓴다. */
 const PER_PAGE = 12
@@ -120,6 +121,8 @@ const COLUMNS: Column<Item>[] = [
 export default function ItemsPage() {
   const navigate = useNavigate()
   const [query, setQuery] = useItemsQuery()
+  // 입력창은 주소가 아니라 초안을 그린다 — 주소에 매면 친 글자가 사라진다 (§18.1)
+  const [draft, setDraft] = useSearchDraft(query.q, (q) => setQuery({ q }))
   const { data, isPending, error } = useItems({
     q: query.q,
     slot: query.slot,
@@ -161,8 +164,8 @@ export default function ItemsPage() {
       <Card className={css({ p: '13px 15px', mb: '13px' })}>
         <div className={css({ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' })}>
           <Input
-            value={query.q}
-            onChange={(q) => setQuery({ q })}
+            value={draft}
+            onChange={setDraft}
             aria-label="아이템명 검색"
             placeholder="아이템명 검색"
             prefixIcon={
