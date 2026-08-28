@@ -18,7 +18,9 @@ setSignOutHandler(logout)
 
 setUnauthorizedHandler(() => {
   queryClient.clear()
-  useViewerStore.getState().signOut()
+  // `signOut()` 이 아니라 `clear()` 다 — 서버가 방금 401 로 "세션 없음"을 알렸는데
+  // 로그아웃을 다시 요청할 이유가 없다. 그 요청이 또 401 이면 여기로 되돌아온다.
+  useViewerStore.getState().clear()
   void router.navigate(LOGIN_PATH)
 })
 

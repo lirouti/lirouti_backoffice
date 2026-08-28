@@ -23,6 +23,10 @@ import { useViewer } from '@/stores/viewerStore'
 const strip = css({
   display: 'flex',
   alignItems: 'stretch',
+  // 활성 탭을 끌어올 때 `offsetLeft` 를 쓴다. 그 값은 **가장 가까운 위치 지정
+  // 조상** 기준이라, 스트립에 position 이 없으면 바깥 요소(셸의 sticky 헤더)가
+  // 기준이 되어 scrollLeft 와 좌표계가 어긋난다. 여기로 고정한다.
+  position: 'relative',
   px: 'clamp(10px, 1.6vw, 22px)',
   minHeight: '37px',
   overflowX: 'auto',
@@ -116,7 +120,10 @@ export function TabBar() {
 
     el.addEventListener('wheel', onWheel, { passive: false })
     return () => el.removeEventListener('wheel', onWheel)
-  }, [])
+    // 탭이 0개면 이 컴포넌트가 null 을 돌려주어 ref 가 비어 있다. 의존성이 []
+    // 이면 그때 한 번 돌고 끝이라, 나중에 탭이 생겨도 **휠 핸들러가 영영 안 붙는다**
+    // — 마우스로는 스크롤이 안 되는 상태가 된다. 스트립이 생길 때 다시 붙인다.
+  }, [shown.length])
 
   // 활성 탭이 스크롤 밖이면 끌어온다.
   // `scrollIntoView` 는 쓰지 않는다 — 조상까지 스크롤해서 본문이 같이 튄다.

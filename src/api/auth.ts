@@ -108,7 +108,9 @@ export async function verifyTotp(v: TotpVerification): Promise<Viewer> {
 }
 
 export async function logout(): Promise<void> {
-  if (!USE_MOCK) await http.post('/admin/auth/logout')
+  // 로그아웃 요청의 401 은 "이미 끊겨 있다"는 답이지 새로 알릴 사건이 아니다.
+  // 빼지 않으면 인터셉터 → 401 핸들러 → signOut → logout 으로 **되돌아온다**.
+  if (!USE_MOCK) await http.post('/admin/auth/logout', undefined, { skipSessionExpiry: true })
   // 다른 계정으로 다시 들어왔을 때 이전 사용자의 데이터가 보이면 안 된다.
   queryClient.clear()
 }

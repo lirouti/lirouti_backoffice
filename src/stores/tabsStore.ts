@@ -3,6 +3,8 @@ import { persist } from 'zustand/middleware'
 
 import { matchScreen, paramOf, SCREENS, type ScreenId } from '@/domain/screens'
 
+import { useDirtyStore } from './dirtyStore'
+
 /**
  * 열린 탭 스택.
  *
@@ -55,10 +57,18 @@ export const useTabsStore = create<TabsState>()(
           if (!screen) return s
 
           const next = [...s.tabs, { path, screen, label: defaultLabel(screen, path) }]
-          // 넘치면 현재 경로가 아닌 가장 오래된 탭부터 밀어낸다.
+
+          // 넘치면 밀어내는데, **저장 안 된 탭은 뒤로 미룬다.**
+          // 밀려난 탭은 AdminLayout 이 keep-alive 캐시까지 파기하므로 작성 중이던
+          // 내용이 확인 한 번 없이 사라진다 — 탭을 손으로 닫을 때는 `confirm` 으로
+          // 막으면서 자동 축출로는 날아가면 `useUnsavedGuard` 가 무의미해진다.
+          const { dirty } = useDirtyStore.getState()
           while (next.length > MAX_TABS) {
-            const victim = next.findIndex((t) => t.path !== path)
-            next.splice(victim < 0 ? 0 : victim, 1)
+            const evictable = next.filter((t) => t.path !== path)
+            // 깨끗한 것 중 가장 오래된 것 → 없으면 전부 미저장이므로 그때는
+            // 가장 오래된 것을 밀어낸다. 무한히 늘릴 수는 없다.
+            const victim = evictable.find((t) => !dirty[t.path]) ?? evictable[0] ?? next[0]!
+            next.splice(next.indexOf(victim), 1)
           }
           return { tabs: next }
         }),

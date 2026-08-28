@@ -31,11 +31,19 @@ export function AdminLayout() {
   // (문구는 브라우저가 정한다 — 우리가 못 바꾼다. stores/dirtyStore.ts 참고)
   useBeforeUnloadWhenDirty()
 
+  // 이 경로를 열 권한이 있는가. 아래 조기 반환과 **같은 판정**을 effect 에서도 쓴다.
+  const allowed = current != null && canAccess(viewer, SCREENS[current].scope)
+
   // 경로가 바뀔 때마다 탭 스택에 밀어 넣는다.
   // 탭 키가 경로라서 `/items/3` 과 `/items/7` 이 각각 열린다.
+  //
+  // ⚠️ **권한 밖 경로는 넣지 않는다.** effect 는 렌더 커밋 뒤에 돌기 때문에
+  //    아래에서 `<Navigate>` 를 돌려준 렌더에서도 실행된다. 거르지 않으면 열지도
+  //    못한 경로가 persist 에 남아 MAX_TABS 자리를 잡아먹고, 나중에 스코프가
+  //    늘면 열어본 적 없는 탭이 튀어나온다.
   useEffect(() => {
-    if (current) openTab(pathname)
-  }, [current, pathname, openTab])
+    if (allowed) openTab(pathname)
+  }, [allowed, pathname, openTab])
 
   // 탭을 닫으면 살아 있던 화면도 버린다.
   // KeepAlive 는 탭 스토어를 모르므로, 연결해 주지 않으면 닫은 탭이 메모리에 계속 남는다.
@@ -51,7 +59,7 @@ export function AdminLayout() {
   }, [tabs, aliveRef])
 
   // 권한 밖 URL 로 직접 들어온 경우 접근 가능한 첫 화면으로 보낸다.
-  if (current && !canAccess(viewer, SCREENS[current].scope)) {
+  if (current && !allowed) {
     return <Navigate to={SCREENS[fallback].path} replace />
   }
 
