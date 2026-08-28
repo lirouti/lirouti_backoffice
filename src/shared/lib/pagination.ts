@@ -13,7 +13,7 @@
  * 정수로 자른다. `NaN`·`±Infinity` 는 셀 수 없으므로 `fallback`.
  *
  * **숫자로 변환부터 한다.** 타입은 `number` 지만 목록 필터가 `useSearchParams` 로
- * 가면(docs/ARCHITECTURE.md §21) 값이 `'3'` 처럼 문자열로 온다. 그때 그냥 튕겨
+ * 가면(docs/ARCHITECTURE.md §18) 값이 `'3'` 처럼 문자열로 온다. 그때 그냥 튕겨
  * `fallback` 을 쓰면 **3쪽을 보려 했는데 조용히 1쪽이 뜬다.**
  */
 function toInt(n: number, fallback: number): number {

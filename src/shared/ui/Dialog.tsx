@@ -30,7 +30,7 @@ type DialogProps = {
  *
  * `window.confirm` 을 대체하는 자리이기도 하다 (`layouts/AdminLayout/TabBar`).
  *
- * ⚠️ **keep-alive 와 맞물린다.** 비활성 탭은 DOM 에서 분리되는데(docs/ARCHITECTURE.md §10) 분리된
+ * ⚠️ **keep-alive 와 맞물린다.** 비활성 탭은 DOM 에서 분리되는데(docs/ARCHITECTURE.md §6.3) 분리된
  *    노드에 `showModal()` 을 부르면 `InvalidStateError` 가 난다. `isConnected` 로
  *    막아 두었다 — 열린 채로 탭을 옮기면 창이 사라지지만, 확인 창은 그 자리에서
  *    끝내는 물건이라 되살릴 상태가 없다.

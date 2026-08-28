@@ -5,7 +5,15 @@ import { IMAGES, isAssetId } from '@/assets/images'
 type AssetThumbProps = {
   /** 에셋 id — 'as_head_0' */
   assetId: string
+  /** 한 변의 길이(px). `fluid` 면 무시된다 */
   size?: number
+  /**
+   * 담는 칸의 **폭을 채우고 정사각으로** 늘어난다 (그리드 타일).
+   *
+   * 테두리와 모서리는 그리지 않는다 — 감싸는 쪽이 이미 갖고 있어서
+   * 안쪽에 또 그리면 둥근 상자 안에 둥근 상자가 생긴다.
+   */
+  fluid?: boolean
   /** 유료 등급이면 타일 배경을 어둡게 (원본 규칙) */
   paid?: boolean
   /** 스크린리더용 이름. 없으면 장식으로 처리한다. */
@@ -20,25 +28,25 @@ type AssetThumbProps = {
  * 파일 단위로 캐시되고, 화면에 실제로 보이는 것만 내려받는다 — 50개를 한 덩어리로
  * 받던 예전 스프라이트 방식과 다른 점이다. (docs/ARCHITECTURE.md §8)
  */
-export function AssetThumb({ assetId, size = 42, paid = false, alt, className }: AssetThumbProps) {
+export function AssetThumb({ assetId, size = 42, fluid = false, paid = false, alt, className }: AssetThumbProps) {
   const src = isAssetId(assetId) ? IMAGES[assetId] : null
 
   return (
     <div
       className={cx(
         css({
-          flex: 'none',
-          borderRadius: 'lg',
-          border: '1px solid token(colors.ln)',
           overflow: 'hidden',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          bg: paid ? 'tilePaid' : 'prev',
         }),
+        fluid
+          ? css({ width: 'full', aspectRatio: '1' })
+          : css({ flex: 'none', borderRadius: 'lg', border: '1px solid token(colors.ln)' }),
+        css({ bg: paid ? 'tilePaid' : 'prev' }),
         className,
       )}
-      style={{ width: size, height: size }}
+      style={fluid ? undefined : { width: size, height: size }}
     >
       {src ? (
         <img

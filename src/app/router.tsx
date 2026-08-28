@@ -23,6 +23,7 @@ import { RequireAuth } from './RequireAuth'
  */
 const IMPLEMENTED: Partial<Record<ScreenId, React.LazyExoticComponent<React.ComponentType>>> = {
   dash: lazy(() => import('@/features/dashboard/DashboardPage')),
+  items: lazy(() => import('@/features/items/ItemsPage')),
   security: lazy(() => import('@/features/security/SecurityPage')),
   ui: lazy(() => import('@/features/uikit/UiKitPage')),
 }
