@@ -49,6 +49,7 @@ Vite 8  +  React 19  +  TypeScript 6  +  Panda CSS 1  +  react-router 8
 | `react-router` | `^8.3.0` | SPA 라우팅. v7부터 `react-router-dom`이 아니라 **`react-router`** 단일 패키지. `createBrowserRouter` 기반 **Data Router**(`<BrowserRouter>`+`<Routes>` 의 Declarative 모드가 아니다) |
 | `axios` | `^1.19.0` | HTTP. 응답 있음/네트워크 끊김/타임아웃/취소를 `ApiError` 하나로 정규화한다 (§7) |
 | `@tanstack/react-query` | `^5.102.4` | 서버 상태 캐시. keep-alive 와 맞물리는 지점은 §7 |
+| `react-hook-form` | `^7.86.0` | 폼 상태·검증·`isDirty`. 미저장 경고가 이걸 쓴다 (§18.7). 첫 로드 예산 밖 — 폼 화면 청크에만 들어간다 |
 | `keepalive-for-react` | `^5.0.11` | 탭 전환 시 화면을 언마운트하지 않는다. DOM 에서 분리(detach)라 `display:none` 보다 낫다 |
 | `zustand` | `^5.0.15` | 테마 / 열린 탭 / 사이드바 펼침 / 뷰어(권한) — **localStorage에 붙는 전역 UI 상태**만 담당. `persist` 미들웨어가 원본의 `lsGet/lsSet`을 그대로 대체 |
 | `recharts` | `^3.10.1` | 차트. **SVG 렌더링**이라 `var(--colors-*)`를 그대로 먹어서 다크 모드가 리렌더 없이 따라온다 (§9.1) |
@@ -90,7 +91,6 @@ Vite 8  +  React 19  +  TypeScript 6  +  Panda CSS 1  +  react-router 8
 | 패키지 | 버전 | 도입 시점 |
 |---|---|---|
 | `@tanstack/react-table` | `^9.1.2` | 아이템/챌린지/결제/감사로그 등 **정렬·페이지네이션 있는 목록** 착수 시. 목록 화면이 10개 이상이라 결국 필요 |
-| `react-hook-form` | `^7.85.0` | 아이템 등록 / 챌린지 등록 / 지급·회수 폼 착수 시 (원본의 `f`, `cf`, `gf` state) |
 | `zod` | `^4.4.3` | 위 폼의 검증 + API 응답 파싱 |
 | `date-fns` | `^4.4.0` | 기간 설정 / 예약 발행 등 날짜 연산이 실제로 생길 때. 단순 포맷만이면 `Intl.DateTimeFormat`으로 충분하니 넣지 않는다 |
 | `@testing-library/react` `^16.3.2` + `@testing-library/dom` `^10.0.0` + `jsdom` `^30.0.1` | 위 버전 | **컴포넌트** 테스트를 시작할 때. `vitest` 는 이미 들어와 `domain/` 순수 함수를 덮고 있다. 켤 때는 `vite.config.ts` 의 `test.include` 에 `'src/**/*.test.tsx'` 를 더하고 `test.environment` 를 `'jsdom'` 으로 바꾼다 — 지금 `.test.ts` 만 잡는 건 실수가 아니라 **그 결정을 하기 전까지 순수 함수 테스트만 존재하게 하는 경계**다. `@testing-library/dom` 은 v16 부터 peer 로 빠져서 **직접 설치해야 한다** |
@@ -864,7 +864,8 @@ prop 이 읽기 쉽다 — 아래 "레시피 없음" 은 미완성이 아니라 
 > 바뀌었다고 알리는 것이 그중 가장 쓸모 있다 — 화살표까지 라이브로 묶으면
 > 누를 때마다 버튼 이름을 다시 읽어 시끄러워진다.
 
-| **미구현** `Textarea` `Toast` | — | 폼 화면 착수 시 |
+| `Textarea` | `value` `onChange` `label` `hint` `error` `required` `rows` | `Input` 과 **같은 계약**. 다르면 폼마다 다르게 쓰게 되고 그러다 `aria-describedby` 를 빠뜨린 화면이 하나 생긴다 |
+| **미구현** `Toast` | — | 알림이 필요해지는 화면에서 |
 
 > **`Segmented` 는 `<button role=\"radio\">` 가 아니라 네이티브 `<input type=\"radio\">` 를
 > 숨겨서 쓴다.** 역할만 선언하면 스크린리더는 "라디오 그룹"이라 알리는데 화살표 키가
@@ -1808,7 +1809,45 @@ getItem(itemId) → { item, trend, ledger, favorites, returned }
 
 ---
 
-### 18.7 동작하지 않는 버튼
+### 18.7 폼 화면
+
+등록·수정은 **한 화면**이다(`ItemFormPage`). `useParams().itemId` 유무로 갈리고,
+파사드도 `saveItem({ itemId?, input })` 하나다 — 부르는 쪽이 갈라질 이유가 없다.
+
+**검증 규칙은 도메인에 둔다**(`validateItem`). 화면은 그 결과를 두 군데에 쓴다.
+
+⚠️ **체크리스트와 필드 오류가 같은 함수에서 나와야 한다.** 원본은 오른쪽 체크리스트를
+따로 계산했는데, 그러면 **체크는 초록인데 저장이 막히는** 화면이 만들어진다.
+
+⚠️ **손대기 전에는 빨갛게 하지 않는다.** 빈 폼을 열자마자 "아이템명을 입력하세요" 가
+붉게 뜨면 아직 아무것도 안 했는데 혼난 기분이 든다. 무엇이 남았는지는 체크리스트가
+말하고, 필드 오류는 `formState.isDirty` 뒤에 붙는다.
+
+**초안은 자동 저장한다**(`useItemDraft`, 500ms 디바운스). keep-alive 는 새로고침을
+못 견디는데(§6.3), 잃는 일은 대개 실수로 새로고침할 때 일어나고 그때는 버튼을 누를
+기회가 없다. 「임시 저장」 버튼은 *즉시* 쓰고 "방금 저장됐다"를 보여 주는 역할이다.
+
+- 되살리는 것은 **폼을 만들기 전에** 한다 — `defaultValues` 는 나중에 바꿀 수 없다.
+- ⚠️ 되살릴 때 **기본값은 원본으로 두고 값만 갈아 끼운다**(`reset(draft, { keepDefaultValues: true })`).
+  초안을 기본값으로 넣으면 폼이 "깨끗하다"고 여겨 미저장 경고도 자동 저장도 안 돈다 —
+  되살려 놓고 다음 새로고침에 또 잃는다.
+- `sessionStorage` 는 남이 고칠 수 있고 우리가 타입을 바꾸면 옛 초안이 남는다.
+  **모양이 안 맞으면 조용히 버린다**(§18.1 의 `?slot=WING` 과 같은 이유).
+- 초안은 **저장에 성공한 뒤에** 지운다. 실패했는데 지우면 쓰던 게 사라진다.
+
+⚠️ **저장 직후의 이동을 미저장 가드가 막는다.** 두 번 걸렸다.
+
+| | |
+|---|---|
+| `form.reset()` 이 `isDirty` 를 지워도 **그 값이 스토어에 닿는 건 다음 effect** 다 | `useUnsavedGuard` 가 돌려주는 함수로 **지금 당장** 지운다 |
+| 가드가 스토어를 **구독해 클로저로** 들고 있었다 | `useUnsavedNavGuard` 가 판정할 때 `getState()` 로 직접 읽는다 |
+
+둘 중 하나만 고치면 여전히 막힌다. 방금 저장한 사람에게 "저장하지 않고 이동할까요?"
+를 묻는 화면이 되므로, 폼을 새로 만들 때 이 둘을 먼저 확인할 것.
+
+---
+
+### 18.8 동작하지 않는 버튼
 
 「CSV 내보내기」는 **비활성 + `title="준비 중"`** 이다. 내보낼 것은 지금 쪽이 아니라
 필터에 걸린 전체여야 하는데, 서버가 쪽을 자르기 시작하면 전용 엔드포인트 없이 만들 수 없다.

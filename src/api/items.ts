@@ -8,15 +8,15 @@
  *    내려주므로, 지금부터 `{ items, total }` 로 받아야 나중에 화면을 안 건드린다.
  *    `total` 은 지금 쪽의 개수가 아니라 **필터에 걸린 전체**다 (페이지 바가 그걸 쓴다).
  */
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query'
 
-import { filterItems, type Item, type ItemFilter } from '@/domain/item'
+import { filterItems, type Item, type ItemFilter, type ItemInput } from '@/domain/item'
 import type { LedgerEntry } from '@/domain/ledger'
 
-import { allItems } from '@/mocks/items'
+import { allItems, upsertItem } from '@/mocks/items'
 import { ledgerOf, trendOf } from '@/mocks/ledger'
 
-import { mockDelay, qk, USE_MOCK } from './core'
+import { mockDelay, qk, queryClient, USE_MOCK } from './core'
 import { apiError } from './error'
 
 export type ItemsQuery = ItemFilter & {
@@ -101,4 +101,35 @@ export async function getItem(itemId: string): Promise<ItemDetail> {
 
 export function useItem(itemId: string) {
   return useQuery({ queryKey: qk.items.detail(itemId), queryFn: () => getItem(itemId) })
+}
+
+/** 등록이면 `itemId` 가 없다. 수정이면 있다. */
+export type SaveItemVars = { itemId?: string; input: ItemInput }
+
+/**
+ * 등록·수정을 한 함수로 둔다.
+ *
+ * 화면은 "저장한다" 만 알면 되고 `POST`/`PATCH` 분기는 파사드 안쪽이다 —
+ * 등록 화면과 수정 화면이 같은 컴포넌트라 부르는 쪽이 갈라질 이유가 없다.
+ */
+export async function saveItem({ itemId, input }: SaveItemVars): Promise<Item> {
+  if (USE_MOCK) {
+    await mockDelay()
+    return upsertItem(input, itemId == null ? undefined : Number(itemId))
+  }
+
+  // TODO(백엔드 스펙 확정 후): itemId 유무로 POST /admin/items · PATCH /admin/items/{id}
+  throw new Error('아이템 API 가 아직 연결되지 않았습니다. VITE_USE_MOCK=1 로 두세요.')
+}
+
+/**
+ * ⚠️ **재시도하지 않는다** — `queryClient` 의 기본값이 그렇다. 등록을 다시 쏘면
+ *    같은 아이템이 둘 생기는데, 실패를 한 번 더 시도하는 것보다 그게 훨씬 나쁘다.
+ */
+export function useSaveItem() {
+  return useMutation({
+    mutationFn: saveItem,
+    // 목록·상세가 모두 바뀔 수 있다. 접두사로 한 번에 턴다.
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.items.all }),
+  })
 }

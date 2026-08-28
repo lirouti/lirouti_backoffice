@@ -92,7 +92,10 @@ export default function ItemDetailPage() {
         <AssetCard item={item} />
 
         <div className={css({ flex: '3 1 520px', minWidth: '0', display: 'flex', flexDirection: 'column', gap: '14px' })}>
-          <HeadCard detail={data} />
+          <HeadCard
+            detail={data}
+            onEdit={() => navigate(SCREENS.itemedit.path.replace(':itemId', String(item.key)))}
+          />
 
           <Card className={css({ p: '17px 20px' })}>
             <CardTitle title="기본 정보" />
@@ -187,7 +190,7 @@ function AssetCard({ item }: { item: Item }) {
 }
 
 /** 배지·이름·설명 + 지표 4칸. */
-function HeadCard({ detail }: { detail: ItemDetail }) {
+function HeadCard({ detail, onEdit }: { detail: ItemDetail; onEdit: () => void }) {
   const { item } = detail
 
   const stats = [
@@ -215,8 +218,7 @@ function HeadCard({ detail }: { detail: ItemDetail }) {
           <Button disabled title="준비 중">
             미노출로
           </Button>
-          {/* TODO(아이템 수정 화면이 생기면): 수정 */}
-          <Button variant="primary" disabled title="준비 중">
+          <Button variant="primary" onClick={onEdit}>
             수정
           </Button>
         </div>

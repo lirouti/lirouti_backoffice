@@ -4,7 +4,7 @@
  * 데이터가 목이든 서버든 여기 규칙은 그대로다. 목 생성기(`mocks/items.ts`)가
  * 사라져도 이 파일은 남는다 — 그게 이 층을 따로 둔 이유다.
  */
-import type { Item, Slot, Tier } from './types'
+import type { Item, ItemInput, Slot, Tier } from './types'
 
 /**
  * 판매량 상위 N개.
@@ -36,3 +36,54 @@ export function filterItems(items: Item[], f: ItemFilter): Item[] {
 
 /** 상점에 실제로 노출되는가 */
 export const isOnSale = (it: Item): boolean => it.status === 'VISIBLE'
+
+/** 어느 칸이 왜 막혔는가. 비어 있으면 저장할 수 있다. */
+export type ItemInputErrors = Partial<Record<keyof ItemInput, string>>
+
+/**
+ * 등록·수정 폼의 검증.
+ *
+ * ⚠️ **화면의 체크리스트도 이걸 쓴다.** 원본은 오른쪽 체크리스트를 따로 계산했는데,
+ *    그러면 **체크는 초록인데 저장이 막히는** 화면이 만들어진다. 규칙은 한 곳에만 둔다.
+ *
+ * 형식만 본다 — "이미 쓰는 이름인가" 같은 것은 서버가 안다.
+ */
+export function validateItem(input: ItemInput): ItemInputErrors {
+  const errors: ItemInputErrors = {}
+
+  if (!input.name.trim()) errors.name = '아이템명을 입력하세요.'
+
+  // 등급과 가격은 서로를 구속한다. 유료인데 0원이면 상점에서 공짜로 나간다.
+  if (input.tier === 'PAID' && input.price <= 0) errors.price = '유료 아이템은 가격을 입력하세요.'
+  if (input.tier === 'FREE' && input.price !== 0) errors.price = '무료 아이템은 가격이 0이어야 합니다.'
+
+  // 둘 다 있을 때만 본다 — 빈 문자열은 "제한 없음" 이라 비교 대상이 아니다.
+  if (input.visibleFrom && input.visibleTo && input.visibleTo < input.visibleFrom) {
+    errors.visibleTo = '노출 종료가 시작보다 빠릅니다.'
+  }
+
+  return errors
+}
+
+/** 등록 화면의 초기값. 슬롯·등급은 원본처럼 첫 번째가 골라져 있다. */
+export function emptyItemInput(): ItemInput {
+  return {
+    name: '',
+    sub: '',
+    slot: 'HEAD',
+    tier: 'FREE',
+    price: 0,
+    source: 'SHOP',
+    season: '상시',
+    assetId: '',
+    visibleFrom: '',
+    visibleTo: '',
+    flags: { shop: true, gacha: false, gift: true },
+  }
+}
+
+/** `Item` 에서 폼이 편집하는 부분만 떼어낸다 (수정 화면의 초기값). */
+export function toItemInput(item: Item): ItemInput {
+  const { name, sub, slot, tier, price, source, season, assetId, visibleFrom, visibleTo, flags } = item
+  return { name, sub, slot, tier, price, source, season, assetId, visibleFrom, visibleTo, flags }
+}

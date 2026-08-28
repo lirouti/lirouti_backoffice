@@ -15,6 +15,21 @@ export type Tier = 'FREE' | 'PAID'
 /** 노출 상태 */
 export type ItemStatus = 'VISIBLE' | 'SCHEDULED' | 'HIDDEN'
 
+/**
+ * 진열·유통 스위치.
+ *
+ * 어디에도 표시되지 않지만 폼이 편집하고 저장한다 — 수정 화면을 다시 열었을 때
+ * 값이 남아 있어야 하기 때문이다.
+ */
+export type ItemFlags = {
+  /** 상점 첫 화면에 진열 */
+  shop: boolean
+  /** 확률 뽑기 풀에 포함 */
+  gacha: boolean
+  /** 유저 간 선물 허용 */
+  gift: boolean
+}
+
 /** 획득 경로 */
 export type ItemSource = 'SHOP' | 'CHALLENGE' | 'ACHIEVEMENT' | 'LEVEL' | 'SEASON_PASS'
 
@@ -38,7 +53,24 @@ export type Item = {
   status: ItemStatus
   season: string
   madeAt: string
+  /** 노출 시작 — `YYYY-MM-DD`. **빈 문자열이면 제한 없음** */
+  visibleFrom: string
+  /** 노출 종료 — `YYYY-MM-DD`. **빈 문자열이면 제한 없음** */
+  visibleTo: string
+  flags: ItemFlags
 }
+
+/**
+ * 폼이 편집하는 부분만.
+ *
+ * `key`·`code`·`sold`·`own`·`status`·`madeAt` 는 **서버가 소유한다** — 사람이 손으로
+ * 넣는 값이 아니다. 등록·수정이 주고받는 것은 이만큼이다.
+ */
+export type ItemInput = Pick<
+  Item,
+  'name' | 'sub' | 'slot' | 'tier' | 'price' | 'source' | 'season' | 'assetId'
+  | 'visibleFrom' | 'visibleTo' | 'flags'
+>
 
 /** 슬롯의 정렬 순서. 타입의 열거 짝이라 여기 둔다. */
 export const SLOT_ORDER: Slot[] = ['HEAD', 'BODY', 'HAND', 'FACE']

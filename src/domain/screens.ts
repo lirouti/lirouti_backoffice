@@ -66,6 +66,7 @@ export const SCREENS = {
   items: { path: '/items', label: '아이템 목록', scope: 'items' },
   itemnew: { path: '/items/new', label: '아이템 등록', scope: 'items', section: 'items' },
   item: { path: '/items/:itemId', label: '아이템 상세', scope: 'items', section: 'items' },
+  itemedit: { path: '/items/:itemId/edit', label: '아이템 수정', scope: 'items', section: 'items' },
 
   bg: { path: '/backgrounds', label: '배경', scope: 'bg' },
   nest: { path: '/nests', label: '둥지', scope: 'bg' },
