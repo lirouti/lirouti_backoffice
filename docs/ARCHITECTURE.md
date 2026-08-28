@@ -737,9 +737,19 @@ prop 이 읽기 쉽다 — 아래 "레시피 없음" 은 미완성이 아니라 
 | `Icon` | `name`(IconId) `size` | svgr 컴포넌트 래퍼 (currentColor 상속, §8.4) |
 | `AssetThumb` | `assetId` `size` `paid` `alt` | 아이템/배경/둥지 썸네일. `paid` 면 타일 배경을 어둡게(`tilePaid`) |
 | `OtpInput` | `value` `onChange` `length` `invalid` `aria-label`(필수) | 2단계 인증 코드 입력 (§16) |
+| `Table` | `columns` `rows` `minWidth` `onRowClick` `rowKey`. `Column.render` 로 배지·썸네일 | 목록 화면의 본체. 좁은 화면에서 스스로 가로 스크롤 |
+| `Input` | `value` `onChange` `label` `hint` `error` `required` `prefixIcon` `suffix` `size`(`md`\|`lg`) | 필터 바 · 등록/수정 폼 |
+| `Segmented` | `value` `onChange` `options` `aria-label`(필수) | 슬롯·등급·종류 필터 (원본 `tabOf()`/`seg()`) |
+| `EmptyState` | `icon` `title` `body` `action` | 결과 없음. "로딩이 끝난 건지 결과가 없는 건지" 를 가른다 |
+| `Skeleton` | `rows` | 로딩 자리. 표가 들어올 크기를 미리 잡아 화면이 튀지 않게 한다 |
 | `Checkbox` `ErrorBanner` | — | `features/auth` 에서 만들어졌다가 보안 화면이 두 번째 사용처가 되어 승격 (§4.4) |
 | `LineChart` / `BarChart` | Recharts 래퍼 | DAU 추이 / 젬 유입·소비 (§9.1) |
-| **미구현** `Segmented` `Switch` `Table` `Pagination` `EmptyState` `Field` `Input` `Select` `Textarea` `Dialog` `Toast` | — | 목록·폼 화면 착수 시. `Dialog` 는 `TabBar` 의 `window.confirm` 을 대체할 자리이기도 하다 |
+| **미구현** `Switch` `Pagination` `Select` `Textarea` `Dialog` `Toast` | — | 목록·폼 화면 착수 시. `Dialog` 는 `TabBar` 의 `window.confirm` 을 대체할 자리이기도 하다 |
+
+> **`Segmented` 는 `<button role=\"radio\">` 가 아니라 네이티브 `<input type=\"radio\">` 를
+> 숨겨서 쓴다.** 역할만 선언하면 스크린리더는 "라디오 그룹"이라 알리는데 화살표 키가
+> 동작하지 않아 **없는 조작법을 약속**하게 된다. 같은 `name` 을 공유하는 네이티브
+> 라디오는 화살표 이동·roving 포커스를 브라우저가 준다. `Checkbox` 와 같은 방식이다.
 
 > `Field`(TextField/PasswordField)는 지금 `features/auth` 안에 있다. **두 번째 폼 화면이
 > 생길 때** `shared/ui` 로 올린다 — 미리 올리면 로그인의 사정이 공용 컴포넌트에 스며든다 (§4.4).

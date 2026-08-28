@@ -13,7 +13,7 @@ bun run dev       # http://localhost:5173
 | `bun run build` | Panda 코드젠 + 타입체크 + 프로덕션 빌드 |
 | `bun run typecheck` | Panda 코드젠 + `tsc --noEmit` |
 | `bun run test` | Vitest (watch 는 `bun run test:watch`) |
-| `bun run lint` | ESLint + 선언 순서 + 디자인 토큰 명암비 |
+| `bun run lint` | ESLint + 선언 순서 + 디자인 토큰 명암비 + 주석 규약 |
 | `bun run assets` | 디자인 원본에서 개별 SVG 파일 + id 타입 생성 |
 
 **패키지 매니저는 bun.** 잠금 파일은 `bun.lock`.
@@ -23,13 +23,16 @@ bun run dev       # http://localhost:5173
 
 ## 검사
 
-`bun run lint` 는 셋을 돌린다. 규칙을 문서에만 두면 새어 나가므로 전부 강제한다.
+`bun run lint` 는 넷을 돌린다. 규칙을 문서에만 두면 새어 나가므로 전부 강제한다.
 
 | | 무엇을 |
 |---|---|
 | ESLint | 레이어 의존 방향(의존은 아래로만) · import 정렬 · `type` 강제 |
 | `scripts/check-order.ts` | 파일·컴포넌트 안 선언 순서 |
 | `scripts/check-contrast.ts` | 디자인 토큰 명암비 (WCAG AA, 라이트·다크) |
+| `scripts/check-comments.ts` | 주석의 자리와 형식 (§17) |
+
+**"왜를 쓴다" 같은 판단은 강제하지 않는다.** 오탐이 생기면 규칙 자체가 죽는다.
 
 ## 생성물
 
