@@ -1,3 +1,8 @@
+/**
+ * 인기 아이템 TOP 5 카드.
+ *
+ * 정렬 규칙은 `domain/item` 의 `topSelling` 이 갖는다 — 화면은 고르지 않고 그린다.
+ */
 import { Link } from 'react-router'
 
 import { css } from 'styled-system/css'

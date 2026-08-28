@@ -1,3 +1,9 @@
+/**
+ * 어드민 셸 — `<Outlet/>` 바깥에서 화면이 바뀌어도 남는 틀.
+ *
+ * ⚠️ **여기가 keep-alive 를 탭 스토어에 연결하는 자리다.** `KeepAlive` 는 탭을
+ *    모르므로, 닫힌 탭의 캐시를 파기하는 배선을 지우면 메모리에 계속 남는다.
+ */
 import { Suspense, useEffect } from 'react'
 
 import { KeepAlive, useKeepAliveRef } from 'keepalive-for-react'

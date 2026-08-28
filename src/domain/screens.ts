@@ -144,8 +144,14 @@ export type ScreenId = keyof typeof SCREENS
 
 export const SCREEN_IDS = Object.keys(SCREENS) as ScreenId[]
 
-// `v in SCREENS` 는 프로토타입 체인까지 본다 — 'toString' 도 true 가 되어
-// ScreenId 로 좁혀지고, 이후 SCREENS[id] 조회가 화면이 아닌 함수를 집는다.
+/**
+ * 이 문자열이 등록된 화면 id 인가.
+ *
+ * ⚠️ **`v in SCREENS` 를 쓰면 안 된다.** 프로토타입 체인까지 보기 때문에
+ *    `'toString'` 도 `true` 가 되어 `ScreenId` 로 좁혀지고, 이후 `SCREENS[id]`
+ *    조회가 화면이 아닌 함수를 집는다. 타입 서술어는 TS 가 검증해 주지 않아서
+ *    몸통이 거짓말을 하면 컴파일은 통과하고 런타임에 깨진다.
+ */
 export const isScreenId = (v: string): v is ScreenId => Object.hasOwn(SCREENS, v)
 
 /**

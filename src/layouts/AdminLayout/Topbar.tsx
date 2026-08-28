@@ -1,3 +1,10 @@
+/**
+ * 셸 상단 — 브레드크럼 · 테마 토글 · 시즌 표시.
+ *
+ * 동작하지 않던 것 둘(가짜 검색창, 정적 `● 라이브` 배지)을 지웠다.
+ * **나쁜 상태를 표시할 수 없는 상태등은 없느니만 못하다** — 점검 중에도 초록 점이
+ * 켜져 있으면 운영자가 그걸 믿는다.
+ */
 import { css } from 'styled-system/css'
 
 import { Button } from '@/shared/ui/Button'
@@ -66,7 +73,7 @@ export function Topbar({ current }: { current: ScreenId | null }) {
         테두리·배경·hover 를 가진 버튼 모양은 없는 동작을 약속한다.
         사이드바의 개수 배지(`nBg`)와 같은 처리라 "누르는 것이 아니라 읽는 것"으로 읽힌다.
 
-        TODO: 시즌 스펙이 정해지면 `domain/season.ts`(`endsAt` → `daysLeft`) + api 로 바꾼다.
+        TODO(시즌 스펙이 정해지면): `domain/season.ts`(`endsAt` → `daysLeft`) + api 로 바꾼다.
               `DashboardPage` 의 "시즌 3 · 최근 14일 기준…" 문구도 같은 출처를 봐야 한다
               — 지금은 두 군데가 서로를 모르는 채로 같은 숫자를 적고 있다.
       */}

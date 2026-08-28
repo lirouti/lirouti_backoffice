@@ -192,7 +192,7 @@ export default function LoginPage() {
                       label="로그인 상태 유지"
                     />
                     <div className={css({ flex: '1' })} />
-                    {/* TODO: 비밀번호 재설정 흐름은 백엔드 스펙 확정 후 */}
+                    {/* TODO(백엔드 스펙 확정 후): 비밀번호 재설정 흐름 */}
                     <span
                       className={css({
                         textStyle: 'label',

@@ -1,3 +1,10 @@
+/**
+ * 브레드크럼.
+ *
+ * 경로가 아니라 **화면 메타**(`domain/screens`)에서 만든다. 상세 화면은
+ * `sectionOf` 로 부모 목록을 한 단계 끼워 넣는다 — `/items/3` 은
+ * "리루티 > 아이템 > 아이템 목록 > 아이템 상세".
+ */
 import { Link } from 'react-router'
 
 import { css } from 'styled-system/css'

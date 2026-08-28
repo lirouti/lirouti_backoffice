@@ -37,6 +37,10 @@ export default defineConfig({
     // **`.test.ts` 만** 잡는다. `.tsx` 를 빼 둔 건 실수가 아니라 경계다 —
     // 컴포넌트 테스트를 시작하려면 jsdom·Testing Library 를 같이 들여야 하므로,
     // 그 결정을 하기 전까지는 순수 함수 테스트만 존재한다는 뜻이 된다.
-    include: ['src/**/*.test.ts'],
+    //
+    // `scripts/` 도 넣는다. 규약 검사기들은 **코드를 읽는 코드**라 눈으로 맞는지
+    // 확인할 수가 없고, 실제로 주석 검사기가 오탐을 세 번 냈다. 환경(node)과
+    // 성질(순수 함수)이 같아 위의 경계는 그대로다.
+    include: ['{src,scripts}/**/*.test.ts'],
   },
 })
