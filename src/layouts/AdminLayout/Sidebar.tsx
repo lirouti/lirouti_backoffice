@@ -235,20 +235,23 @@ function Group({ group, isActiveGroup }: { group: NavGroup; isActiveGroup: boole
             <NavLink
               key={c.screen}
               to={SCREENS[c.screen].path}
-              className={({ isActive }) =>
-                css({
+              className={({ isActive }) => {
+                const on = isActive || (current != null && sectionOf(current) === c.screen)
+                return css({
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
                   p: '7px 10px 7px 35px',
                   borderRadius: 'md',
                   textStyle: 'body',
-                  bg: isActive || sectionOf(current ?? 'dash') === c.screen ? 'soft' : 'transparent',
-                  color: isActive || sectionOf(current ?? 'dash') === c.screen ? 'priD' : 'sub',
-                  fontWeight: isActive || sectionOf(current ?? 'dash') === c.screen ? '700' : '500',
+                  // 활성 화면이 없으면(탭을 다 닫음) 아무것도 켜지 않는다.
+                  // `?? 'dash'` 로 두면 지표가 켜진 것처럼 보인다.
+                  bg: on ? 'soft' : 'transparent',
+                  color: on ? 'priD' : 'sub',
+                  fontWeight: on ? '700' : '500',
                   _hover: { bg: 'hov' },
                 })
-              }
+              }}
             >
               <span>{SCREENS[c.screen].label}</span>
               {c.count != null && (

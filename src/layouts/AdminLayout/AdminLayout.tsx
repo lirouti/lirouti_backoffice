@@ -15,7 +15,7 @@ import { canAccess } from '@/domain/access'
 import { SCREENS } from '@/domain/screens'
 
 import { useBeforeUnloadWhenDirty } from '@/stores/dirtyStore'
-import { MAX_TABS, useTabsStore } from '@/stores/tabsStore'
+import { livePaths, MAX_TABS, useTabsStore } from '@/stores/tabsStore'
 import { useViewer } from '@/stores/viewerStore'
 
 import { Sidebar } from './Sidebar'
@@ -41,7 +41,8 @@ export function AdminLayout() {
   const allowed = current != null && canAccess(viewer, SCREENS[current].scope)
 
   // 경로가 바뀔 때마다 탭 스택에 밀어 넣는다.
-  // 탭 키가 경로라서 `/items/3` 과 `/items/7` 이 각각 열린다.
+  // **탭 키는 서브 메뉴다.** `/items/3` 은 「아이템 목록」 탭의 경로를 바꿀 뿐 새 탭을
+  // 만들지 않는다 (docs/ARCHITECTURE.md §6.3).
   //
   // ⚠️ **권한 밖 경로는 넣지 않는다.** effect 는 렌더 커밋 뒤에 돌기 때문에
   //    아래에서 `<Navigate>` 를 돌려준 렌더에서도 실행된다. 거르지 않으면 열지도
@@ -56,7 +57,9 @@ export function AdminLayout() {
   useEffect(() => {
     const alive = aliveRef.current
     if (!alive) return
-    const open = new Set(tabs.map((t) => t.path))
+    // 탭이 들고 있는 화면들. 파생 화면에 있어도 서브 메뉴 화면을 함께 살려 둔다 —
+    // 상세를 보다 목록으로 돌아왔을 때 스크롤이 그대로여야 "전환됐다"로 읽힌다.
+    const open = new Set(tabs.flatMap(livePaths))
     const orphans = alive
       .getCacheNodes()
       .map((n) => n.cacheKey)
@@ -99,7 +102,19 @@ export function AdminLayout() {
               ⚠️ 메모리에만 있어서 새로고침하면 사라진다.
                  폼 초안은 별도로 저장해야 한다.
             */}
-            <KeepAlive aliveRef={aliveRef} activeCacheKey={pathname} max={MAX_TABS}>
+            {/*
+              탭당 최대 둘(서브 메뉴 + 파생 화면)이라 상한도 두 배다.
+
+              ⚠️ **열린 탭 수를 따라가야 한다.** `MAX_TABS` 는 깨끗한 탭에만 걸리는
+                 상한이라(`evictionTarget`) 미저장 탭이 많으면 탭이 그 위로 늘어난다.
+                 여기를 고정값으로 두면 **KeepAlive 가 대신 LRU 로 밀어내** 작성 중이던
+                 화면이 사라진다 — 자동 축출을 막아 둔 뜻이 없어진다.
+            */}
+            <KeepAlive
+              aliveRef={aliveRef}
+              activeCacheKey={pathname}
+              max={Math.max(MAX_TABS, tabs.length) * 2}
+            >
               <Suspense fallback={<ScreenSkeleton />}>
                 <Outlet />
               </Suspense>

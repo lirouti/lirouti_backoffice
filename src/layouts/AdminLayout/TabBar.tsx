@@ -7,10 +7,10 @@ import { css } from 'styled-system/css'
 import { Dialog } from '@/shared/ui/Dialog'
 
 import { canAccess } from '@/domain/access'
-import { SCREENS } from '@/domain/screens'
+import { matchScreen, SCREENS, sectionOf, type ScreenId } from '@/domain/screens'
 
 import { useDirtyStore } from '@/stores/dirtyStore'
-import { useTabsStore } from '@/stores/tabsStore'
+import { livePaths, useTabsStore, type OpenTab } from '@/stores/tabsStore'
 import { useViewer } from '@/stores/viewerStore'
 
 /**
@@ -70,6 +70,23 @@ const strip = css({
  * 추가로 **활성 탭이 화면 밖이면 끌어온다.** 사이드바로 이동했는데 그 탭이 스크롤 밖에
  * 있으면 지금 어디에 있는지 알 수 없다.
  */
+/**
+ * 이 경로가 속한 서브 메뉴. 매칭되지 않는 경로(있어서는 안 되지만)는 `undefined`.
+ */
+function sectionOfPath(pathname: string): ScreenId | null {
+  const screen = matchScreen(pathname)
+  return screen ? sectionOf(screen) : null
+}
+
+/**
+ * 탭에 쓸 이름 — **서브 메뉴 이름 그대로.**
+ *
+ * 파생 화면에 들어가도 바뀌지 않는다. 한때 `아이템 목록 › 아이템 상세` 처럼 덧붙였는데,
+ * **화면 이름 둘을 이어 붙이니 읽기 나빴고** 어차피 브레드크럼이 같은 것을 이미 말한다
+ * (`리루티 › 아이템 › 아이템 목록 › 아이템 상세`). 탭은 "어느 메뉴에 있는가"만 맡는다.
+ */
+const tabLabel = (tab: OpenTab): string => SCREENS[tab.screen].label
+
 export function TabBar() {
   const navigate = useNavigate()
   const { pathname } = useLocation()
@@ -78,11 +95,15 @@ export function TabBar() {
   const dirty = useDirtyStore((s) => s.dirty)
   const viewer = useViewer()
   const [fade, setFade] = useState<'none' | 'left' | 'right' | 'both'>('none')
-  /** 미저장인데 닫으려는 탭의 경로. 확인 창이 떠 있는 동안만 값이 있다 */
-  const [pending, setPending] = useState<string | null>(null)
+  /** 미저장인데 닫으려는 탭. 확인 창이 떠 있는 동안만 값이 있다 */
+  const [pending, setPending] = useState<OpenTab | null>(null)
   const stripRef = useRef<HTMLDivElement>(null)
 
   const shown = tabs.filter((t) => canAccess(viewer, SCREENS[t.screen].scope))
+  // 지금 보고 있는 화면이 속한 서브 메뉴. 파생 화면(`/items/3`)도 부모 탭을 켠다.
+  const activeSection = sectionOfPath(pathname)
+  /** 이 탭이 들고 있는 화면 중 하나라도 저장 안 됐는가 */
+  const isDirty = (t: OpenTab) => livePaths(t).some((p) => dirty[p])
 
   // 어느 쪽으로 더 스크롤할 수 있는지 → 가장자리 흐림. 스크롤바가 알려주던 정보다.
   useEffect(() => {
@@ -147,22 +168,22 @@ export function TabBar() {
 
   if (!shown.length) return null
 
-  const closeTab = (path: string) => {
-    close(path)
-    // 활성 탭을 닫으면 남은 마지막 탭으로 이동한다.
-    if (path === pathname) {
-      const rest = shown.filter((t) => t.path !== path)
-      const next = rest[rest.length - 1]
-      if (next) navigate(next.path)
-    }
+  const closeTab = (tab: OpenTab) => {
+    close(tab.screen)
+    if (tab.screen !== activeSection) return
+
+    // 활성 탭을 닫으면 남은 마지막 탭으로 간다. 남은 게 없으면 `/` —
+    // **경로를 그대로 두면 사이드바가 방금 닫은 화면을 계속 가리킨다.**
+    const next = shown.filter((t) => t.screen !== tab.screen).at(-1)
+    navigate(next ? next.path : '/')
   }
 
-  const onClose = (path: string) => {
+  const onClose = (tab: OpenTab) => {
     // 탭을 닫으면 keep-alive 캐시가 파기되어 작성 중이던 내용이 사라진다.
     // 새로고침(`beforeunload`)과 달리 여기서는 문구를 우리가 정할 수 있다
     // (docs/ARCHITECTURE.md §9).
-    if (dirty[path]) setPending(path)
-    else closeTab(path)
+    if (isDirty(tab)) setPending(tab)
+    else closeTab(tab)
   }
 
   return (
@@ -171,10 +192,10 @@ export function TabBar() {
     <div className={css({ bg: 'surf', borderBottom: '1px solid token(colors.bd)' })}>
       <div ref={stripRef} data-fade={fade} className={strip}>
         {shown.map((t) => {
-          const on = t.path === pathname
+          const on = t.screen === activeSection
           return (
             <div
-              key={t.path}
+              key={t.screen}
               data-active={on ? '' : undefined}
               className={css({
                 display: 'flex',
@@ -206,9 +227,9 @@ export function TabBar() {
                   textOverflow: 'ellipsis',
                 })}
               >
-                {t.label}
+                {tabLabel(t)}
               </button>
-              {dirty[t.path] && (
+              {isDirty(t) && (
                 <span
                   title="저장하지 않은 변경사항"
                   className={css({
@@ -222,8 +243,8 @@ export function TabBar() {
               )}
               <button
                 type="button"
-                aria-label={`${t.label} 탭 닫기`}
-                onClick={() => onClose(t.path)}
+                aria-label={`${tabLabel(t)} 탭 닫기`}
+                onClick={() => onClose(t)}
                 className={css({
                   width: '17px',
                   height: '17px',
@@ -264,7 +285,7 @@ export function TabBar() {
         }}
         tone="danger"
         title="저장하지 않고 닫을까요?"
-        body={`"${shown.find((t) => t.path === pending)?.label ?? ''}" 탭에 저장하지 않은 변경사항이 있습니다. 닫으면 사라집니다.`}
+        body={`"${pending ? tabLabel(pending) : ''}" 탭에 저장하지 않은 변경사항이 있습니다. 닫으면 사라집니다.`}
         confirmLabel="닫기"
         cancelLabel="계속 편집"
       />
