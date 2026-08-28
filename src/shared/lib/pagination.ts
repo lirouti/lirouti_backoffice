@@ -8,46 +8,46 @@
 /** 번호가 이어지지 않고 건너뛴 자리. 화면에서는 `…` 로 그린다. */
 export type PageGap = 'gap'
 
+/** `span` 이 정하는 **고정 칸 수**. 앞·현재 묶음·뒤 + 생략 둘 + 첫 장·끝 장. */
+export const slotCount = (span = 1): number => span * 2 + 5
+
+const range = (from: number, to: number): number[] =>
+  Array.from({ length: to - from + 1 }, (_, i) => from + i)
+
 /**
  * 페이지 바에 그릴 번호들을 앞에서부터 돌려준다.
  *
- * 첫 장과 끝 장은 **항상** 들어간다 — 200 페이지 목록에서 1 로 돌아갈 방법이
- * 없으면 안 된다.
+ * ⚠️ **길이가 항상 같다.** `total` 이 `slotCount(span)` 보다 크면 어느 페이지에
+ *    있든 정확히 그 개수를 돌려준다. 개수가 들쭉날쭉하면 페이지를 옮길 때마다
+ *    바의 폭이 변하고, 오른쪽 정렬된 바는 **통째로 가로로 밀린다** — 누르려던
+ *    번호가 손가락 밑에서 도망가고, 그게 "깜빡인다"로 보인다.
  *
- * **전체가 최대 너비 안에 들어오면 생략하지 않는다.** 생략이 가장 많이 붙은
- * 모양이 `1 … c-s … c+s … total` 로 `2*span+5` 칸이라, 그보다 짧은 목록은
- * 다 펼쳐도 자리를 더 먹지 않는다. 5장짜리를 `1 2 … 5` 로 접으면 자리는
- * 그대로면서 누를 수 있는 것만 줄어든다.
+ * 첫 장과 끝 장은 **항상** 들어간다 — 200 페이지 목록에서 1 로 돌아갈 방법이
+ * 없으면 안 된다. 그래서 모양은 셋뿐이다.
+ *
+ * ```text
+ * 앞에 붙음   1 2 3 4 5 … 20
+ * 가운데      1 … 9 10 11 … 20
+ * 뒤에 붙음   1 … 16 17 18 19 20
+ * ```
  *
  * @param current 지금 페이지. **1부터 센다.** 범위를 벗어나면 안쪽으로 당긴다
  * @param total   전체 페이지 수. 0 이하면 빈 배열
- * @param span    현재 페이지 양옆으로 몇 장까지 펼칠지
+ * @param span    현재 페이지 양옆으로 몇 장까지 펼칠지. 칸 수를 함께 정한다
  */
 export function pageWindow(current: number, total: number, span = 1): (number | PageGap)[] {
   if (total <= 0) return []
-  if (total <= span * 2 + 5) return Array.from({ length: total }, (_, i) => i + 1)
+
+  const slots = slotCount(span)
+  if (total <= slots) return range(1, total)
 
   const c = Math.min(Math.max(current, 1), total)
-  const keep = new Set<number>([1, total])
-  for (let p = c - span; p <= c + span; p += 1) {
-    if (p >= 1 && p <= total) keep.add(p)
-  }
+  // 한쪽 끝에 붙었을 때 이어서 보여주는 번호 개수. 나머지 두 칸은 `…` 와 반대쪽 끝.
+  const run = slots - 2
 
-  const pages = [...keep].sort((a, b) => a - b)
-  const out: (number | PageGap)[] = []
-
-  for (const [i, p] of pages.entries()) {
-    const prev = pages[i - 1]
-    if (prev !== undefined) {
-      // 딱 한 장만 건너뛰는 자리에는 `…` 대신 그 번호를 넣는다.
-      // 자리를 똑같이 먹으면서 누를 수 있는 것이 하나 줄어들 이유가 없다.
-      if (p - prev === 2) out.push(prev + 1)
-      else if (p - prev > 2) out.push('gap')
-    }
-    out.push(p)
-  }
-
-  return out
+  if (c <= run - 1) return [...range(1, run), 'gap', total]
+  if (c >= total - run + 2) return [1, 'gap', ...range(total - run + 1, total)]
+  return [1, 'gap', ...range(c - span, c + span), 'gap', total]
 }
 
 /** 전체 건수와 쪽당 개수로 페이지 수를 낸다. 0건이면 0 (빈 목록에는 페이지 바가 없다). */

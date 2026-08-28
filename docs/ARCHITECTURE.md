@@ -747,6 +747,23 @@ prop 이 읽기 쉽다 — 아래 "레시피 없음" 은 미완성이 아니라 
 | `Select` | `value` `onChange` `options` `label` `placeholder` `hint` `error` `required` `size` | 네이티브 `<select>`. 필터·폼의 단일 선택 |
 | `Switch` | `checked` `onChange` `label`(필수) `hint` `disabled` | **즉시 반영되는 설정에만.** 저장 버튼이 있는 폼에는 `Checkbox` |
 | `Pagination` | `page`(1부터) `totalPages` `onChange` `span` | 목록 아래. **칸마다 테두리를 두르지 않는다** — 상자 여덟 개는 계산기 버튼처럼 보이고 표의 가로줄과 싸운다. 채운 것은 현재 페이지 하나뿐 |
+
+> ⚠️ **페이지 바의 폭은 절대 변하면 안 된다.** 보통 오른쪽 정렬이라 폭이 1px만 변해도
+> 바 전체가 가로로 밀린다 — 방금 누른 자리에 다른 번호가 와 있고, 연달아 누르면
+> **화면이 깜빡이는 것처럼 보인다.** 처음엔 4→5→6→7칸으로 늘어나게 만들어서 실제로
+> 그랬다. 세 곳에서 막는다.
+>
+> | | |
+> |---|---|
+> | 칸 **개수** | `pageWindow` 가 `slotCount(span)` 개로 고정. 모양은 `1 2 3 4 5 … 20` · `1 … 9 10 11 … 20` · `1 … 16 17 18 19 20` 셋뿐이다 |
+> | 칸 **폭** | `totalPages` 자릿수로 계산해 모든 칸에 똑같이 준다. `minWidth` 로 두면 `1` 과 `20` 의 칸 폭이 달라진다 |
+> | 글자 폭 | `fontVariantNumeric: 'tabular-nums'`. 비례 숫자는 `1` 과 `8` 의 폭이 달라 미세하게 흔들린다 |
+>
+> 재서 확인: 20페이지를 모두 눌러도 `nav` 의 폭·좌표와 칸 폭이 각각 한 값(312px·844px·32px)이고,
+> 가운데 구간에서는 채운 알약의 좌표까지 고정이라 `›` 를 연타해도 움직이는 건 숫자 글자뿐이다.
+>
+> 전환 애니메이션도 넣지 않았다 — 채운 알약이 옆 칸으로 옮겨갈 때 이전 칸이 서서히
+> 빠지면 두 칸이 동시에 파랗게 보이는 순간이 생긴다.
 | `Dialog` | `open` `onCancel` `onConfirm` `title` `body` `tone` `confirmLabel` `cancelLabel` | 네이티브 `<dialog>`. `TabBar` 의 탭 닫기 확인이 첫 사용처 |
 | **미구현** `Textarea` `Toast` | — | 폼 화면 착수 시 |
 

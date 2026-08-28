@@ -8,12 +8,13 @@ import { pageWindow } from '@/shared/lib/pagination'
  * ⚠️ **포커스 링이 두 겹이다.** 다른 입력들은 테두리를 `ringBd` 로 바꾸고 옅은
  *    후광(`ring`, 알파 .18)만 더하는데, 여기는 평상시 테두리가 없어서 후광만으로는
  *    **포커스가 어디 있는지 안 보인다.** 안쪽에 `ringBd` 실선을 깔아 대신한다.
+ *
+ * ⚠️ **전환 애니메이션을 넣지 않았다.** 채운 알약이 옆 칸으로 옮겨갈 때 이전 칸이
+ *    서서히 빠지면 두 칸이 동시에 파랗게 보이는 순간이 생긴다 — 그게 깜빡임으로 읽힌다.
  */
 const cell = cva({
   base: {
-    minWidth: '30px',
-    height: '30px',
-    px: '9px',
+    height: '32px',
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -21,11 +22,13 @@ const cell = cva({
     border: '0',
     bg: 'transparent',
     font: 'inherit',
-    textStyle: 'label',
+    fontSize: '13px',
+    letterSpacing: '-0.2px',
     fontWeight: '600',
+    // 자릿수가 달라도 글자 폭이 같다. 비례 숫자는 1 과 8 의 폭이 달라 미세하게 흔들린다.
+    fontVariantNumeric: 'tabular-nums',
     borderRadius: '999px',
     cursor: 'pointer',
-    transition: 'background .12s, color .12s',
     _focusVisible: {
       outline: 'none',
       boxShadow: '0 0 0 2px token(colors.ringBd), 0 0 0 5px token(colors.ring)',
@@ -56,7 +59,7 @@ type PaginationProps = {
   /** 전체 페이지 수. 1 이하면 아무것도 그리지 않는다 */
   totalPages: number
   onChange: (page: number) => void
-  /** 현재 페이지 양옆으로 몇 장까지 펼칠지 */
+  /** 현재 페이지 양옆으로 몇 장까지 펼칠지. 칸 수도 이게 정한다 (`slotCount`) */
   span?: number
   className?: string
 }
@@ -67,6 +70,13 @@ type PaginationProps = {
  * **칸마다 테두리를 두르지 않는다.** 상자 여덟 개가 늘어서면 계산기 버튼처럼 보이고,
  * 바로 위 표의 가로줄과도 싸운다. 채운 것은 **현재 페이지 하나뿐**이라 지금 어디인지가
  * 한눈에 들어온다.
+ *
+ * ⚠️ **폭이 절대 변하지 않아야 한다.** 페이지 바는 보통 오른쪽 정렬이라, 폭이 1px만
+ *    변해도 바 전체가 가로로 밀린다 — 방금 누른 자리에 다른 번호가 와 있고, 연달아
+ *    누르면 화면이 깜빡이는 것처럼 보인다. 두 곳에서 막는다.
+ *      · 칸 **개수**는 `pageWindow` 가 고정한다 (`slotCount(span)`)
+ *      · 칸 **폭**은 `totalPages` 의 자릿수로 계산해 모든 칸에 똑같이 준다.
+ *        `minWidth` 로 두면 `1` 과 `20` 의 칸이 서로 다른 폭이 된다
  *
  * **건수 표시("총 1,234건")는 넣지 않았다.** 그건 목록이 방금 무엇을 걸렀는지에
  * 딸린 정보라 필터와 같은 줄에 있어야 하고, 여기 넣으면 페이지를 옮길 때마다
@@ -79,13 +89,15 @@ export function Pagination({ page, totalPages, onChange, span = 1, className }: 
   if (totalPages <= 1) return null
 
   const current = Math.min(Math.max(page, 1), totalPages)
+  // 가장 긴 번호(= 끝 장)에 맞춘 한 칸의 폭. 32px 아래로는 누르기 어렵다.
+  const cellWidth = Math.max(32, 14 + String(totalPages).length * 9)
 
   return (
     <nav
       aria-label="페이지"
-      className={cx(css({ display: 'flex', alignItems: 'center', gap: '2px' }), className)}
+      className={cx(css({ display: 'flex', alignItems: 'center', gap: '3px' }), className)}
     >
-      <Arrow dir="prev" disabled={current <= 1} onClick={() => onChange(current - 1)} />
+      <Arrow dir="prev" disabled={current <= 1} width={cellWidth} onClick={() => onChange(current - 1)} />
 
       {pageWindow(current, totalPages, span).map((p, i) =>
         p === 'gap' ? (
@@ -94,11 +106,14 @@ export function Pagination({ page, totalPages, onChange, span = 1, className }: 
             key={`gap-${i}`}
             aria-hidden="true"
             className={css({
-              minWidth: '22px',
-              textAlign: 'center',
+              height: '32px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
               color: 'faint2',
               userSelect: 'none',
             })}
+            style={{ width: cellWidth }}
           >
             …
           </span>
@@ -111,18 +126,29 @@ export function Pagination({ page, totalPages, onChange, span = 1, className }: 
             aria-label={`${p} 페이지`}
             onClick={() => onChange(p)}
             className={css(cell.raw({ on: p === current }))}
+            style={{ width: cellWidth }}
           >
             {p}
           </button>
         ),
       )}
 
-      <Arrow dir="next" disabled={current >= totalPages} onClick={() => onChange(current + 1)} />
+      <Arrow dir="next" disabled={current >= totalPages} width={cellWidth} onClick={() => onChange(current + 1)} />
     </nav>
   )
 }
 
-function Arrow({ dir, disabled, onClick }: { dir: 'prev' | 'next'; disabled: boolean; onClick: () => void }) {
+function Arrow({
+  dir,
+  disabled,
+  width,
+  onClick,
+}: {
+  dir: 'prev' | 'next'
+  disabled: boolean
+  width: number
+  onClick: () => void
+}) {
   const prev = dir === 'prev'
 
   return (
@@ -132,13 +158,14 @@ function Arrow({ dir, disabled, onClick }: { dir: 'prev' | 'next'; disabled: boo
       aria-label={prev ? '이전 페이지' : '다음 페이지'}
       onClick={onClick}
       className={css(cell.raw({ arrow: true }))}
+      style={{ width }}
     >
-      <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true">
+      <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
         <path
-          d={prev ? 'M7.5,2 L3.5,6 L7.5,10' : 'M4.5,2 L8.5,6 L4.5,10'}
+          d={prev ? 'M7.3,2 L3.3,6 L7.3,10' : 'M4.7,2 L8.7,6 L4.7,10'}
           fill="none"
           stroke="currentColor"
-          strokeWidth="1.7"
+          strokeWidth="1.8"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
