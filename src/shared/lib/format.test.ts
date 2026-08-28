@@ -2,10 +2,29 @@ import { describe, expect, it } from 'vitest'
 
 import { compact, count, date, gem, num, pct } from './format'
 
+/**
+ * ⚠️ **이 describe 는 시간대에 의존한다.** `vite.config.ts` 의 `test.env.TZ` 로
+ *    `Asia/Seoul` 에 고정해 두었다 — 고정하지 않으면 오프셋이 붙은 값이 UTC 서쪽
+ *    환경에서 하루 밀려 "노트북에서는 통과, CI 에서만 실패"가 된다.
+ */
 describe('date', () => {
+  it('실행 환경이 KST 로 고정돼 있다', () => {
+    // 아래 케이스들이 이 전제 위에 서 있으므로, 전제가 깨지면 여기서 먼저 알린다.
+    expect(new Date('2026-03-14T09:20:00+09:00').getHours()).toBe(9)
+  })
+
   it('오프셋이 붙은 값을 그대로 읽는다', () => {
     // 지금 목이 주는 모양이다.
     expect(date('2026-03-14T09:20:00+09:00')).toBe('2026년 3월 14일')
+  })
+
+  /**
+   * 날짜만 있는 값은 **시간대와 무관하게** 같은 날이어야 한다. 위 케이스와 달리
+   * 이건 TZ 고정에 기대지 않는다 — `date()` 가 지역 자정으로 직접 만들기 때문이다.
+   */
+  it('날짜만 있는 값은 시간대에 흔들리지 않는다', () => {
+    expect(date('2026-03-14')).toBe(date('2026-03-14'))
+    expect(date('2026-03-14')).toContain('3월 14일')
   })
 
   /**
