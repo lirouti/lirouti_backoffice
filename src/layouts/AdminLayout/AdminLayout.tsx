@@ -7,9 +7,11 @@
 import { Suspense, useEffect } from 'react'
 
 import { KeepAlive, useKeepAliveRef } from 'keepalive-for-react'
-import { Navigate, Outlet, useLocation } from 'react-router'
+import { Navigate, useLocation, useOutlet } from 'react-router'
 
 import { css } from 'styled-system/css'
+
+import { Dialog } from '@/shared/ui/Dialog'
 
 import { canAccess } from '@/domain/access'
 import { SCREENS } from '@/domain/screens'
@@ -22,16 +24,24 @@ import { Sidebar } from './Sidebar'
 import { TabBar } from './TabBar'
 import { Topbar } from './Topbar'
 import { useCurrentScreen, useFirstScreen } from './useScopedNav'
+import { useUnsavedNavGuard } from './useUnsavedNavGuard'
 import { ViewerBanner } from './ViewerBanner'
 
 export function AdminLayout() {
   const current = useCurrentScreen()
-  const { pathname } = useLocation()
+  const { pathname, search } = useLocation()
   const viewer = useViewer()
   const openTab = useTabsStore((s) => s.open)
   const tabs = useTabsStore((s) => s.tabs)
   const fallback = useFirstScreen()
   const aliveRef = useKeepAliveRef()
+  // ⚠️ **`<Outlet/>` 이 아니라 `useOutlet()` 이다.** `<Outlet/>` 은 그릴 때마다 라우터
+  //    컨텍스트를 다시 읽어 **캐시해 둔 화면까지 "지금 경로"를 그린다** — 캐시가
+  //    무의미해지고 탭을 옮기면 상태가 사라진다. 여기는 지금 라우트의 **엘리먼트**를
+  //    받아 그대로 캐시에 넣어야 한다.
+  const outlet = useOutlet()
+  // 같은 탭 안에서 화면을 옮기면 앞의 화면이 파기된다 — 저장 안 된 게 있으면 먼저 묻는다.
+  const blocker = useUnsavedNavGuard()
 
   // 저장 안 된 변경이 있으면 새로고침·닫기를 막는다.
   // (문구는 브라우저가 정한다 — 우리가 못 바꾼다. stores/dirtyStore.ts 참고)
@@ -49,8 +59,10 @@ export function AdminLayout() {
   //    못한 경로가 persist 에 남아 MAX_TABS 자리를 잡아먹고, 나중에 스코프가
   //    늘면 열어본 적 없는 탭이 튀어나온다.
   useEffect(() => {
-    if (allowed) openTab(pathname)
-  }, [allowed, pathname, openTab])
+    // **쿼리까지 넘긴다.** 목록 필터가 주소에 있어서(§18.1) 떨어뜨리면 탭을 옮겼다
+    // 돌아올 때 필터가 풀린다. 화면 매칭과 캐시 키는 경로만 본다.
+    if (allowed) openTab(pathname + search)
+  }, [allowed, pathname, search, openTab])
 
   // 탭을 닫으면 살아 있던 화면도 버린다.
   // KeepAlive 는 탭 스토어를 모르므로, 연결해 주지 않으면 닫은 탭이 메모리에 계속 남는다.
@@ -115,13 +127,22 @@ export function AdminLayout() {
               activeCacheKey={pathname}
               max={Math.max(MAX_TABS, tabs.length) * 2}
             >
-              <Suspense fallback={<ScreenSkeleton />}>
-                <Outlet />
-              </Suspense>
+              <Suspense fallback={<ScreenSkeleton />}>{outlet}</Suspense>
             </KeepAlive>
           </div>
         </main>
       </div>
+
+      <Dialog
+        open={blocker.state === 'blocked'}
+        onCancel={() => blocker.reset?.()}
+        onConfirm={() => blocker.proceed?.()}
+        tone="danger"
+        title="저장하지 않고 이동할까요?"
+        body="이 화면에 저장하지 않은 변경사항이 있습니다. 같은 탭에서 다른 화면으로 옮기면 사라집니다."
+        confirmLabel="이동"
+        cancelLabel="계속 편집"
+      />
     </div>
   )
 }

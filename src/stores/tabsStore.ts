@@ -21,9 +21,17 @@ import { useDirtyStore } from './dirtyStore'
 export type OpenTab = {
   /** 탭의 정체성 — 사이드바에 있는 서브 메뉴 화면. 라벨도 여기서 나온다 */
   screen: ScreenId
-  /** 이 탭이 **지금 보고 있는** 경로. 파생 화면으로 들어가면 바뀐다 */
+  /**
+   * 이 탭이 **지금 보고 있는 주소.** 파생 화면으로 들어가면 바뀐다.
+   *
+   * **쿼리까지 담는다** (`/items?slot=BODY`) — 목록 필터가 주소에 있으므로
+   * (docs/ARCHITECTURE.md §18.1) 여기서 떨어뜨리면 탭을 옮겼다 돌아올 때 필터가 풀린다.
+   */
   path: string
 }
+
+/** 주소에서 경로만. 화면 매칭과 keep-alive 캐시 키는 쿼리를 보지 않는다. */
+const pathnameOf = (url: string): string => url.split('?')[0]!
 
 /**
  * 탭 상한. 스트립이 스크롤 지옥이 되는 것도 있지만, keep-alive 로 화면이 살아 있으므로
@@ -40,7 +48,8 @@ export const MAX_TABS = 12
  */
 export function livePaths(tab: OpenTab): string[] {
   const root = SCREENS[tab.screen].path
-  return tab.path === root ? [root] : [tab.path, root]
+  const here = pathnameOf(tab.path)
+  return here === root ? [root] : [here, root]
 }
 
 /**
@@ -82,7 +91,7 @@ export const useTabsStore = create<TabsState>()(
 
       open: (path) =>
         set((s) => {
-          const screen = matchScreen(path)
+          const screen = matchScreen(pathnameOf(path))
           if (!screen) return s
           const section = sectionOf(screen)
 
@@ -123,7 +132,7 @@ export const useTabsStore = create<TabsState>()(
         const bySection = new Map<ScreenId, OpenTab>()
         for (const t of raw) {
           if (typeof t?.path !== 'string') continue
-          const screen = matchScreen(t.path)
+          const screen = matchScreen(pathnameOf(t.path))
           if (!screen) continue
           const section = sectionOf(screen)
           // 경로 단위로 저장돼 있던 것(같은 서브 메뉴가 여럿)은 마지막 것만 남긴다.
