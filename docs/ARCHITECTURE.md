@@ -746,7 +746,7 @@ prop 이 읽기 쉽다 — 아래 "레시피 없음" 은 미완성이 아니라 
 | `LineChart` / `BarChart` | Recharts 래퍼 | DAU 추이 / 젬 유입·소비 (§9.1) |
 | `Select` | `value` `onChange` `options` `label` `placeholder` `hint` `error` `required` `size` | 네이티브 `<select>`. 필터·폼의 단일 선택 |
 | `Switch` | `checked` `onChange` `label`(필수) `hint` `disabled` | **즉시 반영되는 설정에만.** 저장 버튼이 있는 폼에는 `Checkbox` |
-| `Pagination` | `page`(1부터) `totalPages` `onChange` `span` | 목록 아래. 번호 계산은 `shared/lib/pagination` |
+| `Pagination` | `page`(1부터) `totalPages` `onChange` `span` | 목록 아래. **칸마다 테두리를 두르지 않는다** — 상자 여덟 개는 계산기 버튼처럼 보이고 표의 가로줄과 싸운다. 채운 것은 현재 페이지 하나뿐 |
 | `Dialog` | `open` `onCancel` `onConfirm` `title` `body` `tone` `confirmLabel` `cancelLabel` | 네이티브 `<dialog>`. `TabBar` 의 탭 닫기 확인이 첫 사용처 |
 | **미구현** `Textarea` `Toast` | — | 폼 화면 착수 시 |
 
