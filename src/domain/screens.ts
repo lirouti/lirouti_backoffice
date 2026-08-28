@@ -157,8 +157,9 @@ export const isScreenId = (v: string): v is ScreenId => Object.hasOwn(SCREENS, v
 /**
  * 부모 섹션 id. 상세 화면(`item`)은 목록 화면(`items`)으로 환원된다.
  *
- * 사이드바 활성 표시와 브레드크럼이 쓴다.
- * (탭바는 URL 단위라 이걸 쓰지 않는다 — `/items/3` 과 `/items/7` 은 별개 탭이다.)
+ * **사이드바 활성 표시 · 브레드크럼 · 탭바가 모두 이걸 쓴다.** 셋이 같은 기준을
+ * 봐야 "탭 하나 = 서브 메뉴 하나" 가 성립한다 (docs/ARCHITECTURE.md §6.3).
+ * `/items/3` 과 `/items/7` 은 같은 탭에서 화면만 바뀐다.
  */
 export function sectionOf(id: ScreenId): ScreenId {
   const s = (SCREENS[id] as ScreenMeta).section
