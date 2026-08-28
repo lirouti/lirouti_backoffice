@@ -33,9 +33,14 @@ const HEAD_LINES = 30
 /** 최상위 선언 — 들여쓰기가 없다. 함수 본문 안의 지역 변수는 대상이 아니다. */
 const TOP_DECL = /^(export\s+)?(default\s+)?(async\s+)?(function|const|let|class|type|interface)\s/
 
-/** 타입 리터럴 안의 필드. `type X = {` 블록 안에서만 본다. */
+/**
+ * 타입 리터럴 안의 필드. `type X = {` 와 `interface X {` 블록 안에서만 본다.
+ *
+ * `interface` 는 `.d.ts` 의 선언 병합에서만 쓰지만(§13), 그 파일도 검사 대상이라
+ * 함께 추적한다.
+ */
 const TYPE_FIELD = /^\s+\w+\??:\s/
-const TYPE_OPEN = /^(export\s+)?type\s+\w+.*=\s*\{\s*$/
+const TYPE_OPEN = /^(export\s+)?(type\s+\w+.*=\s*\{|interface\s+\w+.*\{)\s*$/
 
 /**
  * 문서가 아니라 도구에 주는 지시다. JSDoc 으로 바꾸면 동작하지 않는다.
@@ -45,6 +50,20 @@ const PRAGMA = /^\/\/\s*(eslint-|@ts-|prettier-|biome-|TODO|FIXME)/
 
 /** `docs/ARCHITECTURE.md §4.4` 또는 `§4.4`. 앞의 것이 파일 안에서 먼저 와야 한다. */
 const DOC_REF = /(docs\/ARCHITECTURE\.md )?§[\d.]+/
+
+/**
+ * 이 줄에서 **주석에 해당하는 부분**만 돌려준다. 주석이 없으면 null.
+ *
+ * 줄 전체를 보면 `const LABEL = 'TODO: …'` 같은 **문자열이 위반으로 잡힌다.**
+ * 문자열 리터럴을 먼저 지우고 남은 `//` 부터가 주석이다.
+ */
+function commentOf(raw: string): string | null {
+  const t = raw.trim()
+  if (t.startsWith('//') || t.startsWith('*') || t.startsWith('/*')) return t
+  const noStrings = raw.replace(/'(\\.|[^'\\])*'|"(\\.|[^"\\])*"|`(\\.|[^`\\])*`/g, '""')
+  const i = noStrings.indexOf('//')
+  return i >= 0 ? noStrings.slice(i) : null
+}
 
 type Issue = { file: string; line: number; code: string; why: string }
 const issues: Issue[] = []
@@ -59,7 +78,7 @@ for (const file of walk(SRC)) {
       file: rel,
       line: 1,
       code: lines.find((l) => l.trim()) ?? '',
-      why: `앞 ${HEAD_LINES}줄 안에 설명이 없습니다 — 파일 머리말이나 주 선언의 JSDoc 을 다세요 (§17.3)`,
+      why: `앞 ${HEAD_LINES}줄 안에 설명이 없습니다 — 파일 머리말이나 주 선언의 JSDoc 을 다세요 (§17.4)`,
     })
   }
 
@@ -84,13 +103,14 @@ for (const file of walk(SRC)) {
     if (TYPE_OPEN.test(raw)) inTypeBlock = true
     else if (inTypeBlock && /^\}/.test(raw)) inTypeBlock = false
 
-    // ③ TODO 형식
-    if (t.includes('TODO') && !/TODO\([^)]+\):/.test(t)) {
+    // ③ TODO 형식 — **주석 안의** TODO 만 본다
+    const comment = commentOf(raw)
+    if (comment?.includes('TODO') && !/TODO\([^)]+\):/.test(comment)) {
       issues.push({
         file: rel,
         line: i + 1,
         code: t.slice(0, 90),
-        why: 'TODO 에 조건을 괄호로 적으세요 — `TODO(백엔드 스펙 확정 후):` (§17.4)',
+        why: 'TODO 에 조건을 괄호로 적으세요 — `TODO(백엔드 스펙 확정 후):` (§17.5)',
       })
     }
 
