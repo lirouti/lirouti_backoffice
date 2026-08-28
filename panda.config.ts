@@ -191,6 +191,11 @@ export default defineConfig({
 
       // 로그인 화면의 배경 연출. 원본 디자인의 @keyframes 를 그대로 옮겼다.
       keyframes: {
+        /** 스켈레톤 — 로딩 중 자리를 지키는 회색 막대의 맥박 */
+        rvPulse: {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0.55' },
+        },
         rvFlow: {
           '0%, 100%': { backgroundPosition: '0% 20%' },
           '50%': { backgroundPosition: '100% 80%' },
