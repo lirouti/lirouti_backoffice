@@ -9,6 +9,7 @@ import { Dialog } from '@/shared/ui/Dialog'
 import { EmptyState, Skeleton } from '@/shared/ui/EmptyState'
 import { Icon } from '@/shared/ui/Icon'
 import { Input } from '@/shared/ui/Input'
+import { PageHeader } from '@/shared/ui/PageHeader'
 import { Pagination } from '@/shared/ui/Pagination'
 import { Segmented } from '@/shared/ui/Segmented'
 import { Select } from '@/shared/ui/Select'
@@ -67,13 +68,14 @@ export default function UiKitPage() {
   const rows = slot ? ROWS.filter((r) => r.slot === slot) : ROWS
 
   return (
-    <div className={css({ display: 'flex', flexDirection: 'column', gap: '14px', maxWidth: '1100px' })}>
-      <div>
-        <h2 className={css({ m: '0', textStyle: 'h2', color: 'ink' })}>UI 컴포넌트</h2>
-        <p className={css({ m: '5px 0 0', textStyle: 'body', color: 'sub' })}>
-          목록·폼 화면이 쓰는 공용 부품입니다. 라이트·다크 양쪽에서 확인하세요.
-        </p>
-      </div>
+    <div className={css({ maxWidth: '1100px' })}>
+      <PageHeader
+        title="UI 컴포넌트"
+        sub="목록·폼 화면이 쓰는 공용 부품입니다. 라이트·다크 양쪽에서 확인하세요."
+      />
+
+      {/* 머리말은 자기 여백(18px)을 갖는다. gap 은 카드들 사이에만 든다 */}
+      <div className={css({ display: 'flex', flexDirection: 'column', gap: '14px' })}>
 
       <Card className={css({ p: '17px 19px' })}>
         <CardTitle title="입력" sub="Input · Segmented" />
@@ -259,6 +261,7 @@ export default function UiKitPage() {
         body="되돌릴 수 없습니다. 보유 중인 이용자의 인벤토리에서도 사라집니다."
         confirmLabel="삭제"
       />
+      </div>
     </div>
   )
 }

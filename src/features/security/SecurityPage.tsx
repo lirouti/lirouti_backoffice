@@ -1,6 +1,7 @@
 import { css } from 'styled-system/css'
 
 import { Card } from '@/shared/ui/Card'
+import { PageHeader } from '@/shared/ui/PageHeader'
 
 import { useViewer } from '@/stores/viewerStore'
 
@@ -21,12 +22,7 @@ export default function SecurityPage() {
 
   return (
     <div className={css({ maxWidth: '760px' })}>
-      <div className={css({ mb: '18px' })}>
-        <h2 className={css({ m: '0', textStyle: 'h2', color: 'ink' })}>내 계정 보안</h2>
-        <p className={css({ m: '5px 0 0', textStyle: 'body', color: 'sub' })}>
-          로그인에 쓰이는 인증 수단을 관리합니다.
-        </p>
-      </div>
+      <PageHeader title="내 계정 보안" sub="로그인에 쓰이는 인증 수단을 관리합니다." />
 
       <div className={css({ display: 'flex', flexDirection: 'column', gap: '12px' })}>
         <Card className={css({ p: '16px 20px' })}>
