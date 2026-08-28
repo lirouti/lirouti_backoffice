@@ -44,8 +44,11 @@ export function BackupCodesPanel({
     a.href = url
     a.download = 'riruti-admin-backup-codes.txt'
     a.click()
-    // 넘겨준 뒤에는 우리가 들고 있을 이유가 없다. 안 지우면 탭이 닫힐 때까지 메모리에 남는다.
-    URL.revokeObjectURL(url)
+    // **바로 해제하면 안 된다.** `click()` 은 다운로드를 시작시킬 뿐이고, 브라우저가
+    // Blob 을 읽는 건 그 뒤다. 같은 태스크에서 해제하면 URL 이 이미 무효라 빈 파일이
+    // 되거나 다운로드가 실패한다 (즉시 해제 후 fetch 하면 TypeError 로 확인됨).
+    // 그렇다고 안 지우면 탭이 닫힐 때까지 메모리에 남으므로, 다음 태스크로 미룬다.
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
   }
 
   return (
