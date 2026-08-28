@@ -2,7 +2,7 @@
  * 지표 화면.
  *
  * 원본 디자인의 첫 화면이고 유일하게 차트를 쓴다. recharts 를 안고 있어 청크가
- * gzip 111KB 라, 라우터에서 lazy 로 두는 것이 전제다 (§9.2).
+ * gzip 111KB 라, 라우터에서 lazy 로 두는 것이 전제다 (docs/ARCHITECTURE.md §9.2).
  */
 import { css } from 'styled-system/css'
 

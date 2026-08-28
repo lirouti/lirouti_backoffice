@@ -8,7 +8,7 @@ import { AdminLayout } from '@/layouts/AdminLayout'
 
 // 로그인은 **eager** 로 둔다 — 미인증 사용자의 첫 화면이라
 // lazy 로 만들면 왕복이 한 번 더 늘고 Suspense 폴백이 깜빡인다.
-// 측정: lazy 138.02KB/4요청 → eager 135.92KB/2요청 (§9.2)
+// 측정: lazy 138.02KB/4요청 → eager 135.92KB/2요청 (docs/ARCHITECTURE.md §9.2)
 import LoginPage from '@/features/auth/LoginPage'
 import { PlaceholderPage } from '@/features/PlaceholderPage'
 

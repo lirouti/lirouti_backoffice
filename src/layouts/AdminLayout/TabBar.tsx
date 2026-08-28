@@ -146,7 +146,7 @@ export function TabBar() {
   const onClose = (path: string) => {
     // 탭을 닫으면 keep-alive 캐시가 파기되어 작성 중이던 내용이 사라진다.
     // 새로고침과 달리 여기서는 문구를 우리가 정할 수 있다.
-    // TODO(shared/ui 에 Dialog 가 생기면): window.confirm 을 교체한다 (§9)
+    // TODO(shared/ui 에 Dialog 가 생기면): window.confirm 을 교체한다 (docs/ARCHITECTURE.md §9)
     if (dirty[path] && !window.confirm('저장하지 않은 변경사항이 있습니다. 탭을 닫으시겠습니까?')) return
     close(path)
     // 활성 탭을 닫으면 남은 마지막 탭으로 이동한다.

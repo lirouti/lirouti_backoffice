@@ -2,7 +2,7 @@
  * 앱 부팅.
  *
  * 여기서 **아래 층이 위 층을 부를 수 있게 하는 배선**을 한다. `api` 는 라우터를,
- * `layouts` 는 `api` 를 몰라야 해서(§4.3) 각자 핸들러를 주입받는다 — 그 주입을
+ * `layouts` 는 `api` 를 몰라야 해서(docs/ARCHITECTURE.md §4.3) 각자 핸들러를 주입받는다 — 그 주입을
  * 할 수 있는 유일한 자리가 조립 지점인 여기다.
  */
 import { StrictMode } from 'react'
