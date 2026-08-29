@@ -7,10 +7,11 @@
  * ⚠️ 현재 에셋에는 head/body/hand/face 만 있다.
  *    bg · nest · growth · ach · emoji 는 형제 디자인 파일에 있어 아직 가져오지 않았다.
  */
-import type { ItemAsset, Slot } from '@/domain/item'
+import type { Asset } from '@/domain/asset'
+import type { Slot } from '@/domain/item'
 
 /** 도메인 타입 그대로다. 이름만 이 파일의 옛 이름으로 남겨 둔다. */
-export type AssetRow = ItemAsset
+export type AssetRow = Asset
 
 type RawRow = [assetId: string, name: string, sub: string, raw: string]
 

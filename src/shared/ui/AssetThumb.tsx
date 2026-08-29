@@ -5,6 +5,13 @@ import { IMAGES, isAssetId } from '@/assets/images'
 type AssetThumbProps = {
   /** 에셋 id — 'as_head_0' */
   assetId: string
+  /**
+   * 그림의 URL. 주면 이걸 그리고, 없으면 `assetId` 로 빌드 에셋을 찾는다.
+   *
+   * 올린 에셋이 이 경로를 탄다 — 빌드에 없는 그림이라 `assetId` 로는 못 찾는다.
+   * 목에서는 `blob:` URL 이라 새로고침하면 깨진다(그때는 아이템도 함께 사라진다).
+   */
+  src?: string
   /** 한 변의 길이(px). `fluid` 면 무시된다 */
   size?: number
   /**
@@ -28,8 +35,8 @@ type AssetThumbProps = {
  * 파일 단위로 캐시되고, 화면에 실제로 보이는 것만 내려받는다 — 50개를 한 덩어리로
  * 받던 예전 스프라이트 방식과 다른 점이다. (docs/ARCHITECTURE.md §8)
  */
-export function AssetThumb({ assetId, size = 42, fluid = false, paid = false, alt, className }: AssetThumbProps) {
-  const src = isAssetId(assetId) ? IMAGES[assetId] : null
+export function AssetThumb({ assetId, src: given, size = 42, fluid = false, paid = false, alt, className }: AssetThumbProps) {
+  const src = given ?? (isAssetId(assetId) ? IMAGES[assetId] : null)
 
   return (
     <div

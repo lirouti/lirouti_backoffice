@@ -70,7 +70,7 @@ const COLUMNS: Column<Item>[] = [
     label: '에셋',
     width: '60px',
     // 이름 열이 바로 옆에서 같은 것을 말한다. 여기서 또 읽으면 두 번 들린다.
-    render: (it) => <AssetThumb assetId={it.assetId} size={36} paid={it.tier === 'PAID'} />,
+    render: (it) => <AssetThumb assetId={it.assetId} src={it.assetSrc} size={36} paid={it.tier === 'PAID'} />,
   },
   { key: 'name', label: '아이템명', minWidth: '180px', truncate: true, strong: true },
   { key: 'slot', label: '슬롯', width: '80px', render: (it) => SLOT_LABEL[it.slot] },

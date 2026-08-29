@@ -3,8 +3,6 @@
  *
  * 열 정의와 기본 정보 항목이 길어 파일 머리말을 따로 둔다 — 컴포넌트 주석이 30줄 밖이다.
  */
-import { useState } from 'react'
-
 import { useNavigate, useParams } from 'react-router'
 
 import { css } from 'styled-system/css'
@@ -28,15 +26,13 @@ import {
   SLOT_LABEL,
   TIER_LABEL,
   TIER_TONE,
-  toItemInput,
   type Item,
 } from '@/domain/item'
 import { LEDGER_KIND_LABEL, LEDGER_KIND_TONE, type LedgerEntry } from '@/domain/ledger'
 import { SCREENS } from '@/domain/screens'
 
-import { useItem, useSaveItem, type ItemDetail } from '@/api/items'
+import { useItem, type ItemDetail } from '@/api/items'
 
-import { AssetPicker } from './AssetPicker'
 import { trendAxis } from './trend'
 
 const LEDGER_COLUMNS: Column<LedgerEntry>[] = [
@@ -147,17 +143,18 @@ export default function ItemDetailPage() {
 
 /** 왼쪽 미리보기 + 에셋 조작. */
 function AssetCard({ item }: { item: Item }) {
-  const save = useSaveItem()
-  const [picking, setPicking] = useState(false)
-
   const src = isAssetId(item.assetId) ? IMAGES[item.assetId] : null
 
+  // 에셋을 바꾸는 길은 **「수정」 하나다.** 예전에는 여기서 고르면 그 자리에서 저장했는데,
+  // 바로 옆에 「수정」 이 생기면서 같은 필드를 바꾸는 길이 둘이 됐다 — 하나는 즉시 저장이라
+  // 미저장 경고를 받지 않아, 어느 쪽이 어떻게 동작하는지 예측할 수 없었다. (docs/ARCHITECTURE.md §18.7)
+  //
   // 원본은 `flex: 1 1 380px` 인데 상한을 뒀다. 미리보기가 정사각이라 폭이 커지는 만큼
   // 세로도 길어져, 넓은 화면에서 왕관 하나가 400px 넘게 차지하고 오른쪽 단이
   // 표(760px)보다 좁아졌다. 왼쪽을 멈춰 세우면 남는 폭이 전부 오른쪽으로 간다.
   return (
     <Card className={css({ flex: '1 1 300px', minWidth: '260px', maxWidth: '380px', p: '15px' })}>
-      <AssetThumb assetId={item.assetId} fluid paid={item.tier === 'PAID'} alt={item.name} />
+      <AssetThumb assetId={item.assetId} src={item.assetSrc} fluid paid={item.tier === 'PAID'} alt={item.name} />
       <div className={css({ display: 'flex', gap: '7px', mt: '12px' })}>
         {/*
           내려받기는 진짜로 된다 — 에셋이 빌드 때 URL 로 들어와 있어서 링크 하나면 끝이다.
@@ -187,29 +184,7 @@ function AssetCard({ item }: { item: Item }) {
         >
           SVG 내려받기
         </a>
-        {/*
-          올리는 것이 아니라 **있는 것 중에서 고른다** — 우리 에셋은 빌드 때 들어오는
-          SVG 묶음이라 목록이 정해져 있다 (docs/ARCHITECTURE.md §8).
-          TODO(에셋 업로드 API 가 생기면): 파일을 올리는 경로도 함께 연다
-        */}
-        <Button
-          onClick={() => setPicking(true)}
-          disabled={save.isPending}
-          className={css({ flex: '1' })}
-        >
-          {save.isPending ? '바꾸는 중…' : '에셋 교체'}
-        </Button>
       </div>
-
-      {save.error && <ErrorBanner message={save.error.message} />}
-
-      <AssetPicker
-        open={picking}
-        slot={item.slot}
-        value={item.assetId}
-        onClose={() => setPicking(false)}
-        onPick={(assetId) => save.mutate({ itemId: String(item.key), input: { ...toItemInput(item), assetId } })}
-      />
     </Card>
   )
 }

@@ -39,6 +39,13 @@ export type Item = {
   code: string
   /** 에셋 파일 id — 'as_head_0' */
   assetId: string
+  /**
+   * 그림의 URL. **서버가 채운다** — 빌드에 없는(올린) 에셋은 `assetId` 로 찾을 수 없다.
+   *
+   * 비어 있으면 빌드 에셋이라는 뜻이고 `assetId` 로 찾는다. 폼이 편집하는 값이 아니라
+   * `ItemInput` 에는 없다.
+   */
+  assetSrc?: string
   name: string
   sub: string
   slot: Slot
@@ -60,21 +67,6 @@ export type Item = {
   flags: ItemFlags
 }
 
-/**
- * 고를 수 있는 에셋 하나.
- *
- * 우리 에셋은 **빌드 때 들어오는 SVG 묶음**이라 목록이 정해져 있다 —
- * 그래서 "올리기" 가 아니라 "고르기" 다 (docs/ARCHITECTURE.md §8).
- * 업로드가 생기면 이 목록을 서버가 주게 된다.
- */
-export type ItemAsset = {
-  assetId: string
-  name: string
-  /** 한 줄 설명. 원본 테이블의 `sub` */
-  sub: string
-  /** 유료(프리미엄) 에셋인가 — 타일 배경이 어두워진다 */
-  paid: boolean
-}
 
 /**
  * 폼이 편집하는 부분만.

@@ -10,15 +10,27 @@
  */
 import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query'
 
-import { filterItems, type Item, type ItemAsset, type ItemFilter, type ItemInput, type Slot } from '@/domain/item'
+import { kindOfSlot } from '@/domain/asset'
+import { filterItems, type Item, type ItemFilter, type ItemInput } from '@/domain/item'
 import type { LedgerEntry } from '@/domain/ledger'
 
-import { ASSETS } from '@/mocks/assetTable'
+import { assetsOf } from '@/mocks/assets'
 import { allItems, upsertItem } from '@/mocks/items'
 import { ledgerOf, trendOf } from '@/mocks/ledger'
 
 import { mockDelay, qk, queryClient, USE_MOCK } from './core'
 import { apiError } from './error'
+
+/**
+ * 올린 에셋의 URL 을 실어 준다.
+ *
+ * 아이템은 `assetId` 만 들고 있는데, **올린 에셋은 빌드에 없어서 id 로 찾을 수 없다.**
+ * 실서버라면 조인해서 내려줬을 값이라 여기서 같은 모양을 만든다 — 화면은 `assetSrc` 만 본다.
+ */
+function withAssetSrc(item: Item): Item {
+  const found = assetsOf(kindOfSlot(item.slot)).find((a) => a.assetId === item.assetId)
+  return found?.src ? { ...item, assetSrc: found.src } : item
+}
 
 export type ItemsQuery = ItemFilter & {
   /** 1부터 센다 */
@@ -39,7 +51,7 @@ export async function getItems({ page, perPage, ...filter }: ItemsQuery): Promis
     // 규칙은 도메인에서 가져다 쓴다. 목 생성기에 두면 서버로 갈아탈 때 같이 사라진다.
     const matched = filterItems(allItems(), filter)
     const from = (page - 1) * perPage
-    return { items: matched.slice(from, from + perPage), total: matched.length }
+    return { items: matched.slice(from, from + perPage).map(withAssetSrc), total: matched.length }
   }
 
   // TODO(백엔드 스펙 확정 후): http.get<ItemsDto>('/admin/items', { params }) → 도메인 타입으로 매핑
@@ -88,7 +100,7 @@ export async function getItem(itemId: string): Promise<ItemDetail> {
     if (!item) throw apiError('http', `아이템 #${itemId} 을(를) 찾을 수 없습니다.`, 404)
 
     return {
-      item,
+      item: withAssetSrc(item),
       trend: trendOf(item.key, item.own),
       ledger: ledgerOf(item.key),
       favorites: Math.round(item.sold * 0.34),
@@ -116,7 +128,7 @@ export type SaveItemVars = { itemId?: string; input: ItemInput }
 export async function saveItem({ itemId, input }: SaveItemVars): Promise<Item> {
   if (USE_MOCK) {
     await mockDelay()
-    return upsertItem(input, itemId == null ? undefined : Number(itemId))
+    return withAssetSrc(upsertItem(input, itemId == null ? undefined : Number(itemId)))
   }
 
   // TODO(백엔드 스펙 확정 후): itemId 유무로 POST /admin/items · PATCH /admin/items/{id}
@@ -133,24 +145,4 @@ export function useSaveItem() {
     // 목록·상세가 모두 바뀔 수 있다. 접두사로 한 번에 턴다.
     onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.items.all }),
   })
-}
-
-/**
- * 그 슬롯에 붙일 수 있는 에셋들.
- *
- * 화면이 `mocks/` 를 직접 못 보므로(docs/ARCHITECTURE.md §4.3) 여기를 거친다. 지금은 빌드 때 들어온
- * SVG 묶음이지만, 업로드가 생기면 이 함수 안쪽만 서버 호출로 바뀐다.
- */
-export async function getAssets(slot: Slot): Promise<ItemAsset[]> {
-  if (USE_MOCK) {
-    // 정적 목록이라 기다릴 것이 없다 — `mockDelay` 를 넣으면 고르기 창만 늦게 뜬다.
-    return ASSETS[slot]
-  }
-
-  // TODO(에셋 카탈로그 API 가 생기면): http.get<ItemAsset[]>('/admin/assets', { params: { slot } })
-  throw new Error('에셋 API 가 아직 연결되지 않았습니다. VITE_USE_MOCK=1 로 두세요.')
-}
-
-export function useAssets(slot: Slot) {
-  return useQuery({ queryKey: qk.items.assets(slot), queryFn: () => getAssets(slot) })
 }
