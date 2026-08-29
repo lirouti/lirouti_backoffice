@@ -6,7 +6,14 @@
  */
 import { describe, expect, it } from 'vitest'
 
-import { appearanceShare, emptySpeciesInput, speciesTint, toSpeciesInput, validateSpecies } from './rules'
+import {
+  appearanceShare,
+  emptySpeciesInput,
+  normalizeSpeciesInput,
+  speciesTint,
+  toSpeciesInput,
+  validateSpecies,
+} from './rules'
 import type { Species, SpeciesInput } from './types'
 
 const input = (over: Partial<SpeciesInput> = {}): SpeciesInput => ({
@@ -51,6 +58,18 @@ describe('validateSpecies', () => {
   // 수정 화면에서 자기 코드를 그대로 두고 저장하면 자기와 부딪힌다.
   it('⚠️ 자기 코드를 뺀 목록을 넘기면 통과한다', () => {
     expect(validateSpecies(input({ code: 'SP-BLUE' }), ['SP-SKY']).code).toBeUndefined()
+  })
+
+  // 앞뒤 공백이 붙은 코드가 검증을 통과한 뒤 **원본 그대로** 저장되면, 나중에 같은 코드가
+  // 중복 검사를 빠져나가 종이 둘 생긴다. 검증과 저장이 같은 값을 봐야 한다.
+  it('⚠️ 공백이 붙어도 다듬은 값으로 검증한다', () => {
+    expect(validateSpecies(input({ code: '  SP-NEW  ' })).code).toBeUndefined()
+    expect(validateSpecies(input({ code: '  SP-BLUE  ' }), ['SP-BLUE']).code).toBe('이미 쓰고 있는 코드입니다.')
+  })
+
+  // 이미 저장된 쪽에 공백이 섞여 있어도 같은 자로 재야 한다.
+  it('⚠️ 저장된 코드에 공백이 있어도 중복으로 잡는다', () => {
+    expect(validateSpecies(input({ code: 'SP-BLUE' }), [' SP-BLUE ']).code).toBe('이미 쓰고 있는 코드입니다.')
   })
 
   it('대표 색은 #RRGGBB — 세 자리 축약은 막는다', () => {
@@ -117,5 +136,20 @@ describe('toSpeciesInput', () => {
     const got = toSpeciesInput(sp)
     got.slots.부리 = '뾰족한 부리'
     expect(sp.slots.부리).not.toBe('뾰족한 부리')
+  })
+})
+
+describe('normalizeSpeciesInput', () => {
+  it('코드와 이름의 앞뒤 공백을 다듬는다', () => {
+    const got = normalizeSpeciesInput(input({ code: '  SP-NEW  ', name: ' 시험 ' }))
+    expect(got.code).toBe('SP-NEW')
+    expect(got.name).toBe('시험')
+  })
+
+  // 조용히 고치면 형식 규칙이 무의미해지고, 운영자는 자기가 친 것과 다른 값이
+  // 저장된 것을 모른다.
+  it('⚠️ 대문자로 올리지는 않는다 — 형식 오류는 오류로 남는다', () => {
+    expect(normalizeSpeciesInput(input({ code: 'SP-blue' })).code).toBe('SP-blue')
+    expect(validateSpecies(input({ code: 'SP-blue' })).code).toBeTruthy()
   })
 })

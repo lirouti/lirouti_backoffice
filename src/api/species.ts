@@ -6,7 +6,7 @@
  */
 import { useMutation, useQuery } from '@tanstack/react-query'
 
-import type { Species, SpeciesInput, SpeciesLog } from '@/domain/species'
+import { normalizeSpeciesInput, type Species, type SpeciesInput, type SpeciesLog } from '@/domain/species'
 
 import { allSpecies, logsOf, setHidden, upsertSpecies } from '@/mocks/species'
 
@@ -57,7 +57,8 @@ export type SaveSpeciesVars = { speciesId?: string; input: SpeciesInput }
 export async function saveSpecies({ speciesId, input }: SaveSpeciesVars): Promise<Species> {
   if (USE_MOCK) {
     await mockDelay()
-    return upsertSpecies(input, speciesId == null ? undefined : Number(speciesId))
+    // 검증이 본 값과 **같은 값**을 저장한다 (`domain/species/rules.ts` 의 ⚠️).
+    return upsertSpecies(normalizeSpeciesInput(input), speciesId == null ? undefined : Number(speciesId))
   }
 
   // TODO(백엔드 스펙 확정 후): speciesId 유무로 POST / PATCH

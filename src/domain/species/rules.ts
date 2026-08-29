@@ -17,6 +17,21 @@ const HEX = /^#[0-9a-fA-F]{6}$/
  */
 export const speciesTint = (tone: string): string => `color-mix(in srgb, ${tone} 16%, var(--surf))`
 
+/**
+ * 저장 전에 다듬는다.
+ *
+ * ⚠️ **검증도 저장도 이 값을 봐야 한다.** 검증만 `trim()` 하고 저장은 원본을 넣으면
+ *    `' SP-NEW '` 가 통과한 뒤 그대로 저장되고, 나중에 `'SP-NEW'` 가 중복 검사를
+ *    빠져나가 **같은 코드의 종이 둘** 생긴다. 파사드(`api/species.ts`)가 저장 직전에
+ *    반드시 거친다.
+ *
+ * 대문자로 올리지는 않는다 — `SP-blue` 를 조용히 고치면 아래 형식 규칙이 무의미해지고,
+ * 운영자는 자기가 친 것과 다른 값이 저장된 걸 모른다.
+ */
+export function normalizeSpeciesInput(input: SpeciesInput): SpeciesInput {
+  return { ...input, code: input.code.trim(), name: input.name.trim() }
+}
+
 /** 어느 칸이 왜 막혔는가. 비어 있으면 저장할 수 있다 */
 export type SpeciesInputErrors = Partial<Record<keyof SpeciesInput, string>>
 
@@ -27,13 +42,16 @@ export type SpeciesInputErrors = Partial<Record<keyof SpeciesInput, string>>
  */
 export function validateSpecies(input: SpeciesInput, taken: string[] = []): SpeciesInputErrors {
   const errors: SpeciesInputErrors = {}
+  // 저장될 값을 검증한다 (위 `normalizeSpeciesInput` 의 ⚠️).
+  const v = normalizeSpeciesInput(input)
 
-  if (!input.name.trim()) errors.name = '종 이름을 입력하세요.'
+  if (!v.name) errors.name = '종 이름을 입력하세요.'
 
-  const code = input.code.trim()
+  const code = v.code
   if (!code) errors.code = '코드를 입력하세요.'
   else if (!/^SP-[A-Z0-9]+$/.test(code)) errors.code = '`SP-` 로 시작하는 대문자 코드여야 합니다.'
-  else if (taken.includes(code)) errors.code = '이미 쓰고 있는 코드입니다.'
+  // 이미 저장된 값에도 공백이 섞여 있을 수 있다 — 양쪽을 같은 자로 잰다.
+  else if (taken.some((t) => t.trim() === code)) errors.code = '이미 쓰고 있는 코드입니다.'
 
   if (!HEX.test(input.tone)) errors.tone = '대표 색을 #RRGGBB 로 입력하세요.'
 
