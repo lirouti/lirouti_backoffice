@@ -10,8 +10,7 @@
  */
 import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query'
 
-import { kindOfSlot } from '@/domain/asset'
-import { filterItems, type Item, type ItemFilter, type ItemInput } from '@/domain/item'
+import { filterItems, kindOfSlot, type Item, type ItemFilter, type ItemInput } from '@/domain/item'
 import type { LedgerEntry } from '@/domain/ledger'
 
 import { assetsOf } from '@/mocks/assets'
@@ -29,7 +28,7 @@ import { apiError } from './error'
  */
 function withAssetSrc(item: Item): Item {
   const found = assetsOf(kindOfSlot(item.slot)).find((a) => a.assetId === item.assetId)
-  return found?.src ? { ...item, assetSrc: found.src } : item
+  return found?.src ? { ...item, assetSrc: found.src, assetExt: found.ext } : item
 }
 
 export type ItemsQuery = ItemFilter & {

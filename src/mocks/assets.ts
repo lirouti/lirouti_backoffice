@@ -9,7 +9,7 @@
  *    `sessionStorage` 에 남기지 않는 이유는 **일관성**이다 — 아이템 자체가 새로고침하면
  *    사라지는데 그림만 남으면 **주인 없는 그림**이 카탈로그에 쌓인다.
  */
-import type { Asset, AssetKind } from '@/domain/asset'
+import type { Asset, AssetExt, AssetKind } from '@/domain/asset'
 
 import { ASSETS } from './assetTable'
 
@@ -41,7 +41,7 @@ export const assetsOf = (kind: AssetKind): Asset[] => catalog[kind]
  * @param src 이 그림을 그릴 URL. 부르는 쪽이 만든다 — 목은 `URL.createObjectURL`,
  *   서버가 붙으면 응답에 실려 온다.
  */
-export function addAsset(kind: AssetKind, v: { name: string; sub: string; src: string }): Asset {
+export function addAsset(kind: AssetKind, v: { name: string; sub: string; src: string; ext: AssetExt }): Asset {
   uploaded += 1
   const asset: Asset = {
     // 빌드 에셋(`as_head_0`)과 겹치지 않게 접두사를 다르게 둔다.
@@ -50,6 +50,7 @@ export function addAsset(kind: AssetKind, v: { name: string; sub: string; src: s
     sub: v.sub,
     paid: false,
     src: v.src,
+    ext: v.ext,
   }
   catalog[kind] = [asset, ...catalog[kind]]
   return asset

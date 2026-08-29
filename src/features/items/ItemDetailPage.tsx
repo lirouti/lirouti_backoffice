@@ -143,7 +143,11 @@ export default function ItemDetailPage() {
 
 /** 왼쪽 미리보기 + 에셋 조작. */
 function AssetCard({ item }: { item: Item }) {
-  const src = isAssetId(item.assetId) ? IMAGES[item.assetId] : null
+  // ⚠️ **올린 에셋을 먼저 본다.** 빌드에 없는 그림이라 `IMAGES[assetId]` 로는 못 찾고,
+  //    그러면 내려받기가 조용히 잠긴다(`href` 가 없어 `aria-disabled`).
+  const src = item.assetSrc ?? (isAssetId(item.assetId) ? IMAGES[item.assetId] : null)
+  // 형식이 섞인다 — 업로드는 PNG 도 받는다. 파일명과 라벨을 실제 형식에 맞춘다.
+  const ext = item.assetExt ?? 'svg'
 
   // 에셋을 바꾸는 길은 **「수정」 하나다.** 예전에는 여기서 고르면 그 자리에서 저장했는데,
   // 바로 옆에 「수정」 이 생기면서 같은 필드를 바꾸는 길이 둘이 됐다 — 하나는 즉시 저장이라
@@ -157,12 +161,12 @@ function AssetCard({ item }: { item: Item }) {
       <AssetThumb assetId={item.assetId} src={item.assetSrc} fluid paid={item.tier === 'PAID'} alt={item.name} />
       <div className={css({ display: 'flex', gap: '7px', mt: '12px' })}>
         {/*
-          내려받기는 진짜로 된다 — 에셋이 빌드 때 URL 로 들어와 있어서 링크 하나면 끝이다.
-          `<a download>` 는 같은 출처에서만 파일명을 정할 수 있는데 우리 에셋이 그렇다.
+          내려받기는 진짜로 된다. 빌드 에셋은 URL 로 들어와 있고, 올린 에셋은 `blob:` 이라
+          둘 다 같은 출처다 — `<a download>` 로 파일명을 정할 수 있는 조건이다.
         */}
         <a
           href={src ?? undefined}
-          download={`${item.code}.svg`}
+          download={`${item.code}.${ext}`}
           aria-disabled={src ? undefined : true}
           className={css({
             flex: '1',
@@ -182,7 +186,7 @@ function AssetCard({ item }: { item: Item }) {
             '&[aria-disabled]': { opacity: 0.5, pointerEvents: 'none' },
           })}
         >
-          SVG 내려받기
+          {ext.toUpperCase()} 내려받기
         </a>
       </div>
     </Card>

@@ -5,6 +5,8 @@
  * 실서버는 VISIBLE / PAID 같은 코드를 줄 가능성이 높으므로 코드값으로 정의하고,
  * 한글은 `./labels.ts` 로 분리한다.
  */
+import type { AssetExt } from '../asset'
+
 
 /** 캐릭터 착용 슬롯 */
 export type Slot = 'HEAD' | 'BODY' | 'HAND' | 'FACE'
@@ -46,6 +48,8 @@ export type Item = {
    * `ItemInput` 에는 없다.
    */
   assetSrc?: string
+  /** 그림의 파일 형식. 없으면 빌드 에셋이라 SVG 다 (내려받기 파일명·라벨이 쓴다) */
+  assetExt?: AssetExt
   name: string
   sub: string
   slot: Slot

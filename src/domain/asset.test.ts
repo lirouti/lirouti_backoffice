@@ -8,12 +8,13 @@ import { describe, expect, it } from 'vitest'
 
 import {
   acceptAttr,
+  extOfFile,
   assetHint,
   ASSET_SPECS,
-  kindOfSlot,
   validateAssetFile,
   type AssetFileInfo,
 } from './asset'
+import { kindOfSlot } from './item/rules'
 
 const file = (over: Partial<AssetFileInfo> = {}): AssetFileInfo => ({
   name: '왕관.svg',
@@ -93,5 +94,18 @@ describe('안내 문구', () => {
   // 2048KB 를 「2048KB」 로 쓰면 한도가 큰지 작은지 감이 안 온다.
   it('1MB 를 넘으면 MB 로 쓴다', () => {
     expect(assetHint(ASSET_SPECS.bg)).toContain('2MB 이하')
+  })
+})
+
+describe('extOfFile', () => {
+  it('PNG 와 SVG 를 가른다', () => {
+    expect(extOfFile(file({ name: 'a.png', type: 'image/png' }))).toBe('png')
+    expect(extOfFile(file())).toBe('svg')
+  })
+
+  // MIME 이 비어 오는 경우가 실제로 있다(§8.5). 확장자를 못 보면 PNG 를 `.svg` 로
+  // 내려받게 되어 파일이 열리지 않는다.
+  it('⚠️ MIME 이 비어 있으면 확장자로 짐작한다', () => {
+    expect(extOfFile(file({ name: '왕관.PNG', type: '' }))).toBe('png')
   })
 })

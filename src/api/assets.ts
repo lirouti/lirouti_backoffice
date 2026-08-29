@@ -6,7 +6,7 @@
  */
 import { useMutation, useQuery } from '@tanstack/react-query'
 
-import { validateAssetFile, ASSET_SPECS, type Asset, type AssetKind } from '@/domain/asset'
+import { extOfFile, validateAssetFile, ASSET_SPECS, type Asset, type AssetKind } from '@/domain/asset'
 
 import { addAsset, assetsOf } from '@/mocks/assets'
 
@@ -57,7 +57,7 @@ export async function uploadAsset({ kind, file, name, sub }: UploadAssetVars): P
     // ⚠️ **해제하지 않는다.** 카탈로그가 이 URL 을 계속 들고 있어서, 해제하면
     //    이미 그려진 `<img>` 가 깨진다. 문서가 닫힐 때 브라우저가 정리한다.
     const src = URL.createObjectURL(file)
-    return addAsset(kind, { name, sub: sub ?? '방금 올린 파일', src })
+    return addAsset(kind, { name, sub: sub ?? '방금 올린 파일', src, ext: extOfFile(file) })
   }
 
   // TODO(에셋 업로드 API 가 생기면): FormData 로 multipart POST

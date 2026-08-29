@@ -7,7 +7,12 @@
  * **규격은 종류마다 다르다** — 그래서 통합 「에셋 등록」 화면이 성립하지 않는다.
  * 값은 디자인 원본의 `VB`(viewBox) 표에서 그대로 가져왔다.
  */
-import type { Slot } from './item/types'
+/**
+ * 파일 형식. **내려받기 파일명과 버튼 라벨이 이걸 따른다.**
+ *
+ * 빌드 에셋은 전부 SVG 라 값이 없으면 `'svg'` 로 본다.
+ */
+export type AssetExt = 'svg' | 'png'
 
 /** 에셋 종류. 규격이 이것으로 갈린다. */
 export type AssetKind = 'head' | 'body' | 'hand' | 'face' | 'bg' | 'nest' | 'growth' | 'ach' | 'emoji'
@@ -27,6 +32,8 @@ export type Asset = {
    * 서버가 붙으면 여기에 진짜 URL 이 온다.
    */
   src?: string
+  /** 파일 형식. 없으면 빌드 에셋이라 `'svg'` 다 */
+  ext?: AssetExt
 }
 
 /**
@@ -58,10 +65,6 @@ export const ASSET_SPECS: Record<AssetKind, AssetSpec> = {
   ach: { accept: ['image/svg+xml', 'image/png'], maxBytes: 256 * KB, ratio: [200, 200] },
   emoji: { accept: ['image/svg+xml', 'image/png'], maxBytes: 128 * KB, ratio: [296, 322] },
 }
-
-/** 아이템 슬롯이 곧 에셋 종류다. 대문자/소문자만 다르다. */
-export const kindOfSlot = (slot: Slot): AssetKind =>
-  slot.toLowerCase() as Extract<AssetKind, 'head' | 'body' | 'hand' | 'face'>
 
 /**
  * 검사에 필요한 만큼만. `File` 이 이 모양을 만족하므로 그대로 넘기면 된다.
@@ -116,6 +119,9 @@ export function validateAssetFile(file: AssetFileInfo, spec: AssetSpec): string 
   if (file.size === 0) return '빈 파일입니다.'
   return null
 }
+
+/** 올린 파일의 형식. MIME 이 비어 있으면 확장자로 짐작한다 (`mimeOf` 와 같은 규칙). */
+export const extOfFile = (file: AssetFileInfo): AssetExt => (mimeOf(file) === 'image/png' ? 'png' : 'svg')
 
 /** `<input accept>` 에 넣을 값 */
 export const acceptAttr = (spec: AssetSpec): string => spec.accept.join(',')

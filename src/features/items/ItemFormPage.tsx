@@ -22,8 +22,7 @@ import { Select } from '@/shared/ui/Select'
 import { Switch } from '@/shared/ui/Switch'
 import { Textarea } from '@/shared/ui/Textarea'
 
-import { kindOfSlot } from '@/domain/asset'
-import {
+import { kindOfSlot,
   emptyItemInput,
   ITEM_SOURCE_LABEL,
   SLOT_LABEL,
