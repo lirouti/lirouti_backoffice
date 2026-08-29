@@ -38,10 +38,11 @@ import {
 } from '@/domain/item'
 import { SCREENS } from '@/domain/screens'
 
-import { useItem, useSaveItem } from '@/api/items'
+import { useAssets, useItem, useSaveItem } from '@/api/items'
 
 import { useUnsavedGuard } from '@/stores/dirtyStore'
 
+import { AssetPicker } from './AssetPicker'
 import { restoreDraft } from './draft'
 import { useItemDraft } from './useItemDraft'
 
@@ -168,7 +169,11 @@ function ItemForm({ itemId, initial }: { itemId?: string; initial: ItemInput }) 
           <VisibilityCard form={form} errors={shown} />
         </div>
 
-        <SideCard input={values} errors={errors} />
+        <SideCard
+          input={values}
+          errors={errors}
+          onPick={(assetId) => form.setValue('assetId', assetId, { shouldDirty: true })}
+        />
       </div>
 
       <div className={css({ display: 'flex', justifyContent: 'flex-end', gap: '8px', mt: '16px' })}>
@@ -333,9 +338,22 @@ function VisibilityCard({ form, errors }: { form: UseFormReturn<ItemInput>; erro
  * ⚠️ **체크리스트는 `validateItem` 의 결과로 그린다.** 원본은 여기서 따로 계산했는데,
  *    그러면 체크는 초록인데 저장이 막히는 화면이 만들어진다.
  */
-function SideCard({ input, errors }: { input: ItemInput; errors: ReturnType<typeof validateItem> }) {
+function SideCard({
+  input,
+  errors,
+  onPick,
+}: {
+  input: ItemInput
+  errors: ReturnType<typeof validateItem>
+  onPick: (assetId: string) => void
+}) {
+  const assets = useAssets(input.slot)
+  const [picking, setPicking] = useState(false)
+
+  const current = assets.data?.find((a) => a.assetId === input.assetId)
   const checks = [
     { ok: !errors.name, label: errors.name ?? '아이템명 입력됨' },
+    { ok: !errors.assetId, label: errors.assetId ?? '에셋 선택됨' },
     { ok: !errors.price, label: errors.price ?? '가격 설정 완료' },
     { ok: !errors.visibleTo, label: errors.visibleTo ?? '노출 기간 확인됨' },
   ]
@@ -347,9 +365,42 @@ function SideCard({ input, errors }: { input: ItemInput; errors: ReturnType<type
         {input.assetId ? (
           <AssetThumb assetId={input.assetId} fluid paid={input.tier === 'PAID'} />
         ) : (
-          <EmptyState title="에셋 없음" body="등록 후 에셋을 올릴 수 있습니다." className={css({ border: '0' })} />
+          <EmptyState title="에셋 없음" body="아래에서 골라 주세요." className={css({ border: '0' })} />
         )}
       </div>
+
+      <div className={css({ display: 'flex', alignItems: 'center', gap: '8px', mt: '12px' })}>
+        <span className={css({ textStyle: 'caption', color: 'faint' })}>에셋 파일</span>
+        <span
+          className={css({
+            flex: '1',
+            minWidth: '0',
+            textAlign: 'right',
+            textStyle: 'label',
+            fontWeight: '600',
+            color: current ? 'ink' : 'faint',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          })}
+        >
+          {current?.name ?? '없음'}
+        </span>
+      </div>
+
+      <Button onClick={() => setPicking(true)} className={css({ width: 'full', mt: '9px' })}>
+        {input.assetId ? '에셋 교체' : '에셋 고르기'}
+      </Button>
+
+      <AssetPicker
+        // 슬롯이 바뀌면 임시 선택도 새로 시작해야 한다 — 창이 다시 만들어지게 키를 준다.
+        key={`${input.slot}-${input.assetId}`}
+        open={picking}
+        slot={input.slot}
+        value={input.assetId}
+        onClose={() => setPicking(false)}
+        onPick={onPick}
+      />
 
       <ul className={css({ listStyle: 'none', m: '14px 0 0', p: '0', display: 'flex', flexDirection: 'column', gap: '7px' })}>
         {checks.map((c) => (

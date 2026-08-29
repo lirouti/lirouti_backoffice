@@ -10,9 +10,10 @@
  */
 import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query'
 
-import { filterItems, type Item, type ItemFilter, type ItemInput } from '@/domain/item'
+import { filterItems, type Item, type ItemAsset, type ItemFilter, type ItemInput, type Slot } from '@/domain/item'
 import type { LedgerEntry } from '@/domain/ledger'
 
+import { ASSETS } from '@/mocks/assetTable'
 import { allItems, upsertItem } from '@/mocks/items'
 import { ledgerOf, trendOf } from '@/mocks/ledger'
 
@@ -132,4 +133,24 @@ export function useSaveItem() {
     // 목록·상세가 모두 바뀔 수 있다. 접두사로 한 번에 턴다.
     onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.items.all }),
   })
+}
+
+/**
+ * 그 슬롯에 붙일 수 있는 에셋들.
+ *
+ * 화면이 `mocks/` 를 직접 못 보므로(docs/ARCHITECTURE.md §4.3) 여기를 거친다. 지금은 빌드 때 들어온
+ * SVG 묶음이지만, 업로드가 생기면 이 함수 안쪽만 서버 호출로 바뀐다.
+ */
+export async function getAssets(slot: Slot): Promise<ItemAsset[]> {
+  if (USE_MOCK) {
+    // 정적 목록이라 기다릴 것이 없다 — `mockDelay` 를 넣으면 고르기 창만 늦게 뜬다.
+    return ASSETS[slot]
+  }
+
+  // TODO(에셋 카탈로그 API 가 생기면): http.get<ItemAsset[]>('/admin/assets', { params: { slot } })
+  throw new Error('에셋 API 가 아직 연결되지 않았습니다. VITE_USE_MOCK=1 로 두세요.')
+}
+
+export function useAssets(slot: Slot) {
+  return useQuery({ queryKey: qk.items.assets(slot), queryFn: () => getAssets(slot) })
 }

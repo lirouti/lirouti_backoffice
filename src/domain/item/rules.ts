@@ -53,6 +53,9 @@ export function validateItem(input: ItemInput): ItemInputErrors {
 
   if (!input.name.trim()) errors.name = '아이템명을 입력하세요.'
 
+  // 꾸미기 아이템이라 그림이 없으면 목록에서 `?` 로 뜬다. 등록 단계에서 막는다.
+  if (!input.assetId) errors.assetId = '에셋을 고르세요.'
+
   // 등급과 가격은 서로를 구속한다. 유료인데 0원이면 상점에서 공짜로 나간다.
   if (input.tier === 'PAID' && input.price <= 0) errors.price = '유료 아이템은 가격을 입력하세요.'
   if (input.tier === 'FREE' && input.price !== 0) errors.price = '무료 아이템은 가격이 0이어야 합니다.'

@@ -61,6 +61,22 @@ export type Item = {
 }
 
 /**
+ * 고를 수 있는 에셋 하나.
+ *
+ * 우리 에셋은 **빌드 때 들어오는 SVG 묶음**이라 목록이 정해져 있다 —
+ * 그래서 "올리기" 가 아니라 "고르기" 다 (docs/ARCHITECTURE.md §8).
+ * 업로드가 생기면 이 목록을 서버가 주게 된다.
+ */
+export type ItemAsset = {
+  assetId: string
+  name: string
+  /** 한 줄 설명. 원본 테이블의 `sub` */
+  sub: string
+  /** 유료(프리미엄) 에셋인가 — 타일 배경이 어두워진다 */
+  paid: boolean
+}
+
+/**
  * 폼이 편집하는 부분만.
  *
  * `key`·`code`·`sold`·`own`·`status`·`madeAt` 는 **서버가 소유한다** — 사람이 손으로

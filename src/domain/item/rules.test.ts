@@ -34,10 +34,15 @@ describe('topSelling', () => {
 })
 
 describe('validateItem', () => {
-  const ok = (): ItemInput => ({ ...emptyItemInput(), name: '성좌의 로브' })
+  const ok = (): ItemInput => ({ ...emptyItemInput(), name: '성좌의 로브', assetId: 'as_body_0' })
 
   it('다 채우면 오류가 없다', () => {
     expect(validateItem(ok())).toEqual({})
+  })
+
+  it('⚠️ 에셋은 필수 — 없으면 목록에서 `?` 로 뜬다', () => {
+    expect(validateItem({ ...ok(), assetId: '' }).assetId).toBeTruthy()
+    expect(emptyItemInput().assetId).toBe('')
   })
 
   it('이름은 필수 — 공백만 있는 것도 빈 것이다', () => {
