@@ -88,12 +88,19 @@ export default function ItemFormPage() {
   // 수정이면 원본을 받아 초기값으로 쓴다. 등록이면 부르지 않는다.
   const existing = useItem(itemId ?? '')
 
-  if (!itemId) return <ItemForm initial={emptyItemInput()} />
+  // ⚠️ **`key` 는 지금 없어도 되지만 두는 게 맞다.** `ItemForm` 은 `initial` 을 `useForm` 의
+  //    `defaultValues` 로 한 번만 읽고, 초안·알림도 마운트 시점에 고정한다. 그래서 같은
+  //    자리에서 `itemId` 만 바뀌면 **A 의 입력으로 B 를 저장하게 된다.**
+  //    지금은 셸이 `activeCacheKey={pathname}` 으로 캐시해(`layouts/AdminLayout`) 경로가
+  //    다르면 새로 마운트되므로 실제로는 일어나지 않는다 — 확인했다. 다만 그 안전이
+  //    **먼 파일의 설정 한 줄에 달려 있고**, 깨졌을 때 화면은 멀쩡해 보이면서 다른
+  //    아이템에 값이 덮인다. 불변식을 여기에 두어 그 의존을 끊는다.
+  if (!itemId) return <ItemForm key="new" initial={emptyItemInput()} />
   if (existing.isPending) return <Skeleton rows={6} />
   if (existing.error || !existing.data) {
     return <ErrorBanner message={existing.error?.message ?? '아이템을 불러오지 못했습니다.'} />
   }
-  return <ItemForm itemId={itemId} initial={toItemInput(existing.data.item)} />
+  return <ItemForm key={itemId} itemId={itemId} initial={toItemInput(existing.data.item)} />
 }
 
 /**
