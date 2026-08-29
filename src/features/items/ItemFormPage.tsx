@@ -22,7 +22,7 @@ import { Select } from '@/shared/ui/Select'
 import { Switch } from '@/shared/ui/Switch'
 import { Textarea } from '@/shared/ui/Textarea'
 
-import {
+import { kindOfSlot,
   emptyItemInput,
   ITEM_SOURCE_LABEL,
   SLOT_LABEL,
@@ -38,7 +38,8 @@ import {
 } from '@/domain/item'
 import { SCREENS } from '@/domain/screens'
 
-import { useAssets, useItem, useSaveItem } from '@/api/items'
+import { useAssets, useUploadAsset } from '@/api/assets'
+import { useItem, useSaveItem } from '@/api/items'
 
 import { useUnsavedGuard } from '@/stores/dirtyStore'
 
@@ -76,6 +77,23 @@ const setter =
   <K extends FieldPath<ItemInput>>(k: K, value: FieldPathValue<ItemInput, K>) =>
     form.setValue(k, value, { shouldDirty: true })
 
+/**
+ * 아직 올리지 않은 파일.
+ *
+ * `preview` 는 `URL.createObjectURL` 이 만든 `blob:` URL 이라, 바꾸거나 저장을 마치면
+ * 놓아 줘야 한다.
+ */
+type PendingAsset = { file: File; preview: string }
+
+/**
+ * 검증에만 쓰는 가짜 `assetId`.
+ *
+ * 올릴 파일을 고른 상태에서는 `assetId` 가 아직 비어 있지만 저장할 때 생긴다.
+ * 이 값을 끼워 넣어 `validateItem` 이 "에셋 없음" 으로 막지 않게 한다 —
+ * **저장되는 값이 아니다.**
+ */
+const PENDING_ASSET_ID = '(올리는 중)'
+
 /** 진열·유통 스위치 셋. 라벨과 설명이 원본의 `flags` 배열과 같다. */
 const FLAGS: { key: keyof ItemFlags; label: string; hint: string }[] = [
   { key: 'shop', label: '상점 노출', hint: '상점 첫 화면에 진열합니다' },
@@ -112,18 +130,22 @@ export default function ItemFormPage() {
 function ItemForm({ itemId, initial }: { itemId?: string; initial: ItemInput }) {
   const navigate = useNavigate()
   const save = useSaveItem()
+  const upload = useUploadAsset()
   // 폼을 만들기 **전에** 읽는다. 만든 뒤에는 기본값을 갈아 끼울 수 없다.
   const [restored] = useState(() => restoreDraft(itemId ?? 'new'))
   // ⚠️ **알림의 표시 여부는 따로 둔다.** `restored` 는 마운트 시점에 고정되므로
   //    「새로 시작」 으로 초안을 버려도 계속 참이고, 알림이 지워지지 않는다.
   const [noticeOpen, setNoticeOpen] = useState(restored != null)
+  // 고르기만 하고 **아직 올리지 않은** 파일. 「등록」 을 눌러야 올라간다 (§4.5).
+  const [pending, setPending] = useState<PendingAsset | null>(null)
   const form = useForm<ItemInput>({ defaultValues: initial })
   const draft = useItemDraft(itemId ?? 'new', form)
   // 임시 저장은 등록이 아니다 — 초안이 있어도 폼이 더러우면 경고를 켠다.
   const markSaved = useUnsavedGuard(form.formState.isDirty)
 
   const values = form.watch()
-  const errors = validateItem(values)
+  // 올릴 파일을 고른 상태면 저장할 때 `assetId` 가 생긴다 — 지금 비어 있다고 막지 않는다.
+  const errors = validateItem(pending ? { ...values, assetId: PENDING_ASSET_ID } : values)
   const blocked = Object.keys(errors).length > 0
   // ⚠️ **손대기 전에는 빨갛게 하지 않는다.** 빈 폼을 열자마자 "아이템명을 입력하세요" 가
   //    붉게 뜨면 아직 아무것도 안 했는데 혼난 기분이 든다. 무엇이 남았는지는
@@ -137,9 +159,30 @@ function ItemForm({ itemId, initial }: { itemId?: string; initial: ItemInput }) 
     if (restored) form.reset(restored, { keepDefaultValues: true })
   }, [restored, form])
 
-  const submit = form.handleSubmit((input) => {
+  const pickFile = (file: File) => {
+    // 앞서 고른 파일의 미리보기는 여기서 놓아 준다 — 화면에서 이미 사라진 URL 이다.
+    if (pending) URL.revokeObjectURL(pending.preview)
+    setPending({ file, preview: URL.createObjectURL(file) })
+    // 올린 그림을 쓸 것이므로 골라 뒀던 에셋은 버린다.
+    form.setValue('assetId', '', { shouldDirty: true })
+  }
+
+  const submit = form.handleSubmit(async (input) => {
+    // ⚠️ **업로드는 여기서 한다.** 파일을 고르는 순간 올리면 등록을 그만둔 사람의
+    //    그림이 남는다. 실패하면 저장까지 가지 않으므로 폼은 그대로 있다.
+    let assetId = input.assetId
+    if (pending) {
+      try {
+        const asset = await upload.mutateAsync({ kind: kindOfSlot(input.slot), file: pending.file, name: input.name })
+        assetId = asset.assetId
+      } catch {
+        // 오류는 `upload.error` 로 화면에 나온다.
+        return
+      }
+    }
+
     save.mutate(
-      { itemId, input },
+      { itemId, input: { ...input, assetId } },
       {
         onSuccess: (item) => {
           // 초안은 저장에 성공한 뒤에 지운다. 실패했는데 지우면 쓰던 게 사라진다.
@@ -183,7 +226,14 @@ function ItemForm({ itemId, initial }: { itemId?: string; initial: ItemInput }) 
         <SideCard
           input={values}
           errors={errors}
-          onPick={(assetId) => form.setValue('assetId', assetId, { shouldDirty: true })}
+          pending={pending}
+          onPickFile={pickFile}
+          onPick={(assetId) => {
+            // 목록에서 골랐으면 올리려던 파일은 버린다 — 둘 다 가질 수 없다.
+            if (pending) URL.revokeObjectURL(pending.preview)
+            setPending(null)
+            form.setValue('assetId', assetId, { shouldDirty: true })
+          }}
         />
       </div>
 
@@ -359,13 +409,18 @@ function VisibilityCard({ form, errors }: { form: UseFormReturn<ItemInput>; erro
 function SideCard({
   input,
   errors,
+  pending,
   onPick,
+  onPickFile,
 }: {
   input: ItemInput
   errors: ReturnType<typeof validateItem>
+  /** 올릴 파일을 고른 상태. 아직 카탈로그에 없으므로 미리보기는 이쪽을 쓴다 */
+  pending: PendingAsset | null
   onPick: (assetId: string) => void
+  onPickFile: (file: File) => void
 }) {
-  const assets = useAssets(input.slot)
+  const assets = useAssets(kindOfSlot(input.slot))
   const [picking, setPicking] = useState(false)
 
   const current = assets.data?.find((a) => a.assetId === input.assetId)
@@ -380,10 +435,12 @@ function SideCard({
     <Card className={css({ flex: '1 1 300px', minWidth: '260px', maxWidth: '380px', p: '15px' })}>
       <CardTitle title="착용 미리보기" />
       <div className={css({ mt: '12px' })}>
-        {input.assetId ? (
-          <AssetThumb assetId={input.assetId} fluid paid={input.tier === 'PAID'} />
+        {pending ? (
+          <AssetThumb assetId="" src={pending.preview} fluid paid={input.tier === 'PAID'} />
+        ) : input.assetId ? (
+          <AssetThumb assetId={input.assetId} src={current?.src} fluid paid={input.tier === 'PAID'} />
         ) : (
-          <EmptyState title="에셋 없음" body="아래에서 골라 주세요." className={css({ border: '0' })} />
+          <EmptyState title="에셋 없음" body="아래에서 고르거나 올려 주세요." className={css({ border: '0' })} />
         )}
       </div>
 
@@ -402,20 +459,21 @@ function SideCard({
             whiteSpace: 'nowrap',
           })}
         >
-          {current?.name ?? '없음'}
+          {pending ? pending.file.name : (current?.name ?? '없음')}
         </span>
       </div>
 
       <Button onClick={() => setPicking(true)} className={css({ width: 'full', mt: '9px' })}>
-        {input.assetId ? '에셋 교체' : '에셋 고르기'}
+        {pending || input.assetId ? '에셋 교체' : '에셋 고르기'}
       </Button>
 
       <AssetPicker
         open={picking}
-        slot={input.slot}
+        kind={kindOfSlot(input.slot)}
         value={input.assetId}
         onClose={() => setPicking(false)}
         onPick={onPick}
+        onPickFile={onPickFile}
       />
 
       <ul className={css({ listStyle: 'none', m: '14px 0 0', p: '0', display: 'flex', flexDirection: 'column', gap: '7px' })}>

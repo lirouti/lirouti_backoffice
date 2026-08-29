@@ -4,6 +4,7 @@
  * 데이터가 목이든 서버든 여기 규칙은 그대로다. 목 생성기(`mocks/items.ts`)가
  * 사라져도 이 파일은 남는다 — 그게 이 층을 따로 둔 이유다.
  */
+import type { AssetKind } from '../asset'
 import type { Item, ItemInput, ItemStatus, Slot, Tier } from './types'
 
 /**
@@ -33,6 +34,15 @@ export function filterItems(items: Item[], f: ItemFilter): Item[] {
       (!q || it.name.includes(q)),
   )
 }
+
+/**
+ * 아이템 슬롯이 곧 에셋 종류다. 대문자/소문자만 다르다.
+ *
+ * `domain/asset.ts` 가 아니라 여기 있는 이유는 방향 때문이다 — 아이템은 에셋을 알지만
+ * 에셋은 아이템을 몰라야 한다(배경·업적도 같은 에셋을 쓴다).
+ */
+export const kindOfSlot = (slot: Slot): AssetKind =>
+  slot.toLowerCase() as Extract<AssetKind, 'head' | 'body' | 'hand' | 'face'>
 
 /** 상점에 실제로 노출되는가 */
 export const isOnSale = (it: Item): boolean => it.status === 'VISIBLE'
