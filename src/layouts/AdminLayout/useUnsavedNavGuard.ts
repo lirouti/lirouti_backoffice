@@ -27,11 +27,17 @@ export function willDiscard(from: string, to: string, isDirty: boolean): boolean
   return a != null && b != null && sectionOf(a) === sectionOf(b)
 }
 
-/** 막힌 이동. `state === 'blocked'` 면 확인 창을 띄우고 `proceed`/`reset` 을 잇는다. */
+/**
+ * 막힌 이동. `state === 'blocked'` 면 확인 창을 띄우고 `proceed`/`reset` 을 잇는다.
+ *
+ * ⚠️ **스토어를 구독하지 않고 판정할 때 직접 읽는다.** 구독하면 그 값이 클로저에
+ *    갇히는데, 화면이 **저장 직후 같은 틱에** 표시를 지우고 이동하면 리렌더가 아직
+ *    안 일어나 옛 값으로 막는다 — 방금 저장한 사람에게 "저장하지 않고 이동할까요?"
+ *    를 묻게 된다. 실제로 그렇게 막혔다. 가드는 이동할 때만 도니 구독할 이유도 없다.
+ */
 export function useUnsavedNavGuard() {
-  const dirty = useDirtyStore((s) => s.dirty)
-
-  return useBlocker(({ currentLocation, nextLocation }) =>
-    willDiscard(currentLocation.pathname, nextLocation.pathname, !!dirty[currentLocation.pathname]),
-  )
+  return useBlocker(({ currentLocation, nextLocation }) => {
+    const { dirty } = useDirtyStore.getState()
+    return willDiscard(currentLocation.pathname, nextLocation.pathname, !!dirty[currentLocation.pathname])
+  })
 }

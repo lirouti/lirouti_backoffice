@@ -15,6 +15,21 @@ export type Tier = 'FREE' | 'PAID'
 /** 노출 상태 */
 export type ItemStatus = 'VISIBLE' | 'SCHEDULED' | 'HIDDEN'
 
+/**
+ * 진열·유통 스위치.
+ *
+ * 어디에도 표시되지 않지만 폼이 편집하고 저장한다 — 수정 화면을 다시 열었을 때
+ * 값이 남아 있어야 하기 때문이다.
+ */
+export type ItemFlags = {
+  /** 상점 첫 화면에 진열 */
+  shop: boolean
+  /** 확률 뽑기 풀에 포함 */
+  gacha: boolean
+  /** 유저 간 선물 허용 */
+  gift: boolean
+}
+
 /** 획득 경로 */
 export type ItemSource = 'SHOP' | 'CHALLENGE' | 'ACHIEVEMENT' | 'LEVEL' | 'SEASON_PASS'
 
@@ -38,7 +53,40 @@ export type Item = {
   status: ItemStatus
   season: string
   madeAt: string
+  /** 노출 시작 — `YYYY-MM-DD`. **빈 문자열이면 제한 없음** */
+  visibleFrom: string
+  /** 노출 종료 — `YYYY-MM-DD`. **빈 문자열이면 제한 없음** */
+  visibleTo: string
+  flags: ItemFlags
 }
+
+/**
+ * 고를 수 있는 에셋 하나.
+ *
+ * 우리 에셋은 **빌드 때 들어오는 SVG 묶음**이라 목록이 정해져 있다 —
+ * 그래서 "올리기" 가 아니라 "고르기" 다 (docs/ARCHITECTURE.md §8).
+ * 업로드가 생기면 이 목록을 서버가 주게 된다.
+ */
+export type ItemAsset = {
+  assetId: string
+  name: string
+  /** 한 줄 설명. 원본 테이블의 `sub` */
+  sub: string
+  /** 유료(프리미엄) 에셋인가 — 타일 배경이 어두워진다 */
+  paid: boolean
+}
+
+/**
+ * 폼이 편집하는 부분만.
+ *
+ * `key`·`code`·`sold`·`own`·`status`·`madeAt` 는 **서버가 소유한다** — 사람이 손으로
+ * 넣는 값이 아니다. 등록·수정이 주고받는 것은 이만큼이다.
+ */
+export type ItemInput = Pick<
+  Item,
+  'name' | 'sub' | 'slot' | 'tier' | 'price' | 'source' | 'season' | 'assetId'
+  | 'visibleFrom' | 'visibleTo' | 'flags'
+>
 
 /** 슬롯의 정렬 순서. 타입의 열거 짝이라 여기 둔다. */
 export const SLOT_ORDER: Slot[] = ['HEAD', 'BODY', 'HAND', 'FACE']

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { topSelling } from './rules'
-import type { Item } from './types'
+import { emptyItemInput, statusOf, toItemInput, topSelling, validateItem } from './rules'
+import type { Item, ItemInput } from './types'
 
 const item = (key: number, sold: number): Item =>
   ({ key, sold, code: `IT-${key}`, name: `아이템 ${key}` }) as Item
@@ -30,5 +30,77 @@ describe('topSelling', () => {
 
   it('N 이 개수보다 크면 전부', () => {
     expect(topSelling(items, 99)).toHaveLength(3)
+  })
+})
+
+describe('validateItem', () => {
+  const ok = (): ItemInput => ({ ...emptyItemInput(), name: '성좌의 로브', assetId: 'as_body_0' })
+
+  it('다 채우면 오류가 없다', () => {
+    expect(validateItem(ok())).toEqual({})
+  })
+
+  it('⚠️ 에셋은 필수 — 없으면 목록에서 `?` 로 뜬다', () => {
+    expect(validateItem({ ...ok(), assetId: '' }).assetId).toBeTruthy()
+    expect(emptyItemInput().assetId).toBe('')
+  })
+
+  it('이름은 필수 — 공백만 있는 것도 빈 것이다', () => {
+    expect(validateItem({ ...ok(), name: '' }).name).toBeTruthy()
+    expect(validateItem({ ...ok(), name: '   ' }).name).toBeTruthy()
+  })
+
+  it('⚠️ 유료인데 0원이면 막는다 — 상점에서 공짜로 나간다', () => {
+    expect(validateItem({ ...ok(), tier: 'PAID', price: 0 }).price).toBeTruthy()
+    expect(validateItem({ ...ok(), tier: 'PAID', price: 720 }).price).toBeUndefined()
+  })
+
+  it('무료인데 가격이 붙어 있으면 막는다', () => {
+    expect(validateItem({ ...ok(), tier: 'FREE', price: 720 }).price).toBeTruthy()
+  })
+
+  it('노출 종료가 시작보다 빠르면 막는다', () => {
+    expect(validateItem({ ...ok(), visibleFrom: '2026-09-01', visibleTo: '2026-08-01' }).visibleTo).toBeTruthy()
+    expect(validateItem({ ...ok(), visibleFrom: '2026-08-01', visibleTo: '2026-09-01' }).visibleTo).toBeUndefined()
+  })
+
+  it('한쪽만 비어 있으면 기간 검사를 하지 않는다 — 빈 값은 "제한 없음" 이다', () => {
+    expect(validateItem({ ...ok(), visibleFrom: '2026-09-01', visibleTo: '' }).visibleTo).toBeUndefined()
+    expect(validateItem({ ...ok(), visibleFrom: '', visibleTo: '2026-01-01' }).visibleTo).toBeUndefined()
+  })
+})
+
+describe('toItemInput', () => {
+  it('서버가 소유한 필드는 떼어낸다', () => {
+    const item = { ...emptyItemInput(), key: 3, code: 'IT-1004', sold: 10, own: 5, status: 'VISIBLE', madeAt: '2026-01-01' } as never
+    expect(Object.keys(toItemInput(item)).sort()).toEqual(Object.keys(emptyItemInput()).sort())
+  })
+})
+
+describe('statusOf', () => {
+  const base = (): ItemInput => ({ ...emptyItemInput(), name: '후드', assetId: 'as_body_0' })
+
+  it('노출 시작이 있으면 예약', () => {
+    expect(statusOf({ ...base(), visibleFrom: '2026-09-01' })).toBe('SCHEDULED')
+  })
+
+  it('노출 시작이 비어 있으면 노출 — 빈 값은 "제한 없음" 이다', () => {
+    expect(statusOf({ ...base(), visibleFrom: '' })).toBe('VISIBLE')
+  })
+
+  // 등록과 수정이 갈라졌던 자리다. 예약 아이템의 시작일을 지우면 예약도 풀려야 한다.
+  it('⚠️ 예약이던 것의 시작일을 지우면 노출로 돌아온다', () => {
+    expect(statusOf({ ...base(), visibleFrom: '' }, 'SCHEDULED')).toBe('VISIBLE')
+  })
+
+  // 미노출은 날짜가 아니라 사람이 내린 결정이라, 기간을 손봤다고 풀리면 안 된다.
+  it('⚠️ 미노출은 유지된다 — 기간을 넣어도 예약으로 바뀌지 않는다', () => {
+    expect(statusOf({ ...base(), visibleFrom: '2026-09-01' }, 'HIDDEN')).toBe('HIDDEN')
+    expect(statusOf({ ...base(), visibleFrom: '' }, 'HIDDEN')).toBe('HIDDEN')
+  })
+
+  it('등록(이전 상태 없음)과 수정이 같은 결과를 낸다', () => {
+    const input = { ...base(), visibleFrom: '2026-09-01' }
+    expect(statusOf(input)).toBe(statusOf(input, 'VISIBLE'))
   })
 })

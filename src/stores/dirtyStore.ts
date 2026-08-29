@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import { create } from 'zustand'
 
@@ -44,8 +44,13 @@ export const useHasDirty = (): boolean => useDirtyStore((s) => Object.keys(s.dir
  *
  * 경로는 **마운트 시점**에 고정한다. keep-alive 로 화면이 살아 있는 동안
  * 다른 탭으로 옮겨가도 이 화면은 자기가 열린 경로에 계속 묶여 있어야 한다.
+ *
+ * @returns **지금 당장** 표시를 지우는 함수. 저장에 성공한 직후처럼 곧바로 다른 화면으로
+ *   옮겨갈 때 쓴다. ⚠️ 폼을 `reset` 해서 `dirty` 가 false 가 되어도 **그 값이 스토어에
+ *   닿는 건 다음 effect** 라, 같은 틱에 `navigate` 하면 이동 가드(`useUnsavedNavGuard`)가
+ *   먼저 보고 "저장하지 않고 이동할까요?" 를 띄운다 — 방금 저장한 사람에게.
  */
-export function useUnsavedGuard(dirty: boolean): void {
+export function useUnsavedGuard(dirty: boolean): () => void {
   const [path] = useState(() => window.location.pathname)
   const setDirty = useDirtyStore((s) => s.setDirty)
 
@@ -55,6 +60,8 @@ export function useUnsavedGuard(dirty: boolean): void {
 
   // 화면이 실제로 파기될 때(탭 닫기) 표시도 지운다.
   useEffect(() => () => setDirty(path, false), [path, setDirty])
+
+  return useCallback(() => setDirty(path, false), [path, setDirty])
 }
 
 /**

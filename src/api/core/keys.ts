@@ -13,6 +13,8 @@ export const qk = {
     all: ['items'] as const,
     list: (filter: Record<string, unknown> = {}) => ['items', 'list', filter] as const,
     detail: (id: number | string) => ['items', 'detail', String(id)] as const,
+    /** 슬롯별로 고를 수 있는 에셋 목록 */
+    assets: (slot: string) => ['items', 'assets', slot] as const,
   },
   security: {
     all: ['security'] as const,
