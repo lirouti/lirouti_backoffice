@@ -79,6 +79,11 @@ export function ledgerOf(itemKey: number): LedgerEntry[] {
 
 /** 보유 추이 8주치(%). 마지막 값이 현재 보유율과 맞아떨어지게 끝낸다. */
 export function trendOf(itemKey: number, own: number): number[] {
+  // ⚠️ **보유율 0 이면 전부 0 이다.** 아래의 `Math.max(1, …)` 은 반올림이 0 으로 떨어지는
+  //    것을 막으려고 둔 것인데, 방금 등록해서 보유가 아예 없는 아이템(`own: 0`)에는
+  //    `1,1,1,1,1,1,1,0` 을 만들어 **있지도 않은 하락**을 차트에 그린다.
+  if (own === 0) return Array(8).fill(0)
+
   const r = rng(itemKey * 17 + 3)
   const out: number[] = []
   // 8주 전부터 현재까지 완만히 올라오게 만든다. 마지막 칸은 실제 보유율.

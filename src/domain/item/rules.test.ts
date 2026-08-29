@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { emptyItemInput, toItemInput, topSelling, validateItem } from './rules'
+import { emptyItemInput, statusOf, toItemInput, topSelling, validateItem } from './rules'
 import type { Item, ItemInput } from './types'
 
 const item = (key: number, sold: number): Item =>
@@ -74,5 +74,33 @@ describe('toItemInput', () => {
   it('서버가 소유한 필드는 떼어낸다', () => {
     const item = { ...emptyItemInput(), key: 3, code: 'IT-1004', sold: 10, own: 5, status: 'VISIBLE', madeAt: '2026-01-01' } as never
     expect(Object.keys(toItemInput(item)).sort()).toEqual(Object.keys(emptyItemInput()).sort())
+  })
+})
+
+describe('statusOf', () => {
+  const base = (): ItemInput => ({ ...emptyItemInput(), name: '후드', assetId: 'as_body_0' })
+
+  it('노출 시작이 있으면 예약', () => {
+    expect(statusOf({ ...base(), visibleFrom: '2026-09-01' })).toBe('SCHEDULED')
+  })
+
+  it('노출 시작이 비어 있으면 노출 — 빈 값은 "제한 없음" 이다', () => {
+    expect(statusOf({ ...base(), visibleFrom: '' })).toBe('VISIBLE')
+  })
+
+  // 등록과 수정이 갈라졌던 자리다. 예약 아이템의 시작일을 지우면 예약도 풀려야 한다.
+  it('⚠️ 예약이던 것의 시작일을 지우면 노출로 돌아온다', () => {
+    expect(statusOf({ ...base(), visibleFrom: '' }, 'SCHEDULED')).toBe('VISIBLE')
+  })
+
+  // 미노출은 날짜가 아니라 사람이 내린 결정이라, 기간을 손봤다고 풀리면 안 된다.
+  it('⚠️ 미노출은 유지된다 — 기간을 넣어도 예약으로 바뀌지 않는다', () => {
+    expect(statusOf({ ...base(), visibleFrom: '2026-09-01' }, 'HIDDEN')).toBe('HIDDEN')
+    expect(statusOf({ ...base(), visibleFrom: '' }, 'HIDDEN')).toBe('HIDDEN')
+  })
+
+  it('등록(이전 상태 없음)과 수정이 같은 결과를 낸다', () => {
+    const input = { ...base(), visibleFrom: '2026-09-01' }
+    expect(statusOf(input)).toBe(statusOf(input, 'VISIBLE'))
   })
 })

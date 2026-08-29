@@ -4,7 +4,7 @@
  * 데이터가 목이든 서버든 여기 규칙은 그대로다. 목 생성기(`mocks/items.ts`)가
  * 사라져도 이 파일은 남는다 — 그게 이 층을 따로 둔 이유다.
  */
-import type { Item, ItemInput, Slot, Tier } from './types'
+import type { Item, ItemInput, ItemStatus, Slot, Tier } from './types'
 
 /**
  * 판매량 상위 N개.
@@ -83,6 +83,26 @@ export function emptyItemInput(): ItemInput {
     visibleTo: '',
     flags: { shop: true, gacha: false, gift: true },
   }
+}
+
+/**
+ * 노출 상태를 정한다. **등록과 수정이 같은 규칙을 쓴다.**
+ *
+ * `visibleFrom` 이 있으면 예약, 비어 있으면 노출이다. 수정 쪽에서 이 전이를 빠뜨리면
+ * 예약 아이템의 노출 시작을 지워도 `SCHEDULED` 로 남아, **같은 입력인데 등록과 수정의
+ * 결과가 달라진다.**
+ *
+ * ⚠️ **`HIDDEN` 은 유지한다.** 미노출은 날짜가 아니라 사람이 내린 결정이라,
+ *    기간을 손봤다고 풀리면 안 된다.
+ *
+ * TODO(노출 상태를 서버가 계산하기 시작하면): 지금은 `visibleFrom` 의 유무만 본다.
+ * 이미 지난 날짜면 `VISIBLE` 이어야 하지만, 그러려면 "지금"이 필요해 순수 함수가 아니게 된다.
+ *
+ * @param prev 수정 전 상태. 등록이면 없다.
+ */
+export function statusOf(input: ItemInput, prev?: ItemStatus): ItemStatus {
+  if (prev === 'HIDDEN') return 'HIDDEN'
+  return input.visibleFrom ? 'SCHEDULED' : 'VISIBLE'
 }
 
 /** `Item` 에서 폼이 편집하는 부분만 떼어낸다 (수정 화면의 초기값). */

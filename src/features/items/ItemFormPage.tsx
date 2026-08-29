@@ -107,6 +107,9 @@ function ItemForm({ itemId, initial }: { itemId?: string; initial: ItemInput }) 
   const save = useSaveItem()
   // 폼을 만들기 **전에** 읽는다. 만든 뒤에는 기본값을 갈아 끼울 수 없다.
   const [restored] = useState(() => restoreDraft(itemId ?? 'new'))
+  // ⚠️ **알림의 표시 여부는 따로 둔다.** `restored` 는 마운트 시점에 고정되므로
+  //    「새로 시작」 으로 초안을 버려도 계속 참이고, 알림이 지워지지 않는다.
+  const [noticeOpen, setNoticeOpen] = useState(restored != null)
   const form = useForm<ItemInput>({ defaultValues: initial })
   const draft = useItemDraft(itemId ?? 'new', form)
   // 임시 저장은 등록이 아니다 — 초안이 있어도 폼이 더러우면 경고를 켠다.
@@ -153,12 +156,13 @@ function ItemForm({ itemId, initial }: { itemId?: string; initial: ItemInput }) 
       />
 
       {save.error && <ErrorBanner message={save.error.message} />}
-      {restored && (
+      {noticeOpen && (
         <RestoredNotice
           onDiscard={() => {
             draft.clear()
             // 등록이면 빈 폼, 수정이면 저장돼 있던 값으로 되돌린다.
             form.reset(initial)
+            setNoticeOpen(false)
           }}
         />
       )}
@@ -243,7 +247,14 @@ function BasicsCard({ form, errors }: { form: UseFormReturn<ItemInput>; errors: 
 
         <Segmented
           value={v.slot}
-          onChange={(slot) => set('slot', slot)}
+          // ⚠️ **슬롯을 바꾸면 에셋도 비운다.** 고를 수 있는 목록이 슬롯으로 걸러지는데,
+          //    이전 슬롯의 `assetId` 가 남으면 미리보기에는 그 그림이 그대로 뜨고
+          //    이름은 「없음」 이 되며, `validateItem` 은 값이 있으니 통과시킨다 —
+          //    머리 아이템에 몸 에셋이 붙은 채로 저장된다.
+          onChange={(slot) => {
+            set('slot', slot)
+            set('assetId', '')
+          }}
           options={SLOT_OPTIONS}
           aria-label="슬롯"
         />
@@ -393,8 +404,6 @@ function SideCard({
       </Button>
 
       <AssetPicker
-        // 슬롯이 바뀌면 임시 선택도 새로 시작해야 한다 — 창이 다시 만들어지게 키를 준다.
-        key={`${input.slot}-${input.assetId}`}
         open={picking}
         slot={input.slot}
         value={input.assetId}

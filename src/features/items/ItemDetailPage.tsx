@@ -204,7 +204,6 @@ function AssetCard({ item }: { item: Item }) {
       {save.error && <ErrorBanner message={save.error.message} />}
 
       <AssetPicker
-        key={item.assetId}
         open={picking}
         slot={item.slot}
         value={item.assetId}

@@ -4,7 +4,7 @@
  */
 import { rng } from '@/shared/lib/rng'
 
-import { SLOT_ORDER, type Item, type ItemInput, type ItemSource } from '@/domain/item'
+import { SLOT_ORDER, statusOf, type Item, type ItemInput, type ItemSource } from '@/domain/item'
 
 import { ASSETS } from './assetTable'
 
@@ -71,7 +71,10 @@ export function upsertItem(input: ItemInput, key?: number): Item {
   if (key != null) {
     const at = items.findIndex((it) => it.key === key)
     if (at < 0) throw new Error(`수정할 아이템이 없습니다: ${key}`)
-    const next = { ...items[at]!, ...input }
+    const prev = items[at]!
+    // 노출 상태는 등록과 **같은 규칙**으로 다시 정한다 (`domain/item/rules.ts`).
+    // 펼치기만 하면 예약 아이템의 노출 시작을 지워도 `SCHEDULED` 로 남는다.
+    const next = { ...prev, ...input, status: statusOf(input, prev.status) }
     items[at] = next
     return next
   }
@@ -84,7 +87,7 @@ export function upsertItem(input: ItemInput, key?: number): Item {
     code: `IT-${1001 + nextKey}`,
     sold: 0,
     own: 0,
-    status: input.visibleFrom ? 'SCHEDULED' : 'VISIBLE',
+    status: statusOf(input),
     madeAt: new Date().toISOString().slice(0, 10),
   }
   // 새것이 위에 오는 게 아니라 뒤에 붙는다 — 목록 정렬은 화면이 정한다.

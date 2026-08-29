@@ -34,6 +34,16 @@ export function AssetPicker({ open, slot, value, onClose, onPick }: AssetPickerP
   const { data, isPending, error } = useAssets(slot)
   // 창 안에서만 쓰는 임시 선택. 「선택」 을 눌러야 폼에 반영된다.
   const [picked, setPicked] = useState(value)
+  const [wasOpen, setWasOpen] = useState(open)
+
+  // ⚠️ **창이 열릴 때마다 임시 선택을 되돌린다.** 「취소」 는 `onClose` 만 부르고
+  //    `picked` 를 건드리지 않는데, 이 창은 닫혀도 언마운트되지 않는다. 되돌리지 않으면
+  //    취소한 에셋이 남아 있다가 **다음에 열어서 「선택」 을 누른 순간 확정된다.**
+  //    렌더 중 조정이라 effect 한 번을 더 돌지 않는다 (React 의 "props 로 state 조정" 패턴).
+  if (open !== wasOpen) {
+    setWasOpen(open)
+    if (open) setPicked(value)
+  }
 
   return (
     <Dialog
