@@ -1924,7 +1924,7 @@ getItem(itemId) → { item, trend, ledger, favorites, returned }
 ⚠️ **13종이 전부 같은 그림(`#rg`)을 쓴다.** 종을 가르는 것은 **대표 색 하나**이고,
 그 색을 `color-mix(in srgb, <tone> 16%, var(--surf))` 로 옅게 깔아 **배경으로만** 드러낸다.
 
-```
+```text
 루티 #7DBAFF · 하늬 #8ADFF0 · 별이 #B99BEA · 미르 #F0B928 …
 ```
 
@@ -1979,7 +1979,7 @@ getItem(itemId) → { item, trend, ledger, favorites, returned }
 ⚠️ **`validateSpecies` 는 다듬은 값(`normalizeSpeciesInput`)을 검증하고, 파사드는 저장 직전에
 같은 함수를 거친다.** 검증만 `trim()` 하고 저장은 원본을 넣으면 이렇게 샌다.
 
-```
+```text
 ' SP-NEW ' 입력 → 검증 통과(다듬으면 SP-NEW) → 저장은 ' SP-NEW ' 그대로
    ↓
 나중에 'SP-NEW' 등록 → taken 에는 ' SP-NEW ' 뿐이라 중복 검사를 빠져나감
