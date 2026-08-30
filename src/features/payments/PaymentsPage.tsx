@@ -17,6 +17,7 @@ import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { Input } from '@/shared/ui/Input'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Segmented } from '@/shared/ui/Segmented'
+import { StatTile } from '@/shared/ui/StatTile'
 import { Table, type Column } from '@/shared/ui/Table'
 
 import {
@@ -100,10 +101,10 @@ export default function PaymentsPage() {
             mb: '16px',
           })}
         >
-          <Stat k="오늘 결제" v={won(data.summary.today)} />
-          <Stat k="전체 결제" v={won(data.summary.total)} />
-          <Stat k="확인 필요" v={num(data.summary.stuck)} alert={data.summary.stuck > 0} />
-          <Stat k="실패" v={num(data.summary.failed)} />
+          <StatTile label="오늘 결제" value={won(data.summary.today)} />
+          <StatTile label="전체 결제" value={won(data.summary.total)} />
+          <StatTile label="확인 필요" value={num(data.summary.stuck)} alert={data.summary.stuck > 0} />
+          <StatTile label="실패" value={num(data.summary.failed)} />
         </div>
       )}
 
@@ -185,20 +186,3 @@ const COLUMNS: Column<Payment>[] = [
   },
 ]
 
-function Stat({ k, v, alert }: { k: string; v: string; alert?: boolean }) {
-  return (
-    <div
-      className={css({
-        bg: 'surf',
-        border: '1px solid token(colors.bd)',
-        borderRadius: 'lg',
-        p: '13px 15px',
-      })}
-    >
-      <div className={css({ textStyle: 'caption', color: 'sub' })}>{k}</div>
-      <div className={css({ mt: '4px', textStyle: 'h3', fontWeight: '700', color: alert ? 'rFg' : 'ink' })}>
-        {v}
-      </div>
-    </div>
-  )
-}

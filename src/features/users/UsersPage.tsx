@@ -17,6 +17,7 @@ import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { Input } from '@/shared/ui/Input'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Segmented } from '@/shared/ui/Segmented'
+import { StatTile } from '@/shared/ui/StatTile'
 import { Table, type Column } from '@/shared/ui/Table'
 
 import { SCREENS } from '@/domain/screens'
@@ -109,10 +110,10 @@ export default function UsersPage() {
           })}
         >
           {/* ⚠️ 지표는 **거르기 전 전체**다. 필터마다 「전체 회원」 이 바뀌면 그건 전체가 아니다. */}
-          <Stat k="전체 회원" v={num(summary.total)} />
-          <Stat k="오늘 가입" v={num(summary.joinedToday)} />
-          <Stat k="결제 회원" v={num(summary.paying)} />
-          <Stat k="제재 중" v={num(summary.banned)} />
+          <StatTile label="전체 회원" value={num(summary.total)} />
+          <StatTile label="오늘 가입" value={num(summary.joinedToday)} />
+          <StatTile label="결제 회원" value={num(summary.paying)} />
+          <StatTile label="제재 중" value={num(summary.banned)} />
         </div>
       )}
 
@@ -235,11 +236,3 @@ function Avatar({ nick }: { nick: string }) {
   )
 }
 
-function Stat({ k, v }: { k: string; v: string }) {
-  return (
-    <div className={css({ bg: 'surf', border: '1px solid token(colors.bd)', borderRadius: 'lg', p: '13px 15px' })}>
-      <div className={css({ textStyle: 'caption', color: 'sub' })}>{k}</div>
-      <div className={css({ mt: '4px', textStyle: 'h3', fontWeight: '700', color: 'ink' })}>{v}</div>
-    </div>
-  )
-}

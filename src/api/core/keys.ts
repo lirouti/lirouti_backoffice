@@ -39,6 +39,13 @@ export const qk = {
     /** 내 계정의 2단계 인증 상태 */
     totp: () => ['security', 'totp'] as const,
   },
+  moderation: {
+    all: ['moderation'] as const,
+    /** 신고 목록. 탭은 서버가 아니라 화면이 거르므로 키에 넣지 않는다 */
+    reports: () => ['moderation', 'reports'] as const,
+    /** AI 심사 현황 — 집계 · 최근 목록 · 스위치를 한 번에 받는다 */
+    ai: () => ['moderation', 'ai'] as const,
+  },
   challenges: {
     all: ['challenges'] as const,
     list: (filter: Record<string, unknown> = {}) => ['challenges', 'list', filter] as const,
