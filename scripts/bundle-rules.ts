@@ -15,11 +15,20 @@ export type BudgetReport = {
   over: boolean
 }
 
+/**
+ * 속성 하나를 꺼낸다.
+ *
+ * ⚠️ **`\b` 로 앞을 막으면 안 된다.** 하이픈 뒤에서도 낱말 경계가 만들어져
+ *    `data-href` · `data-src` · `data-rel` 을 **진짜 속성으로 읽는다.** 그러면 초기 로드
+ *    대상이 아닌 파일이 예산에 들어가 빌드가 엉뚱하게 실패한다.
+ *    태그 시작이나 공백 뒤에서만 시작하게 해야 한다.
+ */
+const attr = (tag: string, name: string): string | undefined =>
+  new RegExp(`(?:^|\\s)${name}\\s*=\\s*"([^"]*)"`).exec(tag)?.[1]
+
 /** `rel` 은 공백으로 여러 개가 올 수 있다 (`rel="preload stylesheet"`) */
-const relHas = (tag: string, want: string): boolean => {
-  const rel = /\brel="([^"]*)"/.exec(tag)?.[1] ?? ''
-  return rel.split(/\s+/).includes(want)
-}
+const relHas = (tag: string, want: string): boolean =>
+  (attr(tag, 'rel') ?? '').split(/\s+/).includes(want)
 
 const LOCAL = /^\/assets\//
 
@@ -42,10 +51,9 @@ export function entryAssets(html: string): string[] {
 
   for (const [tag] of html.matchAll(/<(?:script|link)\b[^>]*>/g)) {
     const isScript = tag.startsWith('<script')
-    const attr = isScript ? 'src' : 'href'
     if (!isScript && !relHas(tag, 'modulepreload') && !relHas(tag, 'stylesheet')) continue
 
-    const url = new RegExp(`\\b${attr}="([^"]+)"`).exec(tag)?.[1]
+    const url = attr(tag, isScript ? 'src' : 'href')
     if (url && LOCAL.test(url)) out.push(url.replace(LOCAL, ''))
   }
 

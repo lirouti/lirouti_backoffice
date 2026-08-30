@@ -59,6 +59,16 @@ describe('entryAssets', () => {
     expect(entryAssets('<link rel="prefetch" href="/assets/a.js">')).toEqual([])
   })
 
+  // `\b` 로 앞을 막으면 하이픈 뒤에서도 경계가 만들어져 `data-href` 를 진짜 속성으로 읽는다.
+  it('⚠️ `data-*` 속성은 진짜 속성이 아니다', () => {
+    expect(entryAssets('<link data-rel="stylesheet" data-href="/assets/a.css">')).toEqual([])
+    expect(entryAssets('<script data-src="/assets/a.js"></script>')).toEqual([])
+  })
+
+  it('속성 앞뒤에 공백이 있어도 잡는다', () => {
+    expect(entryAssets('<link rel = "stylesheet" href = "/assets/a.css">')).toEqual(['a.css'])
+  })
+
   it('인라인 `<script>` 는 대상이 아니다', () => {
     expect(entryAssets('<script>document.title="x"</script>')).toEqual([])
   })
