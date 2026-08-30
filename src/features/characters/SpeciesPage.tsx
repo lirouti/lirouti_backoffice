@@ -5,6 +5,7 @@ import { css } from 'styled-system/css'
 import { num } from '@/shared/lib/format'
 import { AssetThumb } from '@/shared/ui/AssetThumb'
 import { Badge } from '@/shared/ui/Badge'
+import { Button } from '@/shared/ui/Button'
 import { Skeleton } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { PageHeader } from '@/shared/ui/PageHeader'
@@ -67,6 +68,11 @@ export default function SpeciesPage() {
       <PageHeader
         title="캐릭터 종류"
         sub="아트는 캐릭터팀이 관리합니다. 여기서는 종별 슬롯 기본값과 출현 설정을 봅니다."
+        actions={
+          <Button variant="primary" onClick={() => navigate(SCREENS.speciesnew.path)}>
+            종 등록
+          </Button>
+        }
       />
 
       <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', mb: '14px' })}>

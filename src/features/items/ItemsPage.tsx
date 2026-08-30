@@ -151,9 +151,7 @@ export default function ItemsPage() {
 
               TODO(내보내기 엔드포인트가 생기면): CSV 내보내기
             */}
-            <Button disabled title="준비 중">
-              CSV 내보내기
-            </Button>
+            <Button disabled>CSV 내보내기 · 준비 중</Button>
             <Button variant="primary" onClick={() => navigate(SCREENS.itemnew.path)}>
               아이템 등록
             </Button>

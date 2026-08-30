@@ -40,11 +40,9 @@ export default function DashboardPage() {
         sub="시즌 3 · 최근 14일 기준 참여와 경제 지표입니다."
         actions={
           <>
-            <Button disabled title="준비 중">
-              기간 설정
-            </Button>
-            <Button variant="primary" disabled title="준비 중">
-              리포트 내보내기
+            <Button disabled>기간 설정 · 준비 중</Button>
+            <Button variant="primary" disabled>
+              리포트 내보내기 · 준비 중
             </Button>
           </>
         }
