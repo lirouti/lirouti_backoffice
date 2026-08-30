@@ -15,6 +15,21 @@ export function byKind(list: Challenge[], kind?: ChallengeKind): Challenge[] {
 /** 보상에 아이템이 붙는가 */
 export const hasItemReward = (c: Challenge): boolean => c.rewardItem !== null
 
+/**
+ * 보상 표시. 「젬 · 아이템」 을 있는 것만 이어 붙인다.
+ *
+ * ⚠️ **`shared/lib` 의 `gem()` 을 그대로 쓰면 안 된다.** 그건 아이템 **가격** 포맷터라
+ *    0 을 「무료」 로 옮기는데, 보상이 0 젬인 것은 "공짜" 가 아니라 **젬을 안 준다**는
+ *    뜻이다. 「무료 · 금세공 왕관」 이라는 말이 안 되는 문구가 나온다.
+ */
+export function rewardLabel(c: Pick<Challenge, 'gem' | 'rewardItem'>): string {
+  const parts: string[] = []
+  if (c.gem > 0) parts.push(`${c.gem.toLocaleString()} 젬`)
+  if (c.rewardItem) parts.push(c.rewardItem.name)
+  // 검증이 막지만(둘 다 없을 수 없다) 표시 함수는 스스로 방어한다.
+  return parts.length > 0 ? parts.join(' · ') : '없음'
+}
+
 /** 운영 기간 표시. 한쪽만 있으면 열린 구간으로 쓴다 */
 export function periodLabel(c: Pick<Challenge, 'startAt' | 'endAt'>): string {
   if (!c.startAt && !c.endAt) return '제한 없음'
@@ -29,18 +44,20 @@ export function periodLabel(c: Pick<Challenge, 'startAt' | 'endAt'>): string {
  * `today` 를 받는 이유는 순수 함수로 두기 위해서다 — 안에서 `new Date()` 를 부르면
  * 테스트가 실행한 날에 따라 달라진다. 부르는 쪽(파사드)이 오늘을 준다.
  *
- * ⚠️ **`ENDED` 는 사람이 내린 결정일 수도 있다.** 「중단」 으로 끝낸 것은 기간이 남아
- *    있어도 되살아나면 안 되므로 그대로 둔다.
+ * ⚠️ **「중단」 만 되살아나지 않는다.** 사람이 내린 결정이라 날짜가 뒤집으면 안 된다.
+ *    반대로 **종료일이 지나 자동으로 끝난 것은 날짜를 고치면 되살아나야 한다** — 그게
+ *    운영자가 종료일을 미래로 미는 이유다. 둘을 `status` 하나로 묶으면 구분할 수 없어
+ *    `stopped` 를 따로 받는다.
  *
  * @param today `YYYY-MM-DD`
- * @param prev 수정 전 상태. 등록이면 없다.
+ * @param stopped 사람이 「중단」 을 눌렀는가. 등록이면 `false`.
  */
 export function challengeStatusOf(
   input: Pick<ChallengeInput, 'startAt' | 'endAt'>,
   today: string,
-  prev?: ChallengeStatus,
+  stopped = false,
 ): ChallengeStatus {
-  if (prev === 'ENDED') return 'ENDED'
+  if (stopped) return 'ENDED'
   if (input.startAt && input.startAt > today) return 'SCHEDULED'
   if (input.endAt && input.endAt < today) return 'ENDED'
   return 'ACTIVE'
@@ -67,7 +84,8 @@ export function validateChallenge(input: ChallengeInput): ChallengeInputErrors {
   if (!Number.isFinite(input.goal) || input.goal <= 0) errors.goal = '목표치는 1 이상이어야 합니다.'
 
   // 보상이 아예 없으면 달성해도 받는 게 없다. 젬이 0 이면 아이템이라도 있어야 한다.
-  if (input.gem < 0) errors.gem = '젬 보상은 0 이상이어야 합니다.'
+  // ⚠️ `NaN`·`Infinity` 는 `< 0` 도 `=== 0` 도 아니라 두 검사를 **모두 빠져나간다.**
+  if (!Number.isFinite(input.gem) || input.gem < 0) errors.gem = '젬 보상은 0 이상인 수여야 합니다.'
   else if (input.gem === 0 && !input.rewardItem) errors.gem = '젬이 0 이면 보상 아이템을 골라야 합니다.'
 
   // 둘 다 있을 때만 본다 — 빈 값은 「제한 없음」 이라 비교 대상이 아니다.

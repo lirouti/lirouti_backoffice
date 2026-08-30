@@ -13,6 +13,7 @@ import {
   emptyChallengeInput,
   hasItemReward,
   periodLabel,
+  rewardLabel,
   toChallengeInput,
   validateChallenge,
 } from './rules'
@@ -31,6 +32,7 @@ const chal = (over: Partial<Challenge> = {}): Challenge => ({
   code: 'CH-2001',
   rate: 0,
   status: 'ACTIVE',
+  stopped: false,
   ...over,
 })
 
@@ -65,6 +67,13 @@ describe('validateChallenge', () => {
     expect(validateChallenge(input({ gem: 0, rewardItem: reward })).gem).toBeUndefined()
   })
 
+  // NaN·Infinity 는 `< 0` 도 `=== 0` 도 아니라 두 검사를 모두 빠져나간다.
+  it('⚠️ 젬이 유한한 수가 아니면 막는다', () => {
+    expect(validateChallenge(input({ gem: Number.NaN })).gem).toBeTruthy()
+    expect(validateChallenge(input({ gem: Number.POSITIVE_INFINITY })).gem).toBeTruthy()
+    expect(validateChallenge(input({ gem: -1 })).gem).toBeTruthy()
+  })
+
   it('종료가 시작보다 빠르면 막는다', () => {
     expect(validateChallenge(input({ startAt: '2026-09-01', endAt: '2026-08-01' })).endAt).toBeTruthy()
   })
@@ -95,7 +104,39 @@ describe('challengeStatusOf', () => {
 
   // 「중단」 은 사람이 내린 결정이다. 기간이 남았다고 되살아나면 운영자가 내린 것이 풀린다.
   it('⚠️ 중단한 것은 기간이 남아 있어도 되살아나지 않는다', () => {
-    expect(challengeStatusOf({ startAt: '', endAt: '' }, '2026-08-30', 'ENDED')).toBe('ENDED')
+    expect(challengeStatusOf({ startAt: '', endAt: '' }, '2026-08-30', true)).toBe('ENDED')
+  })
+
+  // 자동 만료와 수동 중단은 다르다. 종료일을 미래로 미는 것이 곧 "다시 열겠다" 는 뜻인데
+  // 둘을 같게 다루면 운영자가 분명히 고쳤는데 화면이 아무 반응을 안 한다.
+  it('⚠️ 자동으로 끝난 것은 종료일을 미루면 되살아난다', () => {
+    // 어제 끝났다 → 종료
+    expect(challengeStatusOf({ startAt: '', endAt: '2026-08-29' }, '2026-08-30', false)).toBe('ENDED')
+    // 종료일을 미래로 고치면 진행
+    expect(challengeStatusOf({ startAt: '', endAt: '2026-09-30' }, '2026-08-30', false)).toBe('ACTIVE')
+  })
+
+  it('중단은 종료일을 미래로 고쳐도 유지된다', () => {
+    expect(challengeStatusOf({ startAt: '', endAt: '2026-09-30' }, '2026-08-30', true)).toBe('ENDED')
+  })
+})
+
+describe('rewardLabel', () => {
+  const crown = { assetId: 'as_head_9', name: '금세공 왕관', slot: 'HEAD' as const }
+
+  it('젬과 아이템을 있는 것만 이어 붙인다', () => {
+    expect(rewardLabel({ gem: 120, rewardItem: null })).toBe('120 젬')
+    expect(rewardLabel({ gem: 120, rewardItem: crown })).toBe('120 젬 · 금세공 왕관')
+  })
+
+  // `shared/lib` 의 `gem()` 은 아이템 **가격** 포맷터라 0 을 「무료」 로 옮긴다.
+  // 보상에 쓰면 「무료 · 금세공 왕관」 이라는 말이 안 되는 문구가 나온다.
+  it('⚠️ 젬 0 은 「무료」 가 아니라 빼고 쓴다', () => {
+    expect(rewardLabel({ gem: 0, rewardItem: crown })).toBe('금세공 왕관')
+  })
+
+  it('둘 다 없으면 「없음」 — 검증이 막지만 표시도 스스로 방어한다', () => {
+    expect(rewardLabel({ gem: 0, rewardItem: null })).toBe('없음')
   })
 })
 

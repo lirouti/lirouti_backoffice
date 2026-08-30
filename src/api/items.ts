@@ -111,8 +111,16 @@ export async function getItem(itemId: string): Promise<ItemDetail> {
   throw new Error('아이템 API 가 아직 연결되지 않았습니다. VITE_USE_MOCK=1 로 두세요.')
 }
 
+/**
+ * ⚠️ **빈 id 면 부르지 않는다.** 등록 화면이 `useItem(itemId ?? '')` 로 부르는데, 훅은
+ *    조기 반환보다 먼저 돌기 때문에 막지 않으면 **등록 화면을 열 때마다 404 조회**가 나간다.
+ */
 export function useItem(itemId: string) {
-  return useQuery({ queryKey: qk.items.detail(itemId), queryFn: () => getItem(itemId) })
+  return useQuery({
+    queryKey: qk.items.detail(itemId),
+    queryFn: () => getItem(itemId),
+    enabled: itemId !== '',
+  })
 }
 
 /** 등록이면 `itemId` 가 없다. 수정이면 있다. */

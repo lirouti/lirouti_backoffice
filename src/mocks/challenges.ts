@@ -52,6 +52,7 @@ export function allChallenges(): Challenge[] {
         gem,
         rate,
         status,
+        stopped: false,
         ...WINDOW[kind],
         target: '전체 유저',
         desc: `${title} 챌린지입니다. 달성 시 보상이 즉시 지급됩니다.`,
@@ -95,6 +96,7 @@ export function upsertChallenge(
     // 아직 아무도 안 했다. 0% 를 만들지 않으면 없던 성과가 생긴다.
     rate: 0,
     status,
+    stopped: false,
   }
   list.push(created)
   return created
@@ -105,7 +107,8 @@ export function endChallenge(key: number): Challenge {
   const list = allChallenges()
   const at = list.findIndex((c) => c.key === key)
   if (at < 0) throw new Error(`챌린지가 없습니다: ${key}`)
-  const next: Challenge = { ...list[at]!, status: 'ENDED' }
+  // 사람이 끊은 것이라는 사실을 남긴다 — 날짜로는 되살아나지 않아야 한다.
+  const next: Challenge = { ...list[at]!, status: 'ENDED', stopped: true }
   list[at] = next
   return next
 }

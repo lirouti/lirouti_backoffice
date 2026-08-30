@@ -7,7 +7,7 @@ import { useNavigate, useSearchParams } from 'react-router'
 
 import { css } from 'styled-system/css'
 
-import { gem, num, pct } from '@/shared/lib/format'
+import { num, pct } from '@/shared/lib/format'
 import { AssetThumb } from '@/shared/ui/AssetThumb'
 import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
@@ -25,6 +25,7 @@ import {
   CHALLENGE_STATUS_LABEL,
   CHALLENGE_STATUS_TONE,
   periodLabel,
+  rewardLabel,
   type Challenge,
   type ChallengeKind,
 } from '@/domain/challenge'
@@ -132,7 +133,7 @@ const COLUMNS: Column<Challenge>[] = [
         {c.rewardItem && (
           <AssetThumb assetId={c.rewardItem.assetId} size={22} alt={c.rewardItem.name} />
         )}
-        <span>{c.rewardItem ? `${gem(c.gem)} · ${c.rewardItem.name}` : gem(c.gem)}</span>
+        <span>{rewardLabel(c)}</span>
       </span>
     ),
   },

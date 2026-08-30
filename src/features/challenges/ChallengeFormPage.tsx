@@ -9,7 +9,6 @@ import { useNavigate, useParams } from 'react-router'
 
 import { css } from 'styled-system/css'
 
-import { gem as gemLabel } from '@/shared/lib/format'
 import { AssetThumb } from '@/shared/ui/AssetThumb'
 import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
@@ -27,6 +26,7 @@ import {
   CHALLENGE_KINDS,
   emptyChallengeInput,
   REPEAT_LABEL,
+  rewardLabel,
   toChallengeInput,
   validateChallenge,
   type ChallengeInput,
@@ -37,6 +37,8 @@ import { SCREENS } from '@/domain/screens'
 import { useChallenge, useSaveChallenge } from '@/api/challenges'
 
 import { useUnsavedGuard } from '@/stores/dirtyStore'
+
+import { RewardItemPicker } from './RewardItemPicker'
 
 const KIND_OPTIONS = CHALLENGE_KINDS.map((k) => ({ value: k, label: CHALLENGE_KIND_LABEL[k] }))
 
@@ -203,12 +205,10 @@ function ChallengeForm({ chalId, initial }: { chalId?: string; initial: Challeng
 }
 
 /**
- * 보상 아이템 고르기.
+ * 보상 아이템 칸.
  *
- * ⚠️ **여기서 고르는 것은 아이템이지 에셋이 아니다.** `AssetPicker` 를 쓰지 않는 이유가
- *    그것이다 — 그 창은 슬롯별 그림 목록이고, 챌린지 보상은 **이미 만들어진 아이템**을
- *    가리켜야 한다. 지금은 목의 에셋 표를 빌려 쓰지만 이름·슬롯을 함께 실어 둔다.
- * TODO(아이템 검색 API 가 생기면): 이름으로 찾는 창으로 바꾼다
+ * ⚠️ **여기서 고르는 것은 아이템이지 에셋이 아니다** — `RewardItemPicker` 가 그 이유를
+ *    갖고 있다. 이 카드는 지금 값을 보이고 창을 여는 일만 한다.
  */
 function RewardCard({
   input,
@@ -217,6 +217,8 @@ function RewardCard({
   input: ChallengeInput
   onChange: (v: ChallengeInput['rewardItem']) => void
 }) {
+  const [picking, setPicking] = useState(false)
+
   return (
     <Card className={css({ p: '17px 20px' })}>
       <CardTitle title="보상 아이템" sub="젬과 함께 줄 아이템입니다. 없으면 젬만 지급됩니다." />
@@ -227,14 +229,25 @@ function RewardCard({
             <span className={css({ flex: '1', minWidth: '0', textStyle: 'body', fontWeight: '600', color: 'ink' })}>
               {input.rewardItem.name}
             </span>
+            <Button onClick={() => setPicking(true)}>바꾸기</Button>
             <Button onClick={() => onChange(null)}>{NO_ITEM}으로</Button>
           </>
         ) : (
-          <p className={css({ flex: '1', m: '0', textStyle: 'caption', color: 'faint' })}>
-            아이템 보상이 없습니다. 젬만 지급됩니다.
-          </p>
+          <>
+            <p className={css({ flex: '1', m: '0', textStyle: 'caption', color: 'faint' })}>
+              아이템 보상이 없습니다. 젬만 지급됩니다.
+            </p>
+            <Button onClick={() => setPicking(true)}>아이템 고르기</Button>
+          </>
         )}
       </div>
+
+      <RewardItemPicker
+        open={picking}
+        value={input.rewardItem}
+        onClose={() => setPicking(false)}
+        onPick={onChange}
+      />
     </Card>
   )
 }
@@ -261,7 +274,7 @@ function SideCard({
       <dl className={css({ m: '12px 0 0', display: 'flex', flexDirection: 'column', gap: '8px' })}>
         <SummaryRow k="주기" v={CHALLENGE_KIND_LABEL[input.kind]} />
         <SummaryRow k="조건" v={`${input.cond} ${input.goal}회`} />
-        <SummaryRow k="보상" v={input.rewardItem ? `${gemLabel(input.gem)} · ${input.rewardItem.name}` : gemLabel(input.gem)} />
+        <SummaryRow k="보상" v={rewardLabel(input)} />
       </dl>
 
       <ul className={css({ listStyle: 'none', m: '14px 0 0', p: '0', display: 'flex', flexDirection: 'column', gap: '7px' })}>

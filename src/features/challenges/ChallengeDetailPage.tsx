@@ -8,7 +8,7 @@ import { useNavigate, useParams } from 'react-router'
 
 import { css } from 'styled-system/css'
 
-import { gem, num, pct } from '@/shared/lib/format'
+import { num, pct } from '@/shared/lib/format'
 import { AssetThumb } from '@/shared/ui/AssetThumb'
 import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
@@ -25,6 +25,7 @@ import {
   CHALLENGE_STATUS_TONE,
   periodLabel,
   REPEAT_LABEL,
+  rewardLabel,
 } from '@/domain/challenge'
 import { SLOT_LABEL } from '@/domain/item'
 import { SCREENS } from '@/domain/screens'
@@ -98,7 +99,7 @@ function Detail({ detail, chalId }: { detail: ChallengeDetail; chalId: string })
             <dl className={css({ m: '12px 0 0', display: 'flex', flexDirection: 'column', gap: '9px' })}>
               <Row k="조건" v={c.cond} />
               <Row k="목표" v={num(c.goal)} />
-              <Row k="보상" v={gem(c.gem)} />
+              <Row k="보상" v={rewardLabel(c)} />
               <Row k="기간" v={periodLabel(c)} />
               <Row k="반복" v={REPEAT_LABEL[c.kind]} />
               <Row k="대상" v={c.target} />
