@@ -111,7 +111,12 @@ function Detail({ detail, chalId }: { detail: ChallengeDetail; chalId: string })
             <CardTitle title="보상 아이템" />
             {c.rewardItem ? (
               <div className={css({ display: 'flex', alignItems: 'center', gap: '11px', mt: '12px' })}>
-                <AssetThumb assetId={c.rewardItem.assetId} size={48} alt={c.rewardItem.name} />
+                <AssetThumb
+                  assetId={c.rewardItem.assetId}
+                  src={c.rewardItem.assetSrc}
+                  size={48}
+                  alt={c.rewardItem.name}
+                />
                 <div className={css({ minWidth: '0' })}>
                   <div className={css({ textStyle: 'body', fontWeight: '700', color: 'ink' })}>
                     {c.rewardItem.name}

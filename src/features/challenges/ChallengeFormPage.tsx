@@ -225,7 +225,12 @@ function RewardCard({
       <div className={css({ display: 'flex', alignItems: 'center', gap: '12px', mt: '14px', flexWrap: 'wrap' })}>
         {input.rewardItem ? (
           <>
-            <AssetThumb assetId={input.rewardItem.assetId} size={44} alt={input.rewardItem.name} />
+            <AssetThumb
+              assetId={input.rewardItem.assetId}
+              src={input.rewardItem.assetSrc}
+              size={44}
+              alt={input.rewardItem.name}
+            />
             <span className={css({ flex: '1', minWidth: '0', textStyle: 'body', fontWeight: '600', color: 'ink' })}>
               {input.rewardItem.name}
             </span>

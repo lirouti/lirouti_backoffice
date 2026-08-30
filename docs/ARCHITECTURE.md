@@ -2125,6 +2125,18 @@ new Intl.DateTimeFormat('sv-SE', { timeZone: OPERATING_TZ }).format(new Date())
 0 을 「무료」 로 옮기는데, 보상이 0 젬인 것은 "공짜" 가 아니라 **젬을 안 준다**는 뜻이다.
 그대로 쓰면 「무료 · 금세공 왕관」 이 나온다. `rewardLabel` 이 있는 것만 이어 붙인다.
 
+### 20.5.1 `assetSrc` 는 경계마다 다시 새어 나간다
+
+⚠️ **아이템에서 다른 모양으로 옮겨 담을 때 `assetSrc` 를 빠뜨리기 쉽다.** 올린 에셋은
+빌드에 없어 `assetId` 로 못 찾으므로(§8.5), 버리는 순간 그림이 `?` 가 된다.
+
+`RewardItemPicker` 가 딱 그랬다 — **창 안에서는 잘 보이다가 고른 뒤에 사라졌다.**
+창은 `Item` 을 그대로 그렸고(`src={item.assetSrc}`), 고를 때는 `{assetId, name, slot}` 만
+담았기 때문이다. 눈으로 보면 "골랐더니 그림이 없어진" 것으로 보인다.
+
+> 규칙: **`assetId` 를 옮겨 담는 자리에는 `assetSrc` 도 함께 옮긴다.** 보상 아이템 모양은
+> 도메인(`ChallengeReward`)이 갖고 있어 화면끼리 어긋나지 않는다.
+
 ### 20.6 등록 화면은 빈 id 로 조회하지 않는다
 
 ⚠️ **훅은 조기 반환보다 먼저 돈다.** `useChallenge(chalId ?? '')` 를 그대로 두면

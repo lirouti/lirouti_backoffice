@@ -131,7 +131,12 @@ const COLUMNS: Column<Challenge>[] = [
       <span className={css({ display: 'flex', alignItems: 'center', gap: '7px' })}>
         {/* 아이템 보상이 붙으면 그림까지 보여야 무엇을 주는지 한눈에 읽힌다 */}
         {c.rewardItem && (
-          <AssetThumb assetId={c.rewardItem.assetId} size={22} alt={c.rewardItem.name} />
+          <AssetThumb
+            assetId={c.rewardItem.assetId}
+            src={c.rewardItem.assetSrc}
+            size={22}
+            alt={c.rewardItem.name}
+          />
         )}
         <span>{rewardLabel(c)}</span>
       </span>

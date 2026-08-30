@@ -39,7 +39,22 @@ export type Challenge = {
   /** 누구에게 열려 있는가 */
   target: string
   desc: string
-  rewardItem: { assetId: string; name: string; slot: Slot } | null
+  rewardItem: ChallengeReward | null
+}
+
+/**
+ * 챌린지 보상으로 실리는 아이템. **아이템 전체를 들고 다니지 않는다.**
+ *
+ * ⚠️ **`assetSrc` 를 함께 실어야 한다.** 올린 에셋은 빌드에 없어서 `assetId` 로는 찾을 수
+ *    없다(docs/ARCHITECTURE.md §8.5). 고를 때 버리면 목록·상세에서 `?` 로 뜬다 —
+ *    고르기 창 안에서는 잘 보이다가 고른 뒤에 사라지는, 눈치채기 어려운 종류다.
+ */
+export type ChallengeReward = {
+  assetId: string
+  /** 올린 그림의 URL. 없으면 빌드 에셋이다 */
+  assetSrc?: string
+  name: string
+  slot: Slot
 }
 
 export const CHALLENGE_KINDS: ChallengeKind[] = ['DAILY', 'WEEKLY', 'SEASON']

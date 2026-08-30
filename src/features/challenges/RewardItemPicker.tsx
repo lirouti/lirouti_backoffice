@@ -8,19 +8,17 @@ import { Skeleton } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { Input } from '@/shared/ui/Input'
 
+import type { ChallengeReward } from '@/domain/challenge'
 import { SLOT_LABEL, type Item } from '@/domain/item'
 
 import { useItems } from '@/api/items'
 
-/** 챌린지 보상으로 실리는 부분만. 아이템 전체를 들고 다니지 않는다 */
-export type RewardItem = { assetId: string; name: string; slot: Item['slot'] }
-
 type RewardItemPickerProps = {
   open: boolean
   /** 지금 고른 것. 창을 열 때 여기서 시작한다 */
-  value: RewardItem | null
+  value: ChallengeReward | null
   onClose: () => void
-  onPick: (v: RewardItem) => void
+  onPick: (v: ChallengeReward) => void
 }
 
 /** 한 번에 보여 줄 수. 이름으로 좁혀 찾는 창이라 목록을 길게 둘 이유가 없다 */
@@ -36,7 +34,7 @@ const PER_PAGE = 12
 export function RewardItemPicker({ open, value, onClose, onPick }: RewardItemPickerProps) {
   const [q, setQ] = useState('')
   const { data, isPending, error } = useItems({ q: q.trim() || undefined, page: 1, perPage: PER_PAGE })
-  const [picked, setPicked] = useState<RewardItem | null>(value)
+  const [picked, setPicked] = useState<ChallengeReward | null>(value)
   const [wasOpen, setWasOpen] = useState(open)
 
   // ⚠️ 창이 열릴 때마다 임시 선택과 검색어를 되돌린다. 「취소」 는 `picked` 를 건드리지
@@ -98,7 +96,10 @@ export function RewardItemPicker({ open, value, onClose, onPick }: RewardItemPic
               <Row
                 item={it}
                 on={picked?.assetId === it.assetId && picked?.name === it.name}
-                onPick={() => setPicked({ assetId: it.assetId, name: it.name, slot: it.slot })}
+                // ⚠️ `assetSrc` 를 함께 담는다 — 버리면 고른 뒤에 그림이 사라진다.
+                onPick={() =>
+                  setPicked({ assetId: it.assetId, assetSrc: it.assetSrc, name: it.name, slot: it.slot })
+                }
               />
             </li>
           ))}
