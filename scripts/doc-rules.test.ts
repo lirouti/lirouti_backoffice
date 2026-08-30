@@ -38,6 +38,20 @@ describe('countArgs', () => {
     expect(countArgs("'a, b'")).toBe(1)
     expect(countArgs('"a, b", c')).toBe(2)
   })
+
+  // 백슬래시 하나만 보면 `"a\\"` 를 "따옴표가 이스케이프됐다" 로 읽어 문자열이 안 닫힌다.
+  // 그 뒤 인자를 통째로 놓친다.
+  it('⚠️ 이스케이프는 백슬래시 개수의 홀짝으로 본다', () => {
+    expect(countArgs(String.raw`"a\\", b`)).toBe(2)
+    expect(countArgs(String.raw`"a\", b"`)).toBe(1)
+  })
+
+  // `f(a,)` 는 유효한 호출이고 인자는 하나다.
+  it('⚠️ 뒤따르는 쉼표는 인자가 아니다', () => {
+    expect(countArgs('a,')).toBe(1)
+    expect(countArgs('a, b,')).toBe(2)
+    expect(countArgs('a ,  b')).toBe(2)
+  })
 })
 
 describe('callExamples', () => {

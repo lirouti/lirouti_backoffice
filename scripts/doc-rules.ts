@@ -82,17 +82,37 @@ export function countArgs(inner: string): number {
 
   let depth = 0
   let quote: string | null = null
+  // 쉼표 뒤에 실제 인자가 왔을 때만 센다. **뒤따르는 쉼표(`f(a,)`)는 인자가 아니다** —
+  // 세면 `a,` 를 두 개로 읽는다.
   let count = 1
+  let pending = false
+
   for (let i = 0; i < s.length; i += 1) {
     const c = s[i]!
+
     if (quote) {
-      if (c === quote && s[i - 1] !== '\\') quote = null
+      // ⚠️ **백슬래시 하나만 보면 안 된다.** `"a\\\\"` 는 이스케이프된 백슬래시로 끝나므로
+      //    그 뒤의 따옴표는 문자열을 **닫는다.** 앞선 백슬래시가 홀수일 때만 이스케이프다.
+      if (c === quote) {
+        let back = 0
+        while (s[i - 1 - back] === '\\') back += 1
+        if (back % 2 === 0) quote = null
+      }
       continue
     }
+
     if (c === '"' || c === "'" || c === '`') quote = c
     else if ('({['.includes(c)) depth += 1
     else if (')}]'.includes(c)) depth -= 1
-    else if (c === ',' && depth === 0) count += 1
+    else if (c === ',' && depth === 0) {
+      pending = true
+      continue
+    }
+
+    if (pending && !/\s/.test(c)) {
+      count += 1
+      pending = false
+    }
   }
   return count
 }
