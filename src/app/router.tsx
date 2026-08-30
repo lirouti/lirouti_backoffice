@@ -38,6 +38,8 @@ const IMPLEMENTED: Partial<Record<ScreenId, React.LazyExoticComponent<React.Comp
   speciesdet: lazy(() => import('@/features/characters/SpeciesDetailPage')),
   speciesnew: lazy(() => import('@/features/characters/SpeciesFormPage')),
   security: lazy(() => import('@/features/security/SecurityPage')),
+  user: lazy(() => import('@/features/users/UserDetailPage')),
+  users: lazy(() => import('@/features/users/UsersPage')),
   ui: lazy(() => import('@/features/uikit/UiKitPage')),
 }
 
