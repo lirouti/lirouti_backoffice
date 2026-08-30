@@ -22,6 +22,7 @@ const user = (over: Partial<User> = {}): User => ({
   joinedAt: '2026-01-14',
   lastSeenAt: '2026-08-13',
   leftAt: '',
+  marketingOptIn: true,
   ...over,
 })
 

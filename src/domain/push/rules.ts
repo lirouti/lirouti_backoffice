@@ -1,6 +1,7 @@
 /** 푸시 알림 규칙. */
 import { parseUserIds } from '../user/rules'
-import type { Push, PushConsent, PushFailure, PushInput, PushKind, PushStatus } from './types'
+import type { User } from '../user/types'
+import type { Push, PushAudience, PushConsent, PushFailure, PushInput, PushKind, PushStatus } from './types'
 
 /**
  * 잠금화면에 들어가는 길이.
@@ -14,12 +15,22 @@ export const PUSH_LIMITS = { title: 40, body: 90 } as const
 export const NIGHT_FROM = 21
 export const NIGHT_TO = 8
 
-/** `YYYY-MM-DD HH:mm` 에서 시(hour). 못 읽으면 `null` */
+/**
+ * `YYYY-MM-DD HH:mm` 에서 시(hour). **읽을 수 없으면 `null`.**
+ *
+ * ⚠️ **모양만 보면 안 된다.** 정규식은 `2026-02-30 10:99` 를 통과시키는데,
+ *    그건 **존재하지 않는 시각**이라 예약해도 영원히 안 나간다. 달력에 실제로
+ *    있는 날인지, 분이 59 이하인지까지 본다 (docs/ARCHITECTURE.md §26.2.1).
+ */
 export function hourOf(at: string): number | null {
-  const m = /^\d{4}-\d{2}-\d{2} (\d{2}):\d{2}$/.exec(at)
+  const m = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})$/.exec(at)
   if (!m) return null
-  const h = Number(m[1])
-  return h >= 0 && h <= 23 ? h : null
+  const [y, mo, d, h, mi] = m.slice(1).map(Number) as [number, number, number, number, number]
+  if (h > 23 || mi > 59) return null
+  // 2월 30일은 3월 2일로 넘어간다 — 되돌려 보면 원래 날짜와 다르다.
+  const at0 = new Date(Date.UTC(y, mo - 1, d))
+  if (at0.getUTCFullYear() !== y || at0.getUTCMonth() !== mo - 1 || at0.getUTCDate() !== d) return null
+  return h
 }
 
 /**
@@ -40,7 +51,7 @@ export function nightBlocked(kind: PushKind, at: string): boolean {
 }
 
 /**
- * 이 조건으로 몇 명에게 가는가.
+ * 조건으로 고른 대상이 몇 명인가. **세그먼트 전용이다.**
  *
  * **마케팅이면 동의 비율을 곱한다.** 조건별 마케팅 동의 수는 서버가 따로 주지 않으므로
  * 전체 비율(`marketing / push`)을 적용한다.
@@ -48,14 +59,60 @@ export function nightBlocked(kind: PushKind, at: string): boolean {
  * ⚠️ **`Math.min(대상, 마케팅동의)` 로 하면 안 된다.** 휴면 회원 6,200명에게 마케팅을
  *    보낼 때 `min(6200, 28600) = 6200` 이 되어 **동의를 하나도 안 거른 값**이 나온다.
  */
-export function reachOf(input: PushInput, consent: PushConsent): number {
-  const base =
-    input.audience === '직접 지정'
-      ? parseUserIds(input.ids).length
-      : consent.byAudience[input.audience]
-  if (input.kind !== 'marketing') return base
+export function segmentReach(
+  audience: Exclude<PushAudience, '직접 지정'>,
+  kind: PushKind,
+  consent: PushConsent,
+): number {
+  const base = consent.byAudience[audience]
+  if (kind !== 'marketing') return base
   if (consent.push === 0) return 0
   return Math.floor(base * (consent.marketing / consent.push))
+}
+
+/** 「직접 지정」 을 실제 회원으로 풀어 본 결과 */
+export type DirectTargets = {
+  /** 실제로 보낼 회원 */
+  send: User[]
+  /** 회원 목록에 없는 id. **오타가 여기서 잡힌다** */
+  missing: string[]
+  /** 있지만 마케팅 수신에 동의하지 않아 빠지는 회원 */
+  blocked: User[]
+}
+
+/**
+ * 「직접 지정」 대상 확인.
+ *
+ * ⚠️ **사람을 지목할 때 집계 비율을 쓰면 안 된다.** 전체 동의율 69%를 3명에 곱하면
+ *    2명이 나오는데, **그 2명이 누구인지 아무도 모른다.** 1명을 지목하면 0명이 된다.
+ *    각자 동의했는지를 봐야 한다 (docs/ARCHITECTURE.md §26.3.1).
+ *
+ * ⚠️ **탈퇴 회원도 「못 찾음」 이다** — 계정이 없으니 보낼 곳도 없다.
+ */
+export function directTargets(ids: string[], users: User[], kind: PushKind): DirectTargets {
+  const send: User[] = []
+  const missing: string[] = []
+  const blocked: User[] = []
+  for (const id of ids) {
+    const hit = users.find((u) => u.uid === id && u.status !== 'LEFT')
+    if (!hit) missing.push(id)
+    else if (kind === 'marketing' && !hit.marketingOptIn) blocked.push(hit)
+    else send.push(hit)
+  }
+  return { send, missing, blocked }
+}
+
+/**
+ * 이 조건으로 몇 명에게 가는가.
+ *
+ * ⚠️ **「직접 지정」 은 `users` 없이 정확히 셀 수 없다.** 안 주면 **적어 낸 id 수**를
+ *    돌려주는데, 그건 **상한**이지 실제 대상이 아니다 — 화면은 그렇게 표시해야 한다.
+ */
+export function reachOf(input: PushInput, consent: PushConsent, users?: User[]): number {
+  if (input.audience !== '직접 지정') return segmentReach(input.audience, input.kind, consent)
+  const ids = parseUserIds(input.ids)
+  if (!users) return ids.length
+  return directTargets(ids, users, input.kind).send.length
 }
 
 /** 열림률 (%). **아직 안 보냈으면 `null`** — 0% 와 「아직 없음」 은 다르다 */

@@ -59,6 +59,9 @@ export function allUsers(): User[] {
     lastSeenAt,
     // 탈퇴 계정만 탈퇴일을 갖는다 — 마지막 접속을 그날로 본다.
     leftAt: STATUS[status] === 'LEFT' ? lastSeenAt : '',
+    // 전체 동의율(69%)에 가깝게, **시드 없이 결정적으로** 나눈다 — 새로고침마다
+    // 동의 여부가 바뀌면 지정 발송 대상 수가 흔들린다.
+    marketingOptIn: i % 10 < 7,
   }))
   return cache
 }

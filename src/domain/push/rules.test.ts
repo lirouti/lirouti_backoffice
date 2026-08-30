@@ -6,8 +6,10 @@
  */
 import { describe, expect, it } from 'vitest'
 
+import type { User } from '../user/types'
 import {
   canCancel,
+  directTargets,
   failuresOf,
   filterPushes,
   hourOf,
@@ -19,6 +21,23 @@ import {
   validatePush,
 } from './rules'
 import type { Push, PushConsent, PushInput } from './types'
+
+const user = (over: Partial<User> = {}): User => ({
+  key: 0,
+  uid: 'U-1',
+  nick: '소이',
+  email: 'soi@kakao.com',
+  social: 'KAKAO',
+  status: 'ACTIVE',
+  wallet: { gem: 0, topaz: 0 },
+  paid: 0,
+  certs: 0,
+  joinedAt: '2026-01-02',
+  lastSeenAt: '2026-08-14',
+  leftAt: '',
+  marketingOptIn: true,
+  ...over,
+})
 
 const consent: PushConsent = {
   all: 41200,
@@ -72,6 +91,18 @@ describe('hourOf', () => {
       expect(hourOf(bad)).toBeNull()
     }
   })
+
+  // 모양만 보면 통과하지만 **존재하지 않는 시각**이라 예약해도 영원히 안 나간다.
+  it('⚠️ 달력에 없는 날 · 60분 이상은 null', () => {
+    for (const bad of ['2026-02-30 10:00', '2026-13-01 10:00', '2026-04-31 10:00', '2026-08-14 10:99']) {
+      expect(hourOf(bad)).toBeNull()
+    }
+  })
+
+  it('윤년 2월 29일은 있다', () => {
+    expect(hourOf('2028-02-29 10:00')).toBe(10)
+    expect(hourOf('2026-02-29 10:00')).toBeNull()
+  })
 })
 
 describe('nightBlocked', () => {
@@ -117,14 +148,61 @@ describe('reachOf', () => {
     expect(reachOf(input({ kind: 'marketing', audience: '휴면 회원' }), consent)).toBe(4553)
   })
 
-  it('직접 지정은 적어 낸 ID 수', () => {
+  // 회원 목록 없이는 **상한**만 안다. 이걸 실제 대상으로 쓰면 안 된다.
+  it('직접 지정은 회원 목록이 없으면 적어 낸 ID 수(상한)', () => {
     expect(reachOf(input({ audience: '직접 지정', ids: 'U-1, U-2, U-1' }), consent)).toBe(2)
     expect(reachOf(input({ audience: '직접 지정', ids: '  ,, ' }), consent)).toBe(0)
+  })
+
+  // 1명을 지목하면 `floor(1 × 0.7345) = 0` — 아무도 아닌 수가 나온다.
+  it('⚠️ 직접 지정에 동의 비율을 곱하지 않는다', () => {
+    const one = input({ kind: 'marketing', audience: '직접 지정', ids: 'U-1' })
+    expect(reachOf(one, consent)).toBe(1)
+    expect(reachOf(one, consent, [user({ uid: 'U-1', marketingOptIn: true })])).toBe(1)
+  })
+
+  it('회원 목록을 주면 동의까지 걸러 센다', () => {
+    const two = input({ kind: 'marketing', audience: '직접 지정', ids: 'U-1, U-2' })
+    const users = [user({ key: 0, uid: 'U-1' }), user({ key: 1, uid: 'U-2', marketingOptIn: false })]
+    expect(reachOf(two, consent, users)).toBe(1)
   })
 
   it('푸시 허용이 0 이면 0 — 0 으로 나누지 않는다', () => {
     const none = { ...consent, push: 0, marketing: 0 }
     expect(reachOf(input({ kind: 'marketing' }), none)).toBe(0)
+  })
+})
+
+describe('directTargets', () => {
+  const users = [
+    user({ key: 0, uid: 'U-1', marketingOptIn: true }),
+    user({ key: 1, uid: 'U-2', marketingOptIn: false }),
+    user({ key: 2, uid: 'U-3', marketingOptIn: true, status: 'LEFT', leftAt: '2026-07-01' }),
+  ]
+
+  it('서비스 알림은 동의를 보지 않는다', () => {
+    const r = directTargets(['U-1', 'U-2'], users, 'service')
+    expect(r.send.map((u) => u.uid)).toEqual(['U-1', 'U-2'])
+    expect(r.blocked).toEqual([])
+  })
+
+  // 전체 동의율 69%를 곱하면 2명이 나오는데, 그 2명이 누구인지 아무도 모른다.
+  it('⚠️ 마케팅은 회원별 동의를 본다 — 비율이 아니다', () => {
+    const r = directTargets(['U-1', 'U-2'], users, 'marketing')
+    expect(r.send.map((u) => u.uid)).toEqual(['U-1'])
+    expect(r.blocked.map((u) => u.uid)).toEqual(['U-2'])
+  })
+
+  it('⚠️ 탈퇴 · 없는 id 는 못 찾음이다', () => {
+    const r = directTargets(['U-3', 'U-99'], users, 'service')
+    expect(r.missing).toEqual(['U-3', 'U-99'])
+    expect(r.send).toEqual([])
+  })
+
+  it('빠진 사람까지 합하면 적어 낸 수와 같다', () => {
+    const ids = ['U-1', 'U-2', 'U-3', 'U-99']
+    const r = directTargets(ids, users, 'marketing')
+    expect(r.send.length + r.blocked.length + r.missing.length).toBe(ids.length)
   })
 })
 

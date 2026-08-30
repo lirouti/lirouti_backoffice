@@ -10,6 +10,7 @@ import { nowAt } from '@/shared/lib/today'
 
 import {
   canCancel,
+  directTargets,
   failuresOf,
   filterPushes,
   reachOf,
@@ -22,8 +23,10 @@ import {
   type PushSummary,
   type PushTab,
 } from '@/domain/push'
+import { parseUserIds } from '@/domain/user'
 
 import { addPush, allPushes, cancelPush, openedByHour, pushConsent } from '@/mocks/push'
+import { allUsers } from '@/mocks/users'
 
 import { mockDelay, qk, queryClient, today, USE_MOCK } from './core'
 import { apiError } from './error'
@@ -92,6 +95,35 @@ export function usePush(pushId: string) {
   })
 }
 
+export type DirectCheck = {
+  /** 실제로 보낼 회원 수 */
+  count: number
+  /** 회원 목록에 없는 id */
+  missing: string[]
+  /** 있지만 마케팅 수신 미동의로 빠지는 회원의 uid */
+  blocked: string[]
+}
+
+/**
+ * 「직접 지정」 대상을 실제 회원으로 풀어 본다.
+ *
+ * **화면의 「예상 대상」 은 상한**이라, 보내기 전에 누가 빠지는지 알려 줘야 한다
+ * (docs/ARCHITECTURE.md §26.3.1).
+ */
+export async function checkDirect(input: PushInput): Promise<DirectCheck> {
+  if (USE_MOCK) {
+    await mockDelay()
+    const { send, missing, blocked } = directTargets(parseUserIds(input.ids), allUsers(), input.kind)
+    return { count: send.length, missing, blocked: blocked.map((u) => u.uid) }
+  }
+
+  throw new Error('푸시 API 가 아직 연결되지 않았습니다. VITE_USE_MOCK=1 로 두세요.')
+}
+
+export function useCheckDirect() {
+  return useMutation({ mutationFn: checkDirect })
+}
+
 export type SendVars = {
   input: PushInput
   /**
@@ -117,7 +149,11 @@ export async function sendPush({ input, by }: SendVars): Promise<Push> {
     const first = Object.values(errors)[0]
     if (first) throw apiError('http', first, 400)
 
-    const targeted = reachOf(input, consent)
+    // ⚠️ **「직접 지정」 은 여기서 실제 회원으로 푼다.** 화면이 보여 준 수는 상한이고,
+    //    마케팅이면 동의하지 않은 사람이 빠진다 (§26.3.1).
+    const targeted = reachOf(input, consent, allUsers())
+    if (targeted === 0) throw apiError('http', '보낼 대상이 없습니다.', 400)
+
     return addPush({
       title: input.title.trim(),
       body: input.body.trim(),

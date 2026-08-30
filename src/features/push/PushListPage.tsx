@@ -8,7 +8,7 @@ import { useNavigate, useSearchParams } from 'react-router'
 
 import { css } from 'styled-system/css'
 
-import { num } from '@/shared/lib/format'
+import { num, share } from '@/shared/lib/format'
 import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
 import { Skeleton } from '@/shared/ui/EmptyState'
@@ -135,7 +135,7 @@ export default function PushListPage() {
           <StatTile label="평균 열림률" value={`${data.summary.openRate}%`} />
           <StatTile
             label="푸시 허용"
-            value={`${Math.round((data.consent.push / data.consent.all) * 100)}%`}
+            value={share(data.consent.push, data.consent.all)}
           />
         </div>
       )}

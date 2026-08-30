@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router'
 
 import { css } from 'styled-system/css'
 
-import { num } from '@/shared/lib/format'
+import { num, share } from '@/shared/lib/format'
 import { nowAt } from '@/shared/lib/today'
 import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
@@ -39,7 +39,7 @@ import {
 } from '@/domain/push'
 import { SCREENS } from '@/domain/screens'
 
-import { useConsent, useSendPush } from '@/api/push'
+import { useCheckDirect, useConsent, useSendPush } from '@/api/push'
 
 import { useUnsavedGuard } from '@/stores/dirtyStore'
 import { useViewer } from '@/stores/viewerStore'
@@ -64,6 +64,7 @@ export default function PushFormPage() {
   const viewer = useViewer()
   const { data: consent, isPending, error } = useConsent()
   const send = useSendPush()
+  const check = useCheckDirect()
   const [form, setForm] = useState<PushInput>(EMPTY)
   const [tried, setTried] = useState(false)
   const [asking, setAsking] = useState(false)
@@ -79,10 +80,19 @@ export default function PushFormPage() {
   const sendAt = form.now ? nowAt() : form.at
   const errors = validatePush(form, consent, sendAt)
   const reach = reachOf(form, consent)
+  const direct = form.audience === '직접 지정'
+  // 확인 창에는 **실제로 갈 수**를 적는다. 세그먼트는 화면 계산이 곧 그 값이다.
+  const confirmed = direct ? (check.data?.count ?? reach) : reach
 
   const ask = () => {
     setTried(true)
-    if (Object.keys(errors).length === 0) setAsking(true)
+    if (Object.keys(errors).length > 0) return
+    // 「직접 지정」 의 「예상 대상」 은 상한이다 — 누가 빠지는지는 실제로 풀어 봐야 안다.
+    if (form.audience !== '직접 지정') {
+      setAsking(true)
+      return
+    }
+    check.mutate(form, { onSuccess: (r) => setAsking(r.count > 0) })
   }
 
   const commit = () =>
@@ -111,7 +121,16 @@ export default function PushFormPage() {
         }
       />
 
-      {send.error && <ErrorBanner message={send.error.message} />}
+      {(send.error || check.error) && <ErrorBanner message={(send.error ?? check.error)!.message} />}
+
+      {/* 0명이면 확인할 것이 없다 — 창을 열지 않고 그 자리에서 이유를 말한다 (§25.3.2) */}
+      {check.data && check.data.count === 0 && (
+        <ErrorBanner
+          message={`보낼 대상이 없습니다.${check.data.missing.length > 0 ? ` 못 찾은 ID — ${check.data.missing.join(', ')}` : ''}${
+            check.data.blocked.length > 0 ? ` 마케팅 미동의 — ${check.data.blocked.join(', ')}` : ''
+          }`}
+        />
+      )}
       {tried && errors.kind && <ErrorBanner message={errors.kind} />}
 
       <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '18px', alignItems: 'flex-start' })}>
@@ -245,17 +264,22 @@ export default function PushFormPage() {
             <CardTitle title="예상 대상" />
             <div className={css({ mt: '10px', display: 'flex', alignItems: 'baseline', gap: '4px' })}>
               <span className={css({ textStyle: 'display', color: reach > 0 ? 'ink' : 'rFg' })}>
-                {num(reach)}
+                {direct ? `최대 ${num(reach)}` : num(reach)}
               </span>
               <span className={css({ textStyle: 'body', color: 'sub' })}>명</span>
             </div>
+            {/* 지목한 사람의 동의 여부는 서버가 안다 — 화면이 아는 것은 적어 낸 수뿐이다 */}
+            {direct && (
+              <p className={css({ m: '6px 0 0', textStyle: 'micro', color: 'faint' })}>
+                {form.kind === 'marketing'
+                  ? '마케팅에 동의하지 않은 회원은 보낼 때 빠집니다.'
+                  : '없는 회원은 보낼 때 빠집니다.'}
+              </p>
+            )}
             <dl className={css({ m: '13px 0 0', display: 'flex', flexDirection: 'column', gap: '8px' })}>
               <Row k="전체 회원" v={`${num(consent.all)}명`} />
-              <Row k="푸시 허용" v={`${num(consent.push)}명 (${Math.round((consent.push / consent.all) * 100)}%)`} />
-              <Row
-                k="마케팅 동의"
-                v={`${num(consent.marketing)}명 (${Math.round((consent.marketing / consent.all) * 100)}%)`}
-              />
+              <Row k="푸시 허용" v={`${num(consent.push)}명 (${share(consent.push, consent.all)})`} />
+              <Row k="마케팅 동의" v={`${num(consent.marketing)}명 (${share(consent.marketing, consent.all)})`} />
               <Row k="대상 조건" v={form.audience} />
             </dl>
           </Card>
@@ -268,11 +292,20 @@ export default function PushFormPage() {
         onConfirm={commit}
         title={form.now ? '지금 발송' : '예약 저장'}
         tone="danger"
-        confirmLabel={send.isPending ? '보내는 중…' : form.now ? `${num(reach)}명에게 발송` : '예약 저장'}
+        confirmLabel={send.isPending ? '보내는 중…' : form.now ? `${num(confirmed)}명에게 발송` : '예약 저장'}
         body={
           <>
-            <strong>{num(reach)}명</strong>에게 {PUSH_KIND_LABEL[form.kind]}을 {form.now ? '지금 보냅니다' : `${form.at} 에 보냅니다`}.
+            <strong>{num(confirmed)}명</strong>에게 {PUSH_KIND_LABEL[form.kind]}을{' '}
+            {form.now ? '지금 보냅니다' : `${form.at} 에 보냅니다`}.
             {form.now && ' 되돌릴 수 없습니다.'}
+            {check.data && (check.data.missing.length > 0 || check.data.blocked.length > 0) && (
+              <span className={css({ display: 'block', mt: '9px', color: 'rFg', fontWeight: '600' })}>
+                {check.data.missing.length > 0 && `찾지 못한 회원 ${check.data.missing.length}명`}
+                {check.data.missing.length > 0 && check.data.blocked.length > 0 && ' · '}
+                {check.data.blocked.length > 0 && `마케팅 미동의 ${check.data.blocked.length}명`}
+                {' 은 제외됩니다.'}
+              </span>
+            )}
           </>
         }
       />

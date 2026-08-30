@@ -40,6 +40,14 @@ export type User = {
   lastSeenAt: string
   /** 탈퇴일. `LEFT` 가 아니면 빈 문자열 */
   leftAt: string
+  /**
+   * 마케팅 수신에 동의했는가.
+   *
+   * ⚠️ **집계 비율로 대신할 수 없다.** 「이 세 명에게 보낸다」 처럼 사람을 지목할 때는
+   *    각자 동의했는지를 봐야 한다 — 전체 동의율 69%를 3명에 곱하면 2명이라는,
+   *    아무에게도 대응되지 않는 수가 나온다 (docs/ARCHITECTURE.md §26.3.1).
+   */
+  marketingOptIn: boolean
 }
 
 /** 재화 이력 한 줄. 유상·무상이 따로 쌓인다 */
