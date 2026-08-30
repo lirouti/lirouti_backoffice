@@ -42,26 +42,26 @@ import { useSaveSpecies, useSetSpeciesHidden, useSpecies, type SpeciesDetail } f
 
 import { useUnsavedGuard } from '@/stores/dirtyStore'
 
-/** 아트 원본은 어드민 밖에 있다. 실제 주소가 정해지면 이 상수만 바꾼다 */
-const ART_REPO_URL = 'https://example.com/riruti-art'
-
 /**
  * 슬롯별 비고. 원본이 종마다 같은 문구를 보여 준다.
  *
- * **몸만 「고정」이다** — 모든 종이 같은 몸을 쓰기 때문이다. ⚠️ 리그 화면(`RigPage`)의
- * 표는 여섯 슬롯이 전부 「가능」인데, 그쪽은 *리그가 무엇을 허용하는가*이고 여기는
- * *종이 무엇을 바꿀 수 있는가*라 기준이 다르다. 원본에 표가 둘인 이유다.
+ * ⚠️ **「덮어쓰기」 는 아이템 얘기지 운영자 얘기가 아니다.** 몸은 의상이 붙는 바탕이라
+ *    의상이 그 위에 얹힐 뿐 몸 자체를 갈아끼우지 않는다 — 그래서 「불가」다. 하지만
+ *    **종의 기본 몸은 종마다 다르다**(모루가 「통통한 몸」을 쓴다). 그래서 여섯 슬롯
+ *    모두 편집할 수 있다. 이 둘을 헷갈려 몸을 읽기 전용으로 만들면 모루의 값을
+ *    고칠 수 없게 된다.
  */
 const SLOT_NOTE: Record<RigSlot, string> = {
   정수리: '아이템으로 덮어쓸 수 있습니다',
   눈: '아이템으로 덮어쓸 수 있습니다',
   부리: '아이템으로 덮어쓸 수 있습니다',
   꼬리: '아이템으로 덮어쓸 수 있습니다',
-  몸: '모든 종이 같은 몸을 씁니다',
+  몸: '의상이 붙는 바탕이라 덮어쓰지 않습니다',
   손: '의상 소매가 이 위에 얹힙니다',
 }
 
-const FIXED_SLOT: RigSlot = '몸'
+/** 아이템이 덮어쓸 수 **없는** 슬롯 */
+const NO_OVERWRITE: RigSlot = '몸'
 
 /**
  * 종 상세.
@@ -128,30 +128,14 @@ function Detail({ detail, speciesId }: { detail: SpeciesDetail; speciesId: strin
               {species.hidden ? '출현 재개' : '출현 중단'}
             </Button>
             {/*
-              아트는 어드민 밖이다. `rel` 없이 `target="_blank"` 를 쓰면 열린 창이
-              `window.opener` 로 이 페이지를 조작할 수 있다.
+              ⚠️ **주소를 아직 모른다.** 예시 도메인을 넣어 두면 눌렀을 때 엉뚱한 데로 가고,
+              그건 "이 도구는 고장났다" 를 학습시킨다 — 헤더의 가짜 검색창을 지운 것과 같은
+              이유다 (docs/ARCHITECTURE.md §18.8). 자리는 두되 잠근다.
+              TODO(아트 저장소 주소가 정해지면): `<a href target="_blank" rel="noreferrer noopener">` 로 바꾼다
             */}
-            <a
-              href={ART_REPO_URL}
-              target="_blank"
-              rel="noreferrer noopener"
-              className={css({
-                display: 'inline-flex',
-                alignItems: 'center',
-                border: '1px solid token(colors.bd)',
-                borderRadius: 'md',
-                bg: 'surf',
-                color: 'ink',
-                textStyle: 'label',
-                fontWeight: '600',
-                p: '8px 14px',
-                textDecoration: 'none',
-                _hover: { bg: 'hov', borderColor: 'faint2' },
-                _focusVisible: { outline: 'none', boxShadow: '0 0 0 3px token(colors.ring)' },
-              })}
-            >
+            <Button disabled title="준비 중">
               아트 저장소 열기
-            </a>
+            </Button>
           </>
         }
       />
@@ -260,8 +244,8 @@ function Detail({ detail, speciesId }: { detail: SpeciesDetail; speciesId: strin
                       {species.slots[slot]}
                     </span>
                   )}
-                  <Badge tone={slot === FIXED_SLOT ? 'neutral' : 'success'}>
-                    {slot === FIXED_SLOT ? '고정' : '교체 가능'}
+                  <Badge tone={slot === NO_OVERWRITE ? 'neutral' : 'success'}>
+                    {slot === NO_OVERWRITE ? '덮어쓰기 불가' : '덮어쓰기 가능'}
                   </Badge>
                   <span className={css({ flex: '2 1 200px', textStyle: 'caption', color: 'faint' })}>
                     {SLOT_NOTE[slot]}

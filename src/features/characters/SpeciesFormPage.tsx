@@ -56,9 +56,13 @@ export default function SpeciesFormPage() {
 
   const markSaved = useUnsavedGuard(touched)
 
+  // ⚠️ **목록이 없으면 중복 검사가 조용히 꺼진다.** `taken` 이 빈 배열이라 이미 쓰는
+  //    코드도 통과하고, 파사드는 중복을 보지 않으므로 그대로 저장된다. 아직 오는 중이거나
+  //    실패했으면 등록 자체를 막는다 — 검사를 못 하는 상태와 통과한 상태는 다르다.
+  const codesUnknown = list.isPending || list.isError
   const taken = (list.data ?? []).map((s) => s.code)
   const errors = validateSpecies(input, taken)
-  const blocked = Object.keys(errors).length > 0
+  const blocked = Object.keys(errors).length > 0 || codesUnknown
   // 손대기 전에는 빨갛게 하지 않는다 — 빈 폼을 열자마자 혼나는 기분이 든다.
   // 무엇이 남았는지는 오른쪽 체크리스트가 말한다 (`ItemFormPage` 와 같은 규칙).
   const shown = touched ? errors : {}
@@ -91,6 +95,9 @@ export default function SpeciesFormPage() {
       />
 
       {save.error && <ErrorBanner message={save.error.message} />}
+      {list.isError && (
+        <ErrorBanner message={`종 목록을 불러오지 못해 코드 중복을 확인할 수 없습니다. ${list.error.message}`} />
+      )}
 
       <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '18px', alignItems: 'flex-start' })}>
         <div className={css({ flex: '3 1 520px', minWidth: '0', display: 'flex', flexDirection: 'column', gap: '14px' })}>
@@ -201,7 +208,12 @@ export default function SpeciesFormPage() {
         <Button type="button" onClick={() => navigate(SCREENS.species.path)}>
           취소
         </Button>
-        <Button type="submit" variant="primary" disabled={blocked || save.isPending}>
+        <Button
+          type="submit"
+          variant="primary"
+          disabled={blocked || save.isPending}
+          title={codesUnknown ? '종 목록을 확인하는 중입니다' : undefined}
+        >
           {save.isPending ? '등록 중…' : '등록'}
         </Button>
       </div>
