@@ -81,6 +81,12 @@ export const SCREENS = {
 
   chal: { path: '/challenges', label: '챌린지 목록', scope: 'chal' },
   chalnew: { path: '/challenges/new', label: '챌린지 등록', scope: 'chal', section: 'chal' },
+  chaledit: {
+    path: '/challenges/:chalId/edit',
+    label: '챌린지 수정',
+    scope: 'chal',
+    section: 'chal',
+  },
   chaldet: {
     path: '/challenges/:chalId',
     label: '챌린지 상세',

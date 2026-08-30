@@ -23,6 +23,10 @@ import { RequireAuth } from './RequireAuth'
  * 대시보드만 해도 recharts 를 안고 gzip 117KB 다 (첫 로드 252KB → 138KB).
  */
 const IMPLEMENTED: Partial<Record<ScreenId, React.LazyExoticComponent<React.ComponentType>>> = {
+  chal: lazy(() => import('@/features/challenges/ChallengesPage')),
+  chaldet: lazy(() => import('@/features/challenges/ChallengeDetailPage')),
+  chaledit: lazy(() => import('@/features/challenges/ChallengeFormPage')),
+  chalnew: lazy(() => import('@/features/challenges/ChallengeFormPage')),
   dash: lazy(() => import('@/features/dashboard/DashboardPage')),
   item: lazy(() => import('@/features/items/ItemDetailPage')),
   // 등록·수정은 같은 화면이다 — `itemId` 유무로 갈린다.

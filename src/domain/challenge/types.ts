@@ -20,11 +20,52 @@ export type Challenge = {
   /** 달성률 (%) */
   rate: number
   status: ChallengeStatus
-  period: string
-  repeat: string
+  /**
+   * **사람이 「중단」 을 눌렀는가.**
+   *
+   * ⚠️ 종료일이 지나 자동으로 끝난 것과 구분해야 한다. 둘을 `status: 'ENDED'` 하나로
+   *    묶으면, 만료된 챌린지의 종료일을 미래로 고쳐도 되살아나지 않는다 — 운영자가
+   *    분명히 고쳤는데 화면이 아무 반응을 안 한다.
+   */
+  stopped: boolean
+  /**
+   * 운영 기간. `YYYY-MM-DD`, 빈 문자열이면 「제한 없음」.
+   *
+   * ⚠️ **반복 주기와 다르다.** 「매일 05:00 초기화」 같은 건 `kind` 가 정하는 규칙이고
+   *    (`REPEAT_LABEL`), 이건 그 챌린지가 언제부터 언제까지 살아 있는가다.
+   */
+  startAt: string
+  endAt: string
+  /** 누구에게 열려 있는가 */
   target: string
   desc: string
-  rewardItem: { assetId: string; name: string; slot: Slot } | null
+  rewardItem: ChallengeReward | null
+}
+
+/**
+ * 챌린지 보상으로 실리는 아이템. **아이템 전체를 들고 다니지 않는다.**
+ *
+ * ⚠️ **`assetSrc` 를 함께 실어야 한다.** 올린 에셋은 빌드에 없어서 `assetId` 로는 찾을 수
+ *    없다(docs/ARCHITECTURE.md §8.5). 고를 때 버리면 목록·상세에서 `?` 로 뜬다 —
+ *    고르기 창 안에서는 잘 보이다가 고른 뒤에 사라지는, 눈치채기 어려운 종류다.
+ */
+export type ChallengeReward = {
+  assetId: string
+  /** 올린 그림의 URL. 없으면 빌드 에셋이다 */
+  assetSrc?: string
+  name: string
+  slot: Slot
 }
 
 export const CHALLENGE_KINDS: ChallengeKind[] = ['DAILY', 'WEEKLY', 'SEASON']
+
+/**
+ * 폼이 편집하는 부분만.
+ *
+ * `key`·`code`·`rate`·`status` 는 **서버가 소유한다** — 달성률은 집계 결과이고
+ * 상태는 기간에서 나온다(`challengeStatusOf`).
+ */
+export type ChallengeInput = Pick<
+  Challenge,
+  'title' | 'kind' | 'cond' | 'goal' | 'gem' | 'startAt' | 'endAt' | 'target' | 'desc' | 'rewardItem'
+>
