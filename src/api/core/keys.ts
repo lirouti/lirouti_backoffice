@@ -50,6 +50,13 @@ export const qk = {
     /** 상점 첫 화면 진열 + 그 자리에 놓인 아이템 */
     slots: () => ['shop', 'slots'] as const,
   },
+  ops: {
+    all: ['ops'] as const,
+    notices: () => ['ops', 'notices'] as const,
+    events: () => ['ops', 'events'] as const,
+    /** 지급·회수 이력 */
+    grants: () => ['ops', 'grants'] as const,
+  },
   moderation: {
     all: ['moderation'] as const,
     /** 신고 목록. 탭은 서버가 아니라 화면이 거르므로 키에 넣지 않는다 */
