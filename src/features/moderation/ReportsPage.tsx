@@ -36,6 +36,33 @@ import { useDecide, useReports } from '@/api/moderation'
 
 const isTab = (v: string | null): v is ReportTab => REPORT_TABS.some((t) => t === v)
 
+/** 주소가 가리키는 탭. **기본은 「대기」** — 이 화면에 오는 이유가 그것이다 */
+const tabOf = (p: URLSearchParams): ReportTab => {
+  const v = p.get('tab')
+  return isTab(v) ? v : '대기'
+}
+
+/**
+ * 지금 주소의 쿼리. **렌더 시점 값이 아니라 브라우저가 들고 있는 것.**
+ *
+ * ⚠️ **`setSearchParams` 의 갱신 함수로는 최신 값을 못 받는다.** react-router 8 은
+ *    `nextInit(new URLSearchParams(searchParams))` 로 부르는데, 그 `searchParams` 는
+ *    **그 `setSearchParams` 를 만든 렌더의 값**이다(`useCallback([navigate, searchParams])`).
+ *    비동기 콜백은 옛 setter 를 쥐고 있으므로 `prev` 도 똑같이 낡았다
+ *    (docs/ARCHITECTURE.md §23.2.1).
+ */
+const liveParams = (): URLSearchParams => new URLSearchParams(window.location.search)
+
+/** `base` 에 값을 얹은 새 쿼리. **빈 값은 지운다** — `?id=` 는 아무것도 안 가리킨다 */
+function withParams(base: URLSearchParams, next: Partial<Record<'tab' | 'id', string>>): URLSearchParams {
+  const p = new URLSearchParams(base)
+  for (const [k, v] of Object.entries(next)) {
+    if (v === '') p.delete(k)
+    else p.set(k, v)
+  }
+  return p
+}
+
 /** `2026-08-14 06:58` → `08-14 06:58`. 연도는 큐에서 자리만 먹는다 */
 const short = (at: string): string => at.slice(5)
 
@@ -44,8 +71,7 @@ export default function ReportsPage() {
   const { data, isPending, error } = useReports()
   const decide = useDecide()
 
-  const tabParam = params.get('tab')
-  const tab: ReportTab = isTab(tabParam) ? tabParam : '대기'
+  const tab = tabOf(params)
   const rows = filterReports(data?.reports ?? [], tab)
   // URL 의 id 가 이 탭에 없을 수 있다 — 처리해서 빠졌거나 남이 보낸 링크다. 첫 행으로 떨어진다.
   const selected = rows.find((r) => String(r.key) === params.get('id')) ?? rows[0]
@@ -53,15 +79,8 @@ export default function ReportsPage() {
   if (isPending) return <Skeleton rows={8} />
   if (error || !data) return <ErrorBanner message={error?.message ?? '신고를 불러오지 못했습니다.'} />
 
-  const patch = (next: Partial<{ tab: string; id: string }>) => {
-    const p = new URLSearchParams(params)
-    // 빈 값은 지운다 — `?id=` 를 남기면 주소를 공유했을 때 무엇을 가리키는지 알 수 없다.
-    for (const [k, v] of Object.entries(next)) {
-      if (v === '') p.delete(k)
-      else p.set(k, v)
-    }
-    setParams(p, { replace: true })
-  }
+  const patch = (next: Partial<Record<'tab' | 'id', string>>) =>
+    setParams(withParams(liveParams(), next), { replace: true })
 
   const run = (next: ReportState) => {
     if (!selected) return
@@ -69,7 +88,13 @@ export default function ReportsPage() {
     const after = nextAfterRemoved(rows, selected.key)
     decide.mutate(
       { key: selected.key, next },
-      { onSuccess: () => tab === '대기' && patch({ id: after === null ? '' : String(after) }) },
+      {
+        onSuccess: () => {
+          // 변이가 도는 사이에 탭을 옮겼을 수 있다. 거기서는 행이 그대로 남으므로 건드리지 않는다.
+          if (tabOf(liveParams()) !== '대기') return
+          patch({ id: after === null ? '' : String(after) })
+        },
+      },
     )
   }
 
@@ -266,8 +291,14 @@ function Detail({
             color: 'warnFg',
           })}
         >
-          <strong>개인 콘텐츠입니다.</strong> 이 화면에서만 열람하고 내려받지 마세요. 열람 기록은 감사
-          로그에 남습니다.
+          <strong>개인 콘텐츠입니다.</strong> 이 화면에서만 열람하고 내려받지 마세요.{' '}
+          {/*
+            ⚠️ **「열람 기록은 감사 로그에 남습니다」 라고 쓰지 말 것.** 감사 로그가 없는데
+               남는다고 하면 운영자는 추적되고 있다고 믿는다 — 헤더의 정적 「● 라이브」
+               배지를 지운 것과 같은 이유다(§23.5). 규칙은 남기되 상태는 사실대로 적는다.
+          */}
+          <strong>열람 기록은 아직 남지 않습니다</strong> — 감사 로그 연동 전이라 지금은 규칙으로만
+          지켜집니다.
         </p>
       </Card>
 
