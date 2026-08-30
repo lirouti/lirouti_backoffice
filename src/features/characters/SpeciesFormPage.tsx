@@ -1,0 +1,302 @@
+/**
+ * 종 등록 — **원본에 없는 화면이다.**
+ *
+ * 종에는 올릴 이미지가 없어서(docs/ARCHITECTURE.md §19.1) 색 고르기 + 설정으로 끝난다.
+ */
+import { useState } from 'react'
+
+import { useNavigate } from 'react-router'
+
+import { css } from 'styled-system/css'
+
+import { AssetThumb } from '@/shared/ui/AssetThumb'
+import { Button } from '@/shared/ui/Button'
+import { Card, CardTitle } from '@/shared/ui/Card'
+import { ErrorBanner } from '@/shared/ui/ErrorBanner'
+import { Input } from '@/shared/ui/Input'
+import { PageHeader } from '@/shared/ui/PageHeader'
+import { Segmented } from '@/shared/ui/Segmented'
+import { Select } from '@/shared/ui/Select'
+import { Textarea } from '@/shared/ui/Textarea'
+
+import { SCREENS } from '@/domain/screens'
+import {
+  emptySpeciesInput,
+  RARITIES,
+  RIG_SLOTS,
+  SEASONS,
+  SLOT_PARTS,
+  speciesTint,
+  UNLOCKS,
+  validateSpecies,
+  type Rarity,
+  type SpeciesInput,
+} from '@/domain/species'
+
+import { useSaveSpecies, useSpeciesList } from '@/api/species'
+
+import { useUnsavedGuard } from '@/stores/dirtyStore'
+
+/**
+ * 종 등록 — **원본에 없는 화면이다.**
+ *
+ * 원본은 종을 읽기 전용으로 뒀지만(docs/ARCHITECTURE.md §19.2) 운영에서 필요해 새로 그렸다.
+ * 부담이 작은 이유는 **종에 올릴 이미지가 없기 때문**이다 — 13종이 같은 그림을 쓰고
+ * 대표 색 하나로 갈린다(§19.1). 그래서 이 폼은 색 고르기 + 설정이지 업로드가 아니다.
+ *
+ * ⚠️ **새 종은 「미출현」 으로 만들어진다.** 클라이언트에 그 종의 아트가 아직 없으므로
+ *    등록하자마자 뽑기에 나오면 안 된다. 그 사실을 화면에서도 말한다.
+ */
+export default function SpeciesFormPage() {
+  const navigate = useNavigate()
+  const save = useSaveSpecies()
+  const list = useSpeciesList()
+  const [input, setInput] = useState<SpeciesInput>(emptySpeciesInput)
+  const [touched, setTouched] = useState(false)
+
+  const markSaved = useUnsavedGuard(touched)
+
+  const taken = (list.data ?? []).map((s) => s.code)
+  const errors = validateSpecies(input, taken)
+  const blocked = Object.keys(errors).length > 0
+  // 손대기 전에는 빨갛게 하지 않는다 — 빈 폼을 열자마자 혼나는 기분이 든다.
+  // 무엇이 남았는지는 오른쪽 체크리스트가 말한다 (`ItemFormPage` 와 같은 규칙).
+  const shown = touched ? errors : {}
+
+  const set = <K extends keyof SpeciesInput>(k: K, v: SpeciesInput[K]) => {
+    setTouched(true)
+    setInput((prev) => ({ ...prev, [k]: v }))
+  }
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (blocked) return
+    save.mutate(
+      { input },
+      {
+        onSuccess: (sp) => {
+          // ⚠️ 표시를 지금 지운다 — 아래 `navigate` 를 이동 가드가 막지 않게.
+          markSaved()
+          navigate(SCREENS.speciesdet.path.replace(':speciesId', String(sp.key)))
+        },
+      },
+    )
+  }
+
+  return (
+    <form onSubmit={submit}>
+      <PageHeader
+        title="종 등록"
+        sub="종은 대표 색으로 구분됩니다. 아트는 캐릭터팀이 따로 올립니다."
+      />
+
+      {save.error && <ErrorBanner message={save.error.message} />}
+
+      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '18px', alignItems: 'flex-start' })}>
+        <div className={css({ flex: '3 1 520px', minWidth: '0', display: 'flex', flexDirection: 'column', gap: '14px' })}>
+          <Card className={css({ p: '17px 20px' })}>
+            <CardTitle title="기본 정보" />
+            <div className={css({ display: 'flex', flexDirection: 'column', gap: '14px', mt: '14px' })}>
+              <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '14px' })}>
+                <Input
+                  value={input.name}
+                  onChange={(v) => set('name', v)}
+                  label="종 이름"
+                  placeholder="예: 노을"
+                  error={shown.name}
+                  required
+                  className={css({ flex: '1 1 200px' })}
+                />
+                <Input
+                  value={input.code}
+                  onChange={(v) => set('code', v)}
+                  label="코드"
+                  placeholder="예: SP-CORAL"
+                  hint="`SP-` + 대문자. 종끼리 겹칠 수 없습니다"
+                  error={shown.code}
+                  required
+                  className={css({ flex: '1 1 200px' })}
+                />
+              </div>
+
+              <Segmented
+                value={input.rarity}
+                onChange={(v) => set('rarity', v as Rarity)}
+                options={[...RARITIES]}
+                aria-label="희귀도"
+              />
+
+              <ToneField value={input.tone} onChange={(v) => set('tone', v)} error={shown.tone} />
+
+              <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '14px' })}>
+                <Input
+                  value={input.by}
+                  onChange={(v) => set('by', v)}
+                  label="아트 담당"
+                  placeholder="예: 최지우"
+                  className={css({ flex: '1 1 200px' })}
+                />
+              </div>
+
+              <Textarea
+                value={input.note}
+                onChange={(v) => set('note', v)}
+                label="설명"
+                placeholder="예: 산호색. 꼬리깃이 세 갈래"
+                rows={2}
+              />
+            </div>
+          </Card>
+
+          <Card className={css({ p: '17px 20px' })}>
+            <CardTitle title="출현 설정" sub="가중치는 같은 희귀도끼리 견준 비율이 확률이 됩니다." />
+            <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '14px', mt: '14px' })}>
+              <Input
+                value={String(input.weight)}
+                onChange={(v) => set('weight', Number(v.replace(/\D/g, '')) || 0)}
+                label="출현 가중치"
+                error={shown.weight}
+                required
+                className={css({ flex: '1 1 160px' })}
+              />
+              <Select
+                value={input.unlock}
+                onChange={(v) => set('unlock', v as SpeciesInput['unlock'])}
+                options={UNLOCKS}
+                label="해금 조건"
+                className={css({ flex: '1 1 180px' })}
+              />
+              <Select
+                value={input.season}
+                onChange={(v) => set('season', v as SpeciesInput['season'])}
+                options={SEASONS}
+                label="시즌 한정"
+                className={css({ flex: '1 1 160px' })}
+              />
+            </div>
+          </Card>
+
+          <Card className={css({ p: '17px 20px' })}>
+            <CardTitle title="슬롯 기본값" sub="아이템으로 덮어쓰면 그대로 교체됩니다." />
+            <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '14px', mt: '14px' })}>
+              {RIG_SLOTS.map((slot) => (
+                <Select
+                  key={slot}
+                  value={input.slots[slot]}
+                  onChange={(v) => set('slots', { ...input.slots, [slot]: v })}
+                  options={SLOT_PARTS[slot]}
+                  label={slot}
+                  className={css({ flex: '1 1 180px' })}
+                />
+              ))}
+            </div>
+            {shown.slots && <p className={css({ m: '10px 0 0', textStyle: 'micro', color: 'rFg' })}>{shown.slots}</p>}
+          </Card>
+        </div>
+
+        <SideCard input={input} errors={errors} />
+      </div>
+
+      <div className={css({ display: 'flex', justifyContent: 'flex-end', gap: '8px', mt: '18px' })}>
+        <Button type="button" onClick={() => navigate(SCREENS.species.path)}>
+          취소
+        </Button>
+        <Button type="submit" variant="primary" disabled={blocked || save.isPending}>
+          {save.isPending ? '등록 중…' : '등록'}
+        </Button>
+      </div>
+    </form>
+  )
+}
+
+/**
+ * 대표 색 입력.
+ *
+ * ⚠️ **`<input type="color">` 을 쓰지 않는다.** 그 선택기는 OS 창이라 다크 테마도
+ *    키보드 흐름도 우리가 못 잡고, **고른 값이 정확히 무엇인지 운영자가 못 본다.**
+ *    hex 를 직접 받고 옆에 스와치를 둔다 — 값이 곧 화면이다.
+ */
+function ToneField({
+  value,
+  onChange,
+  error,
+}: {
+  value: string
+  onChange: (v: string) => void
+  error?: string
+}) {
+  return (
+    <div className={css({ display: 'flex', alignItems: 'flex-end', gap: '11px' })}>
+      <Input
+        value={value}
+        onChange={onChange}
+        label="대표 색"
+        placeholder="#7DBAFF"
+        hint="이 색을 옅게 깔아 종을 구분합니다"
+        error={error}
+        required
+        className={css({ flex: '1 1 200px', maxWidth: '260px' })}
+      />
+      <span
+        aria-hidden="true"
+        className={css({
+          flex: 'none',
+          width: '38px',
+          height: '38px',
+          borderRadius: 'md',
+          border: '1px solid token(colors.bd)',
+          mb: error ? '24px' : '2px',
+        })}
+        style={{ background: value }}
+      />
+    </div>
+  )
+}
+
+/** 미리보기 + 체크리스트. 체크는 `validateSpecies` 의 결과로 그린다 */
+function SideCard({ input, errors }: { input: SpeciesInput; errors: ReturnType<typeof validateSpecies> }) {
+  const checks = [
+    { ok: !errors.name, label: errors.name ?? '종 이름 입력됨' },
+    { ok: !errors.code, label: errors.code ?? '코드 확인됨' },
+    { ok: !errors.tone, label: errors.tone ?? '대표 색 확인됨' },
+    { ok: !errors.weight, label: errors.weight ?? '출현 가중치 설정됨' },
+  ]
+
+  return (
+    <Card className={css({ flex: '1 1 300px', minWidth: '260px', maxWidth: '380px', p: '15px' })}>
+      <CardTitle title="미리보기" />
+      <div
+        className={css({ mt: '12px', borderRadius: 'lg', overflow: 'hidden', border: '1px solid token(colors.ln)' })}
+        style={{ background: errors.tone ? undefined : speciesTint(input.tone) }}
+      >
+        <AssetThumb assetId="rg" fluid alt="" className={css({ bg: 'transparent!' })} />
+      </div>
+
+      <ul className={css({ listStyle: 'none', m: '14px 0 0', p: '0', display: 'flex', flexDirection: 'column', gap: '7px' })}>
+        {checks.map((c) => (
+          <li key={c.label} className={css({ display: 'flex', alignItems: 'center', gap: '7px' })}>
+            <span aria-hidden="true" className={css({ flex: 'none', color: c.ok ? 'gFg' : 'faint2' })}>
+              {c.ok ? '●' : '○'}
+            </span>
+            <span className={css({ textStyle: 'caption', color: c.ok ? 'sub' : 'faint' })}>{c.label}</span>
+          </li>
+        ))}
+      </ul>
+
+      <p
+        className={css({
+          m: '14px 0 0',
+          p: '10px 12px',
+          borderRadius: 'md',
+          bg: 'aBg',
+          border: '1px solid token(colors.warnBd)',
+          textStyle: 'micro',
+          color: 'warnFg',
+        })}
+      >
+        등록한 종은 <strong>미출현</strong> 상태로 만들어집니다. 아트가 붙은 뒤 상세에서
+        「출현 재개」를 눌러 주세요.
+      </p>
+    </Card>
+  )
+}

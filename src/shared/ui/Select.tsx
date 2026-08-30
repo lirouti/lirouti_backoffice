@@ -50,6 +50,13 @@ type SelectProps = {
   size?: 'md' | 'lg'
   /** 주면 `<form>` 제출에 실릴 숨은 입력을 함께 그린다 */
   name?: string
+  /**
+   * 보이는 `label` 대신 쓰는 이름.
+   *
+   * 옆칸에 이미 이름이 적혀 있어 **위에 또 붙이면 두 번 읽히는** 자리에 쓴다
+   * (종 상세의 슬롯 표처럼). 둘 다 없으면 스크린리더가 "콤보박스" 라고만 읽는다.
+   */
+  'aria-label'?: string
   className?: string
 }
 
@@ -91,6 +98,7 @@ export function Select({
   disabled,
   size = 'md',
   name,
+  'aria-label': ariaLabel,
   className,
 }: SelectProps) {
   const id = useId()
@@ -262,6 +270,7 @@ export function Select({
         aria-controls={listId}
         aria-activedescendant={open && active >= 0 ? optionId(active) : undefined}
         aria-labelledby={label ? `${id}-label` : undefined}
+        aria-label={label ? undefined : ariaLabel}
         aria-required={required || undefined}
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy}
