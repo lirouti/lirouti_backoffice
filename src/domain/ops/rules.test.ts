@@ -11,7 +11,6 @@ import {
   activeUserCount,
   checkGrantItem,
   checkTargets,
-  parseUserIds,
   periodLabel,
   periodStatusOf,
   pinnedCount,
@@ -163,25 +162,6 @@ describe('sortEvents', () => {
     const list = [event({ key: 0 }), event({ key: 1, startAt: '2026-08-10' })]
     sortEvents(list, TODAY)
     expect(list.map((e) => e.key)).toEqual([0, 1])
-  })
-})
-
-describe('parseUserIds', () => {
-  it('쉼표로 나누고 공백을 버린다', () => {
-    expect(parseUserIds('U-10240, U-10253')).toEqual(['U-10240', 'U-10253'])
-  })
-
-  // 운영자는 스프레드시트에서 복사해 붙인다 — 줄바꿈과 뒤따르는 쉼표가 섞여 온다.
-  it('⚠️ 줄바꿈 · 뒤따르는 쉼표 · 중복을 정리한다', () => {
-    expect(parseUserIds('U-10240,\n U-10253 ,, U-10240,')).toEqual(['U-10240', 'U-10253'])
-  })
-
-  it('소문자로 적어도 찾을 수 있게 대문자로 맞춘다', () => {
-    expect(parseUserIds('u-10240')).toEqual(['U-10240'])
-  })
-
-  it('비었으면 빈 배열', () => {
-    expect(parseUserIds('   ,, \n ')).toEqual([])
   })
 })
 

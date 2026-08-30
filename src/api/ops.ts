@@ -11,7 +11,6 @@ import {
   activeUserCount,
   checkGrantItem,
   checkTargets,
-  parseUserIds,
   periodStatusOf,
   sortEvents,
   summarizeGrants,
@@ -25,6 +24,7 @@ import {
   type OpsEvent,
   type PeriodStatus,
 } from '@/domain/ops'
+import { parseUserIds } from '@/domain/user'
 
 import { allItems } from '@/mocks/items'
 import { addGrantLog, allEvents, allGrantLogs, allNotices } from '@/mocks/ops'

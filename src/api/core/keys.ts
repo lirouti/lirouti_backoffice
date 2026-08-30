@@ -50,6 +50,13 @@ export const qk = {
     /** 상점 첫 화면 진열 + 그 자리에 놓인 아이템 */
     slots: () => ['shop', 'slots'] as const,
   },
+  push: {
+    all: ['push'] as const,
+    list: (filter: Record<string, unknown> = {}) => ['push', 'list', filter] as const,
+    detail: (id: number | string) => ['push', 'detail', String(id)] as const,
+    /** 수신 동의 모수 — 작성 화면의 「예상 대상」 이 쓴다 */
+    consent: () => ['push', 'consent'] as const,
+  },
   ops: {
     all: ['ops'] as const,
     notices: () => ['ops', 'notices'] as const,

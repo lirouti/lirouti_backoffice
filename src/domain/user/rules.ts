@@ -80,3 +80,17 @@ export function summarize(list: User[], today: string): UserSummary {
     banned: live.filter((u) => u.status === 'BANNED').length,
   }
 }
+
+/**
+ * 쉼표로 적은 회원 uid 를 목록으로. **공백과 빈 칸을 버리고 중복을 없앤다.**
+ *
+ * ⚠️ 운영자는 스프레드시트에서 복사해 붙인다 — 줄바꿈과 뒤따르는 쉼표가 섞여 온다.
+ */
+export function parseUserIds(raw: string): string[] {
+  const seen = new Set<string>()
+  for (const piece of raw.split(/[,\s]+/)) {
+    const id = piece.trim().toUpperCase()
+    if (id) seen.add(id)
+  }
+  return [...seen]
+}
