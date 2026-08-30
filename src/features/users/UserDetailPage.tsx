@@ -14,6 +14,7 @@ import { Card, CardTitle } from '@/shared/ui/Card'
 import { Skeleton } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { PageHeader } from '@/shared/ui/PageHeader'
+import { StatTile } from '@/shared/ui/StatTile'
 import { Table, type Column } from '@/shared/ui/Table'
 
 import {
@@ -88,10 +89,10 @@ function Detail({ detail, userId }: { detail: UserDetail; userId: string }) {
           mb: '18px',
         })}
       >
-        <Stat k="누적 인증" v={num(user.certs)} />
-        <Stat k="누적 결제" v={`${num(user.paid)}원`} />
-        <Stat k="보유 재화" v={num(walletTotal(user.wallet))} />
-        <Stat k="마지막 접속" v={date(user.lastSeenAt)} />
+        <StatTile label="누적 인증" value={num(user.certs)} />
+        <StatTile label="누적 결제" value={`${num(user.paid)}원`} />
+        <StatTile label="보유 재화" value={num(walletTotal(user.wallet))} />
+        <StatTile label="마지막 접속" value={date(user.lastSeenAt)} />
       </div>
 
       <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '18px', alignItems: 'flex-start' })}>
@@ -238,11 +239,3 @@ function Row({ k, v }: { k: string; v: string }) {
   )
 }
 
-function Stat({ k, v }: { k: string; v: string }) {
-  return (
-    <div className={css({ bg: 'surf', border: '1px solid token(colors.bd)', borderRadius: 'lg', p: '13px 15px' })}>
-      <div className={css({ textStyle: 'caption', color: 'sub' })}>{k}</div>
-      <div className={css({ mt: '4px', textStyle: 'h3', fontWeight: '700', color: 'ink' })}>{v}</div>
-    </div>
-  )
-}

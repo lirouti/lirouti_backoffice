@@ -17,6 +17,7 @@ import { BarChart } from '@/shared/ui/chart/BarChart'
 import { Skeleton } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { PageHeader } from '@/shared/ui/PageHeader'
+import { StatTile } from '@/shared/ui/StatTile'
 
 import {
   CHALLENGE_KIND_LABEL,
@@ -81,7 +82,7 @@ function Detail({ detail, chalId }: { detail: ChallengeDetail; chalId: string })
 
       <div className={css({ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px', mb: '18px' })}>
         {stats.map((s) => (
-          <Stat key={s.k} k={s.k} v={s.v} />
+          <StatTile key={s.k} label={s.k} value={s.v} />
         ))}
       </div>
 
@@ -144,14 +145,6 @@ function Detail({ detail, chalId }: { detail: ChallengeDetail; chalId: string })
  * `StatCard` 를 쓰지 않는다 — 그건 증감(`delta`·`direction`)까지 요구하는 KPI 카드인데,
  * 여기 넷은 견줄 앞 기간이 없다. 없는 증감을 지어내느니 숫자만 보인다.
  */
-function Stat({ k, v }: { k: string; v: string }) {
-  return (
-    <div className={css({ bg: 'surf', border: '1px solid token(colors.bd)', borderRadius: 'lg', p: '13px 15px' })}>
-      <div className={css({ textStyle: 'caption', color: 'sub' })}>{k}</div>
-      <div className={css({ mt: '4px', textStyle: 'h3', fontWeight: '700', color: 'ink' })}>{v}</div>
-    </div>
-  )
-}
 
 function Row({ k, v }: { k: string; v: string }) {
   return (
