@@ -172,7 +172,39 @@ describe('bareFences', () => {
     expect(bareFences('```ts\nfoo\n```\n\n```ts\nbar\n```')).toEqual([])
   })
 
+  // 닫는 펜스는 정보 문자열을 못 갖는다(CommonMark). 그래서 `` ```text `` 은 안 닫는다.
   it('블록 안의 ``` 처럼 보이는 줄에 속지 않는다', () => {
     expect(bareFences('```md\n```text\n```')).toEqual([])
+  })
+
+  it('물결 펜스도 본다', () => {
+    expect(bareFences('~~~\nfoo\n~~~').map((i) => i.line)).toEqual([1])
+    expect(bareFences('~~~text\nfoo\n~~~')).toEqual([])
+  })
+
+  // 4칸부터는 들여쓴 코드 블록이라 펜스가 아니지만, 3칸까지는 펜스다.
+  it('3칸까지 들여쓴 펜스도 본다', () => {
+    expect(bareFences('   ```\n   foo\n   ```').map((i) => i.line)).toEqual([1])
+    expect(bareFences('    ```\n    foo').map((i) => i.line)).toEqual([])
+  })
+
+  // ```` 로 연 블록 안의 ``` 은 더 짧아서 닫지 못한다.
+  // 이걸 틀리면 **펜스를 예시로 보여 주는 문서**에서 여닫이가 통째로 뒤집힌다.
+  it('⚠️ 닫는 펜스는 열 때보다 짧을 수 없다', () => {
+    expect(bareFences('````md\n```\nfoo\n```\n````')).toEqual([])
+  })
+
+  it('⚠️ 더 긴 닫는 펜스는 유효하다', () => {
+    expect(bareFences('```text\nfoo\n`````\n\n```\nbar\n```').map((i) => i.line)).toEqual([5])
+  })
+
+  // 물결로 연 블록은 백틱으로 안 닫힌다 — 같은 문자여야 한다.
+  it('⚠️ 다른 문자로는 닫히지 않는다', () => {
+    expect(bareFences('~~~text\n```\nfoo\n```\n~~~')).toEqual([])
+  })
+
+  // 정보 문자열에 백틱이 있으면 펜스가 아니다.
+  it('⚠️ 백틱이 섞인 줄은 펜스가 아니다', () => {
+    expect(bareFences('```` `a` ````\n\n```\nfoo\n```').map((i) => i.line)).toEqual([3])
   })
 })

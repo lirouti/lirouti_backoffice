@@ -159,6 +159,13 @@ export function badCalls(calls: CallExample[], sigs: Map<string, Arity>): DocIss
 }
 
 /**
+ * 펜스 한 줄. **여는 것인지 닫는 것인지는 앞뒤 맥락이 정한다** — 같은 줄이 둘 다 될 수 있다.
+ *
+ * CommonMark: 최대 3칸 들여쓰기 + 백틱/물결 3개 이상 + 정보 문자열.
+ */
+const FENCE = /^ {0,3}(`{3,}|~{3,})(.*)$/
+
+/**
  * 언어를 안 적은 여는 코드 펜스.
  *
  * 언어가 없으면 강조가 안 되는 것으로 끝나지 않는다 — **여는 펜스인지 닫는 펜스인지가
@@ -166,22 +173,41 @@ export function badCalls(calls: CallExample[], sigs: Map<string, Arity>): DocIss
  * 화면에서는 바로 보이지만 diff 에서는 안 보인다.
  *
  * 코드가 아닌 예시(입출력·표)는 `text` 를 쓴다.
+ *
+ * ⚠️ **펜스 규칙을 대충 보면 검사가 조용히 무의미해진다.** CommonMark 를 따른다.
+ *
+ * | | |
+ * |---|---|
+ * | 닫는 펜스 | **같은 문자 · 열 때보다 짧지 않고 · 뒤에 공백만.** 정보 문자열을 못 갖는다 |
+ * | 백틱 펜스 | 정보 문자열에 백틱이 올 수 없다 — 인라인 코드와 구분되지 않는다 |
+ * | 들여쓰기 | 3칸까지는 펜스다 (4칸부터는 들여쓴 코드 블록) |
+ *
+ * 이걸 안 지키면 **펜스를 예시로 보여 주는 문서**에서 바로 어긋난다 — ```` 로 연
+ * 블록 안의 ``` 을 닫는 것으로 읽어, 그 뒤 블록들의 여닫이가 통째로 뒤집힌다.
  */
 export function bareFences(md: string): DocIssue[] {
   const out: DocIssue[] = []
-  let inside = false
-  md.split('\n').forEach((raw, i) => {
-    if (!raw.startsWith('```')) return
-    // ⚠️ **닫는 펜스는 언어를 가질 수 없다**(CommonMark). 아무 ``` 줄이나 닫는 것으로
-    //    보면, 펜스를 예시로 보여 주는 문서에서 블록 경계가 어긋난다.
-    if (inside) {
-      if (raw.trim() === '```') inside = false
-      return
+  const lines = md.split('\n')
+  let open: { char: string; len: number } | null = null
+
+  for (const [i, raw] of lines.entries()) {
+    const m = FENCE.exec(raw)
+    if (!m) continue
+    const marker = m[1]!
+    const char = marker[0]!
+    const rest = m[2]!
+
+    if (open) {
+      if (char === open.char && marker.length >= open.len && rest.trim() === '') open = null
+      continue
     }
-    inside = true
-    if (raw.trim() === '```') {
+    // 백틱 펜스의 정보 문자열에는 백틱이 올 수 없다.
+    if (char === '`' && rest.includes('`')) continue
+
+    open = { char, len: marker.length }
+    if (rest.trim() === '') {
       out.push({ line: i + 1, why: '코드 펜스에 언어를 적으세요 — 코드가 아니면 `text`', code: raw })
     }
-  })
+  }
   return out
 }
