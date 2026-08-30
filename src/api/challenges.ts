@@ -16,23 +16,8 @@ import {
 
 import { allChallenges, endChallenge, trendOfChallenge, upsertChallenge } from '@/mocks/challenges'
 
-import { mockDelay, qk, queryClient, USE_MOCK } from './core'
+import { mockDelay, qk, queryClient, today, USE_MOCK } from './core'
 import { apiError } from './error'
-
-/**
- * 서비스 운영 기준 시간대.
- *
- * ⚠️ **`toISOString()` 을 쓰면 안 된다.** 그건 UTC 날짜라 한국 자정~오전 9시 사이에는
- *    **전날**로 찍힌다 — 오늘 시작하는 챌린지가 「예약」 으로 잡힌다. 시간대를 명시해야
- *    서버의 상태 계산과 어긋나지 않는다. (`shared/lib/format.ts` 의 `date()` 도 같은
- *    이유로 한 번 깨진 적이 있다.)
- * TODO(백엔드 스펙 확정 후): 서버가 쓰는 기준 시간대와 같은지 확인한다
- */
-const OPERATING_TZ = 'Asia/Seoul'
-
-/** 운영 기준일 `YYYY-MM-DD`. `sv-SE` 로케일이 그 형식을 그대로 준다 */
-const today = (): string =>
-  new Intl.DateTimeFormat('sv-SE', { timeZone: OPERATING_TZ }).format(new Date())
 
 export async function getChallenges(kind?: ChallengeKind): Promise<Challenge[]> {
   if (USE_MOCK) {

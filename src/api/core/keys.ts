@@ -19,6 +19,11 @@ export const qk = {
     /** 종류별 카탈로그 (`AssetKind`) */
     list: (kind: string) => ['assets', 'list', kind] as const,
   },
+  users: {
+    all: ['users'] as const,
+    list: (filter: Record<string, unknown> = {}) => ['users', 'list', filter] as const,
+    detail: (id: number | string) => ['users', 'detail', String(id)] as const,
+  },
   species: {
     all: ['species'] as const,
     list: () => ['species', 'list'] as const,
