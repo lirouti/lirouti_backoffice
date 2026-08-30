@@ -28,7 +28,6 @@ const pay = (over: Partial<Payment> = {}): Payment => ({
   status: 'DONE',
   give: 1000,
   bonus: 100,
-  walletGem: 1840,
   unusedGem: 1200,
   ...over,
 })
