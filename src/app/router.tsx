@@ -33,7 +33,9 @@ const IMPLEMENTED: Partial<Record<ScreenId, React.LazyExoticComponent<React.Comp
   // 등록·수정은 같은 화면이다 — `itemId` 유무로 갈린다.
   itemedit: lazy(() => import('@/features/items/ItemFormPage')),
   itemnew: lazy(() => import('@/features/items/ItemFormPage')),
+  gems: lazy(() => import('@/features/shop/GemsPage')),
   items: lazy(() => import('@/features/items/ItemsPage')),
+  levels: lazy(() => import('@/features/levels/LevelsPage')),
   mod: lazy(() => import('@/features/moderation/ReportsPage')),
   pay: lazy(() => import('@/features/payments/PaymentsPage')),
   paydet: lazy(() => import('@/features/payments/PaymentDetailPage')),
@@ -42,6 +44,7 @@ const IMPLEMENTED: Partial<Record<ScreenId, React.LazyExoticComponent<React.Comp
   speciesdet: lazy(() => import('@/features/characters/SpeciesDetailPage')),
   speciesnew: lazy(() => import('@/features/characters/SpeciesFormPage')),
   security: lazy(() => import('@/features/security/SecurityPage')),
+  shop: lazy(() => import('@/features/shop/ShopDisplayPage')),
   user: lazy(() => import('@/features/users/UserDetailPage')),
   users: lazy(() => import('@/features/users/UsersPage')),
   ui: lazy(() => import('@/features/uikit/UiKitPage')),
