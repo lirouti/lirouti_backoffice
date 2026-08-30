@@ -157,3 +157,69 @@ export function badCalls(calls: CallExample[], sigs: Map<string, Arity>): DocIss
   }
   return out
 }
+
+/**
+ * 펜스 한 줄. **여는 것인지 닫는 것인지는 앞뒤 맥락이 정한다** — 같은 줄이 둘 다 될 수 있다.
+ *
+ * CommonMark: 최대 3칸 들여쓰기 + 백틱/물결 3개 이상 + 정보 문자열.
+ */
+const FENCE = /^ {0,3}(`{3,}|~{3,})(.*)$/
+
+/**
+ * 펜스 뒤가 비었는가.
+ *
+ * ⚠️ **`trim()` 을 쓰면 안 된다.** 그건 `U+00A0`(줄바꿈 없는 공백)·`U+FEFF` 같은
+ *    유니코드 공백까지 지우는데, CommonMark 가 공백으로 보는 것은 **스페이스와 탭뿐**이다.
+ *    `U+00A0` 는 **눈에 보이지 않으면서** 정보 문자열이 되므로, 느슨하게 보면
+ *    닫히지 않을 펜스를 닫는 것으로 읽어 그 뒤 블록 경계가 통째로 밀린다.
+ */
+const blank = (s: string): boolean => /^[\t ]*$/.test(s)
+
+/**
+ * 언어를 안 적은 여는 코드 펜스.
+ *
+ * 언어가 없으면 강조가 안 되는 것으로 끝나지 않는다 — **여는 펜스인지 닫는 펜스인지가
+ * 눈으로 구분되지 않아**, 하나를 빠뜨리면 그 뒤 문서 절반이 통째로 코드 블록이 된다.
+ * 화면에서는 바로 보이지만 diff 에서는 안 보인다.
+ *
+ * 코드가 아닌 예시(입출력·표)는 `text` 를 쓴다.
+ *
+ * ⚠️ **펜스 규칙을 대충 보면 검사가 조용히 무의미해진다.** CommonMark 를 따른다.
+ *
+ * | | |
+ * |---|---|
+ * | 닫는 펜스 | **같은 문자 · 열 때보다 짧지 않고 · 뒤에 공백만.** 정보 문자열을 못 갖는다 |
+ * | 백틱 펜스 | 정보 문자열에 백틱이 올 수 없다 — 인라인 코드와 구분되지 않는다 |
+ * | 들여쓰기 | 3칸까지는 펜스다 (4칸부터는 들여쓴 코드 블록) |
+ *
+ * 이걸 안 지키면 **펜스를 예시로 보여 주는 문서**에서 바로 어긋난다 — ```` 로 연
+ * 블록 안의 ``` 을 닫는 것으로 읽어, 그 뒤 블록들의 여닫이가 통째로 뒤집힌다.
+ */
+export function bareFences(md: string): DocIssue[] {
+  const out: DocIssue[] = []
+  const lines = md.split('\n')
+  let open: { char: string; len: number } | null = null
+
+  for (const [i, line] of lines.entries()) {
+    // CRLF 문서에서는 줄 끝에 `\r` 이 남는다. 정보 문자열로 새면 모든 판정이 어긋난다.
+    const raw = line.replace(/\r$/, '')
+    const m = FENCE.exec(raw)
+    if (!m) continue
+    const marker = m[1]!
+    const char = marker[0]!
+    const rest = m[2]!
+
+    if (open) {
+      if (char === open.char && marker.length >= open.len && blank(rest)) open = null
+      continue
+    }
+    // 백틱 펜스의 정보 문자열에는 백틱이 올 수 없다.
+    if (char === '`' && rest.includes('`')) continue
+
+    open = { char, len: marker.length }
+    if (blank(rest)) {
+      out.push({ line: i + 1, why: '코드 펜스에 언어를 적으세요 — 코드가 아니면 `text`', code: raw })
+    }
+  }
+  return out
+}

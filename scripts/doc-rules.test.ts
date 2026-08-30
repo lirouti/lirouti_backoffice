@@ -8,6 +8,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   badCalls,
+  bareFences,
   callExamples,
   countArgs,
   danglingSections,
@@ -153,5 +154,77 @@ describe('duplicateSections', () => {
 
   it('번호가 다르면 조용하다', () => {
     expect(duplicateSections('### 9.4 가\n### 9.5 나')).toEqual([])
+  })
+})
+
+describe('bareFences', () => {
+  it('언어를 안 적은 여는 펜스를 잡는다', () => {
+    expect(bareFences('```\nfoo\n```').map((i) => i.line)).toEqual([1])
+  })
+
+  it('언어가 있으면 조용하다', () => {
+    expect(bareFences('```ts\nfoo\n```')).toEqual([])
+    expect(bareFences('```text\nfoo\n```')).toEqual([])
+  })
+
+  // 닫는 펜스에는 언어가 없는 게 정상이다. 이걸 잡으면 모든 블록이 걸린다.
+  it('⚠️ 닫는 펜스는 대상이 아니다', () => {
+    expect(bareFences('```ts\nfoo\n```\n\n```ts\nbar\n```')).toEqual([])
+  })
+
+  // 닫는 펜스는 정보 문자열을 못 갖는다(CommonMark). 그래서 `` ```text `` 은 안 닫는다.
+  it('블록 안의 ``` 처럼 보이는 줄에 속지 않는다', () => {
+    expect(bareFences('```md\n```text\n```')).toEqual([])
+  })
+
+  it('물결 펜스도 본다', () => {
+    expect(bareFences('~~~\nfoo\n~~~').map((i) => i.line)).toEqual([1])
+    expect(bareFences('~~~text\nfoo\n~~~')).toEqual([])
+  })
+
+  // 4칸부터는 들여쓴 코드 블록이라 펜스가 아니지만, 3칸까지는 펜스다.
+  it('3칸까지 들여쓴 펜스도 본다', () => {
+    expect(bareFences('   ```\n   foo\n   ```').map((i) => i.line)).toEqual([1])
+    expect(bareFences('    ```\n    foo').map((i) => i.line)).toEqual([])
+  })
+
+  // ```` 로 연 블록 안의 ``` 은 더 짧아서 닫지 못한다.
+  // 이걸 틀리면 **펜스를 예시로 보여 주는 문서**에서 여닫이가 통째로 뒤집힌다.
+  it('⚠️ 닫는 펜스는 열 때보다 짧을 수 없다', () => {
+    expect(bareFences('````md\n```\nfoo\n```\n````')).toEqual([])
+  })
+
+  it('⚠️ 더 긴 닫는 펜스는 유효하다', () => {
+    expect(bareFences('```text\nfoo\n`````\n\n```\nbar\n```').map((i) => i.line)).toEqual([5])
+  })
+
+  // 물결로 연 블록은 백틱으로 안 닫힌다 — 같은 문자여야 한다.
+  it('⚠️ 다른 문자로는 닫히지 않는다', () => {
+    expect(bareFences('~~~text\n```\nfoo\n```\n~~~')).toEqual([])
+  })
+
+  // 정보 문자열에 백틱이 있으면 펜스가 아니다.
+  it('⚠️ 백틱이 섞인 줄은 펜스가 아니다', () => {
+    expect(bareFences('```` `a` ````\n\n```\nfoo\n```').map((i) => i.line)).toEqual([3])
+  })
+
+  it('뒤에 스페이스·탭만 있으면 언어가 없는 것이다', () => {
+    expect(bareFences('```  \nfoo\n```').map((i) => i.line)).toEqual([1])
+    expect(bareFences('```\t\nfoo\n```').map((i) => i.line)).toEqual([1])
+  })
+
+  // CommonMark 가 공백으로 보는 것은 스페이스와 탭뿐이다. `trim()` 은 이것까지 지운다.
+  it('⚠️ U+00A0 은 공백이 아니라 정보 문자열이다', () => {
+    // 여는 펜스: 정보 문자열이 있으므로 언어 없는 펜스가 아니다
+    expect(bareFences('```\u00A0\nfoo\n```')).toEqual([])
+    // 닫는 펜스: 정보 문자열을 가질 수 없으므로 **닫지 못한다.**
+    // 느슨하게 보면 3행이 닫고 4행이 언어 없는 펜스를 여는 것으로 읽혀 없는 오류를 만든다.
+    expect(bareFences('```text\nfoo\n```\u00A0\n```')).toEqual([])
+  })
+
+  // `\r` 이 정보 문자열로 새면 모든 판정이 어긋난다.
+  it('⚠️ CRLF 문서도 같게 본다', () => {
+    expect(bareFences('```\r\nfoo\r\n```\r').map((i) => i.line)).toEqual([1])
+    expect(bareFences('```text\r\nfoo\r\n```\r')).toEqual([])
   })
 })

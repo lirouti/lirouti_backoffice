@@ -21,7 +21,7 @@ import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import ts from 'typescript'
 
-import { badCalls, callExamples, danglingSections, duplicateSections, filePathRefs, type Arity, type DocIssue } from './doc-rules'
+import { badCalls, bareFences, callExamples, danglingSections, duplicateSections, filePathRefs, type Arity, type DocIssue } from './doc-rules'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const DOCS = ['docs/ARCHITECTURE.md']
@@ -86,6 +86,7 @@ for (const doc of DOCS) {
       .map((r) => ({ line: r.line, why: `없는 파일을 가리킵니다`, code: r.path })),
     ...danglingSections(md),
     ...duplicateSections(md),
+    ...bareFences(md),
     ...badCalls(callExamples(md), arities),
   ]
   issues.push(...found.map((i) => ({ ...i, doc })))
