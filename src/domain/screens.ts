@@ -56,6 +56,12 @@ export const SCREENS = {
   rig: { path: '/characters/rig', label: '리그 · 슬롯', scope: 'char' },
   growth: { path: '/characters/growth', label: '성장 단계', scope: 'char' },
   species: { path: '/characters/species', label: '캐릭터 종류', scope: 'char' },
+  speciesnew: {
+    path: '/characters/species/new',
+    label: '종 등록',
+    scope: 'char',
+    section: 'species',
+  },
   speciesdet: {
     path: '/characters/species/:speciesId',
     label: '종 상세',

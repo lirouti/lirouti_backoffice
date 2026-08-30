@@ -19,6 +19,11 @@ export const qk = {
     /** 종류별 카탈로그 (`AssetKind`) */
     list: (kind: string) => ['assets', 'list', kind] as const,
   },
+  species: {
+    all: ['species'] as const,
+    list: () => ['species', 'list'] as const,
+    detail: (id: number | string) => ['species', 'detail', String(id)] as const,
+  },
   security: {
     all: ['security'] as const,
     /** 내 계정의 2단계 인증 상태 */

@@ -29,6 +29,8 @@ const IMPLEMENTED: Partial<Record<ScreenId, React.LazyExoticComponent<React.Comp
   itemedit: lazy(() => import('@/features/items/ItemFormPage')),
   itemnew: lazy(() => import('@/features/items/ItemFormPage')),
   items: lazy(() => import('@/features/items/ItemsPage')),
+  rig: lazy(() => import('@/features/characters/RigPage')),
+  species: lazy(() => import('@/features/characters/SpeciesPage')),
   security: lazy(() => import('@/features/security/SecurityPage')),
   ui: lazy(() => import('@/features/uikit/UiKitPage')),
 }
