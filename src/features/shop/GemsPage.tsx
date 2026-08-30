@@ -18,7 +18,7 @@ import { Table, type Column } from '@/shared/ui/Table'
 
 import {
   GEM_STATUS_TONE,
-  orderShare,
+  orderShares,
   pricePerGem,
   type GemProduct,
 } from '@/domain/shop'
@@ -35,6 +35,9 @@ export default function GemsPage() {
 
   if (isPending) return <Skeleton rows={6} />
   if (error || !data) return <ErrorBanner message={error?.message ?? '젬 상품을 불러오지 못했습니다.'} />
+
+  // 배분이라 행마다 따로 낼 수 없다 — 목록 전체로 한 번 낸다(§24.2).
+  const shares = orderShares(data.products)
 
   const columns: Column<GemProduct>[] = [
     { key: 'name', label: '상품', width: '110px', strong: true },
@@ -67,7 +70,7 @@ export default function GemsPage() {
       label: '판매 비중',
       minWidth: '150px',
       render: (p) => {
-        const share = orderShare(p, data.products)
+        const share = shares[p.key] ?? 0
         return (
           <div className={css({ display: 'flex', alignItems: 'center', gap: '9px' })}>
             <div className={css({ flex: '1', minWidth: '60px' })}>
