@@ -8,3 +8,4 @@ export { axiosInstance, http, mockDelay, setUnauthorizedHandler, USE_MOCK } from
 export type { RequestConfig } from './client'
 export { qk } from './keys'
 export { queryClient } from './queryClient'
+export { today } from './today'

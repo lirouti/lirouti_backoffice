@@ -83,13 +83,27 @@ describe('nextBanStatus · canBan', () => {
 })
 
 describe('summarize', () => {
+  const TODAY = '2026-08-30'
+
   // 탈퇴를 세면 「전체 회원」 이 실제 쓰는 사람 수보다 커진다.
   it('⚠️ 탈퇴는 어느 지표에도 안 들어간다', () => {
-    expect(summarize(list)).toEqual({ total: 3, paying: 3, banned: 1 })
+    expect(summarize(list, TODAY)).toEqual({ total: 3, joinedToday: 0, paying: 3, banned: 1 })
   })
 
   it('결제 0 원은 결제 회원이 아니다', () => {
-    expect(summarize([user({ paid: 0 })]).paying).toBe(0)
+    expect(summarize([user({ paid: 0 })], TODAY).paying).toBe(0)
+  })
+
+  // 원본은 `'34'` 를 박아 뒀는데, 그러면 같은 화면의 「전체 회원」 과 모순되는 숫자가
+  // 나란히 뜬다. 데이터에서 세야 한다.
+  it('⚠️ 오늘 가입은 가입일이 오늘인 사람 수다', () => {
+    const rows = [user({ key: 0, joinedAt: TODAY }), user({ key: 1, joinedAt: '2026-08-29' })]
+    expect(summarize(rows, TODAY).joinedToday).toBe(1)
+  })
+
+  it('탈퇴는 오늘 가입에도 안 들어간다', () => {
+    const rows = [user({ key: 0, joinedAt: TODAY, status: 'LEFT' })]
+    expect(summarize(rows, TODAY).joinedToday).toBe(0)
   })
 })
 

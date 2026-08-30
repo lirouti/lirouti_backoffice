@@ -110,7 +110,7 @@ export default function UsersPage() {
         >
           {/* ⚠️ 지표는 **거르기 전 전체**다. 필터마다 「전체 회원」 이 바뀌면 그건 전체가 아니다. */}
           <Stat k="전체 회원" v={num(summary.total)} />
-          <Stat k="오늘 가입" v="34" />
+          <Stat k="오늘 가입" v={num(summary.joinedToday)} />
           <Stat k="결제 회원" v={num(summary.paying)} />
           <Stat k="제재 중" v={num(summary.banned)} />
         </div>

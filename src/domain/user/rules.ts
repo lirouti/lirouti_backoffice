@@ -56,14 +56,26 @@ export const canBan = (u: User): boolean => u.status !== 'LEFT'
 export type UserSummary = {
   /** 탈퇴를 뺀 전체 */
   total: number
+  joinedToday: number
   paying: number
   banned: number
 }
 
-export function summarize(list: User[]): UserSummary {
+/**
+ * 목록 위 지표. **거르기 전 전체로 낸다** — 필터마다 「전체 회원」 이 바뀌면 그건
+ * 필터 결과지 전체가 아니다.
+ *
+ * ⚠️ **「오늘 가입」 을 상수로 두지 말 것.** 원본은 `'34'` 를 박아 뒀는데, 그러면
+ *    같은 화면의 「전체 회원 10」 과 **서로 모순되는 숫자**가 나란히 뜬다. 다른 목 수치와
+ *    다른 점이 이것이다 — 즐겨찾기(판매×0.34) 같은 건 화면 안에서 어긋나지 않는다.
+ *
+ * @param today `YYYY-MM-DD`. 안에서 읽으면 테스트가 실행한 날에 따라 달라진다.
+ */
+export function summarize(list: User[], today: string): UserSummary {
   const live = list.filter((u) => u.status !== 'LEFT')
   return {
     total: live.length,
+    joinedToday: live.filter((u) => u.joinedAt === today).length,
     paying: live.filter((u) => u.paid > 0).length,
     banned: live.filter((u) => u.status === 'BANNED').length,
   }

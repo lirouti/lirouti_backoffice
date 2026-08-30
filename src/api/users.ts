@@ -21,7 +21,7 @@ import {
 import { coinLedgerOf, orderRowsOf } from '@/mocks/userHistory'
 import { allUsers, setUserStatus } from '@/mocks/users'
 
-import { mockDelay, qk, queryClient, USE_MOCK } from './core'
+import { mockDelay, qk, queryClient, today, USE_MOCK } from './core'
 import { apiError } from './error'
 
 export type UsersResult = { users: User[]; summary: UserSummary }
@@ -32,7 +32,7 @@ export async function getUsers(filter: UserFilter): Promise<UsersResult> {
     const all = allUsers()
     // ⚠️ 지표는 **거르기 전 전체**로 낸다. 필터를 걸 때마다 「전체 회원」 이 바뀌면
     //    그건 필터 결과지 전체가 아니다.
-    return { users: filterUsers(all, filter), summary: summarize(all) }
+    return { users: filterUsers(all, filter), summary: summarize(all, today()) }
   }
 
   // TODO(백엔드 스펙 확정 후): http.get<UsersDto>('/admin/users', { params: filter })
