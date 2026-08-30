@@ -7,6 +7,8 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 
 import {
+  canRefund,
+  PAY_STATUS_LABEL,
   filterPayments,
   stuckPayments,
   summarizePayments,
@@ -80,6 +82,14 @@ export async function refund({ payId, reason }: RefundVars): Promise<Payment> {
   if (USE_MOCK) {
     await mockDelay()
     if (!reason.trim()) throw apiError('http', '환불 사유를 입력하세요.', 400)
+
+    // 상태 검증은 목(변이 경계)에도 있다. 여기서 먼저 보는 것은 **화면이 읽을 메시지**를
+    // 주기 위해서다 — 목이 던지는 것은 개발자용 문구다.
+    const target = await getPayment(payId)
+    if (!canRefund(target)) {
+      throw apiError('http', `${PAY_STATUS_LABEL[target.status]} 건은 환불할 수 없습니다.`, 409)
+    }
+
     return refundPayment(Number(payId))
   }
 

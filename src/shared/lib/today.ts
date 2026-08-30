@@ -19,14 +19,29 @@ const OPERATING_TZ = 'Asia/Seoul'
 export const today = (): string =>
   new Intl.DateTimeFormat('sv-SE', { timeZone: OPERATING_TZ }).format(new Date())
 
+const pad = (n: number): string => String(n).padStart(2, '0')
+
 /**
- * `n` 일 전 날짜 `YYYY-MM-DD`.
+ * `YYYY-MM-DD` 에서 `n` 일을 뺀다. **달력 날짜 계산이라 시간대가 끼어들지 않는다.**
+ *
+ * ⚠️ **`Date#setDate` 로 빼면 안 된다.** 그건 **실행 환경의 시간대**로 계산하는데,
+ *    그 시간대에 서머타임이 있으면 하루가 23시간·25시간이 되어 **서울 달력과 어긋난다.**
+ *    실제로 `America/New_York` 에서 서울 기준 2026-11-02 일 때 `daysAgo(1)` 이
+ *    **2026-10-31** 을 줬다 — 11-01 을 통째로 건너뛴다.
+ *
+ * UTC 자정 기준으로 빼면 서머타임이 없어 정확하다. **문자열을 받는 순수 함수**라
+ * 테스트가 실행 환경에 기대지 않는다.
+ */
+export function shiftDays(isoDate: string, n: number): string {
+  const [y, m, d] = isoDate.split('-').map(Number)
+  const at = new Date(Date.UTC(y!, m! - 1, d!) - n * 86_400_000)
+  return `${at.getUTCFullYear()}-${pad(at.getUTCMonth() + 1)}-${pad(at.getUTCDate())}`
+}
+
+/**
+ * `n` 일 전 날짜 `YYYY-MM-DD` (운영 기준 시간대).
  *
  * **목 데이터가 오늘을 기준으로 살아 있게 하는 데 쓴다.** 날짜를 과거에 박아 두면
  * 「오늘 결제」 같은 지표가 **영원히 0** 이 된다 — 화면은 멀쩡한데 죽은 숫자다.
  */
-export function daysAgo(n: number): string {
-  const d = new Date()
-  d.setDate(d.getDate() - n)
-  return new Intl.DateTimeFormat('sv-SE', { timeZone: OPERATING_TZ }).format(d)
-}
+export const daysAgo = (n: number): string => shiftDays(today(), n)

@@ -48,6 +48,10 @@ function Detail({ payment: p, payId }: { payment: Payment; payId: string }) {
   const refund = useRefund()
   const [asking, setAsking] = useState(false)
   const [reason, setReason] = useState('')
+  // ⚠️ **누르기 전에는 빨갛게 하지 않는다.** 창을 열자마자 "사유를 입력하세요" 가 뜨면
+  //    아직 아무것도 안 했는데 혼난 기분이 든다(폼 화면과 같은 규칙, §18.7).
+  //    대신 **누른 뒤에는 반드시 보여야 한다** — 안 그러면 눌러도 아무 일이 없다.
+  const [tried, setTried] = useState(false)
 
   const refundable = refundableAmount(p)
   const errors = validateRefund(reason)
@@ -64,7 +68,10 @@ function Detail({ payment: p, payId }: { payment: Payment; payId: string }) {
             <Button disabled>결제사 원문 · 준비 중</Button>
             <Button
               variant="danger"
-              onClick={() => setAsking(true)}
+              onClick={() => {
+                setTried(false)
+                setAsking(true)
+              }}
               disabled={!canRefund(p) || refund.isPending}
             >
               {!canRefund(p) ? `환불 · ${PAY_STATUS_LABEL[p.status]} 건` : '환불'}
@@ -151,6 +158,7 @@ function Detail({ payment: p, payId }: { payment: Payment; payId: string }) {
         open={asking}
         onCancel={() => setAsking(false)}
         onConfirm={() => {
+          setTried(true)
           if (errors.reason) return
           refund.mutate({ payId, reason }, { onSuccess: () => setAsking(false) })
         }}
@@ -165,7 +173,7 @@ function Detail({ payment: p, payId }: { payment: Payment; payId: string }) {
           label="환불 사유"
           placeholder="예: 중복 결제"
           hint="감사 로그에 남습니다"
-          error={reason ? errors.reason : undefined}
+          error={reason || tried ? errors.reason : undefined}
           required
           rows={2}
         />

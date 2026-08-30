@@ -6,7 +6,7 @@
  */
 import { daysAgo } from '@/shared/lib/today'
 
-import type { PayStatus, Payment, Pg } from '@/domain/payment'
+import { canRefund, type PayStatus, type Payment, type Pg } from '@/domain/payment'
 
 type Row = [
   /** 며칠 전인가. **날짜를 박아 두면 「오늘 결제」 가 영원히 0 이 된다** (아래 ⚠️) */
@@ -140,6 +140,12 @@ export function refundPayment(key: number): Payment {
   const list = allPayments()
   const at = list.findIndex((p) => p.key === key)
   if (at < 0) throw new Error(`결제가 없습니다: ${key}`)
+
+  // ⚠️ **여기서도 상태를 본다.** 화면의 비활성 버튼은 **이 화면의 이 버튼**만 막는다 —
+  //    북마크한 주소·재시도·나중에 붙을 다른 호출 경로는 그대로 들어온다. 준비·실패 건을
+  //    환불하면 받지도 않은 돈을 돌려주고, 이미 환불한 건은 두 번 나간다.
+  if (!canRefund(list[at]!)) throw new Error(`환불할 수 없는 결제입니다: ${key}`)
+
   const next: Payment = { ...list[at]!, status: 'REFUNDED', unusedGem: 0 }
   list[at] = next
   return next
