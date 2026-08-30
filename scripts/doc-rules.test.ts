@@ -207,4 +207,24 @@ describe('bareFences', () => {
   it('⚠️ 백틱이 섞인 줄은 펜스가 아니다', () => {
     expect(bareFences('```` `a` ````\n\n```\nfoo\n```').map((i) => i.line)).toEqual([3])
   })
+
+  it('뒤에 스페이스·탭만 있으면 언어가 없는 것이다', () => {
+    expect(bareFences('```  \nfoo\n```').map((i) => i.line)).toEqual([1])
+    expect(bareFences('```\t\nfoo\n```').map((i) => i.line)).toEqual([1])
+  })
+
+  // CommonMark 가 공백으로 보는 것은 스페이스와 탭뿐이다. `trim()` 은 이것까지 지운다.
+  it('⚠️ U+00A0 은 공백이 아니라 정보 문자열이다', () => {
+    // 여는 펜스: 정보 문자열이 있으므로 언어 없는 펜스가 아니다
+    expect(bareFences('```\u00A0\nfoo\n```')).toEqual([])
+    // 닫는 펜스: 정보 문자열을 가질 수 없으므로 **닫지 못한다.**
+    // 느슨하게 보면 3행이 닫고 4행이 언어 없는 펜스를 여는 것으로 읽혀 없는 오류를 만든다.
+    expect(bareFences('```text\nfoo\n```\u00A0\n```')).toEqual([])
+  })
+
+  // `\r` 이 정보 문자열로 새면 모든 판정이 어긋난다.
+  it('⚠️ CRLF 문서도 같게 본다', () => {
+    expect(bareFences('```\r\nfoo\r\n```\r').map((i) => i.line)).toEqual([1])
+    expect(bareFences('```text\r\nfoo\r\n```\r')).toEqual([])
+  })
 })
