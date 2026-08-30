@@ -39,6 +39,17 @@ export const qk = {
     /** 내 계정의 2단계 인증 상태 */
     totp: () => ['security', 'totp'] as const,
   },
+  levels: {
+    all: ['levels'] as const,
+    list: () => ['levels', 'list'] as const,
+  },
+  shop: {
+    all: ['shop'] as const,
+    /** 젬 충전 상품 */
+    gems: () => ['shop', 'gems'] as const,
+    /** 상점 첫 화면 진열 + 그 자리에 놓인 아이템 */
+    slots: () => ['shop', 'slots'] as const,
+  },
   moderation: {
     all: ['moderation'] as const,
     /** 신고 목록. 탭은 서버가 아니라 화면이 거르므로 키에 넣지 않는다 */
