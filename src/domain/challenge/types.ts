@@ -20,11 +20,29 @@ export type Challenge = {
   /** 달성률 (%) */
   rate: number
   status: ChallengeStatus
-  period: string
-  repeat: string
+  /**
+   * 운영 기간. `YYYY-MM-DD`, 빈 문자열이면 「제한 없음」.
+   *
+   * ⚠️ **반복 주기와 다르다.** 「매일 05:00 초기화」 같은 건 `kind` 가 정하는 규칙이고
+   *    (`REPEAT_LABEL`), 이건 그 챌린지가 언제부터 언제까지 살아 있는가다.
+   */
+  startAt: string
+  endAt: string
+  /** 누구에게 열려 있는가 */
   target: string
   desc: string
   rewardItem: { assetId: string; name: string; slot: Slot } | null
 }
 
 export const CHALLENGE_KINDS: ChallengeKind[] = ['DAILY', 'WEEKLY', 'SEASON']
+
+/**
+ * 폼이 편집하는 부분만.
+ *
+ * `key`·`code`·`rate`·`status` 는 **서버가 소유한다** — 달성률은 집계 결과이고
+ * 상태는 기간에서 나온다(`challengeStatusOf`).
+ */
+export type ChallengeInput = Pick<
+  Challenge,
+  'title' | 'kind' | 'cond' | 'goal' | 'gem' | 'startAt' | 'endAt' | 'target' | 'desc' | 'rewardItem'
+>
