@@ -94,13 +94,18 @@ const LOGS: GrantLog[] = Array.from({ length: 10 }, (_, i) => {
   const give = i % 4 !== 2
   const coin = i % 3 === 0
   const item = allItems()[(i * 5) % allItems().length]!
-  const asset: GrantAsset = coin ? '파란보석' : '아이템'
+  /**
+   * ⚠️ **파란보석과 노란보석은 서로 다른 재화다** — 이름이 바뀐 것이 아니다
+   * (`Wallet.gem` · `Wallet.topaz`). 이력에 둘 다 나와야 화면이 둘을 구분해
+   * 그리는지 확인할 수 있다.
+   */
+  const asset: GrantAsset = coin ? (i % 2 === 0 ? '파란보석' : '노란보석') : '아이템'
   return {
     key: i,
     at: `${daysAgo(Math.floor(i / 2))} ${String(10 + (i % 9)).padStart(2, '0')}:0${i % 6}`,
     kind: (give ? '지급' : '회수') as GrantKind,
     asset,
-    what: coin ? '파란보석' : item.name,
+    what: coin ? asset : item.name,
     qty: coin ? 100 * (1 + i) : 1,
     who: i % 2 ? '전체 유저' : `U-${10200 + i * 13}`,
     why: WHYS[i % WHYS.length]!,

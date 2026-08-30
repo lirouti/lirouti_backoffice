@@ -157,3 +157,31 @@ export function badCalls(calls: CallExample[], sigs: Map<string, Arity>): DocIss
   }
   return out
 }
+
+/**
+ * 언어를 안 적은 여는 코드 펜스.
+ *
+ * 언어가 없으면 강조가 안 되는 것으로 끝나지 않는다 — **여는 펜스인지 닫는 펜스인지가
+ * 눈으로 구분되지 않아**, 하나를 빠뜨리면 그 뒤 문서 절반이 통째로 코드 블록이 된다.
+ * 화면에서는 바로 보이지만 diff 에서는 안 보인다.
+ *
+ * 코드가 아닌 예시(입출력·표)는 `text` 를 쓴다.
+ */
+export function bareFences(md: string): DocIssue[] {
+  const out: DocIssue[] = []
+  let inside = false
+  md.split('\n').forEach((raw, i) => {
+    if (!raw.startsWith('```')) return
+    // ⚠️ **닫는 펜스는 언어를 가질 수 없다**(CommonMark). 아무 ``` 줄이나 닫는 것으로
+    //    보면, 펜스를 예시로 보여 주는 문서에서 블록 경계가 어긋난다.
+    if (inside) {
+      if (raw.trim() === '```') inside = false
+      return
+    }
+    inside = true
+    if (raw.trim() === '```') {
+      out.push({ line: i + 1, why: '코드 펜스에 언어를 적으세요 — 코드가 아니면 `text`', code: raw })
+    }
+  })
+  return out
+}

@@ -36,7 +36,7 @@ bun run dev       # http://localhost:5173
 
 ### 2.1 확정 스택
 
-```
+```text
 Vite 8  +  React 19  +  TypeScript 6  +  Panda CSS 1  +  react-router 8
 ```
 
@@ -243,7 +243,7 @@ import { token } from 'styled-system/tokens'
 
 ### 4.2 현재 트리
 
-```
+```text
 lirouti_backoffice/
 ├─ design/                        # 디자인 원본 — **gitignore.** Claude Design 에서 받아 둔다 (§8)
 ├─ docs/ARCHITECTURE.md
@@ -308,7 +308,7 @@ lirouti_backoffice/
 
 측정 결과(import 전수 스캔). **아래로만 흐르고 순환이 없다.**
 
-```
+```text
         main.tsx
            ↓
         app/router.tsx        ← 조립만. 유일하게 features 를 안다
@@ -360,7 +360,7 @@ lirouti_backoffice/
 
 **엔티티는 폴더, 횡단 관심사는 파일.**
 
-```
+```text
 domain/item/          ← 규칙과 라벨이 붙는 진짜 엔티티
   types.ts   Item · Slot · Tier · ItemStatus · ItemSource
   rules.ts   topSelling · filterItems · isOnSale
@@ -394,7 +394,7 @@ import type { Slot } from '@/domain/item'                // ✗ 순환 위험 �
 
 그 자리가 `src/entities/` 다.
 
-```
+```text
 domain/item/           Item 타입 + 규칙        (React 없음)
 entities/item/         Item 을 그리는 공용 UI   (React 있음, 도메인 앎)
 features/items/        화면
@@ -423,7 +423,7 @@ features/items/        화면
 
 `eslint.config.js` 의 `FORBIDDEN` 표가 §4.3 의 그림을 그대로 옮긴 것이고, 위반하면 **왜 안 되는지와 어디로 옮기라는 안내**가 함께 나온다.
 
-```
+```text
 error  '@/mocks/items' import is restricted from being used by a pattern.
        화면은 mocks 를 직접 보지 않습니다. api 파사드를 거치세요
        — 서버로 갈아탈 때 화면을 손대지 않기 위한 경계입니다.
@@ -619,7 +619,7 @@ keep-alive 가 손대지 못한다. 라이브러리 예제의 `ScrollTop` 패턴
 
 ### 7.1 3단 구조
 
-```
+```text
 features/*  ──▶  api/*.ts  ──▶  mocks/*.ts     데이터 출처
  (화면)          (파사드)        (시드 RNG 생성기)
                     │
@@ -816,7 +816,7 @@ import { LOGO } from '@/assets/brand'
 
 **등록은 한 번이다 — 이미지와 정보가 같이 저장된다.**
 
-```
+```text
 아이템 등록 화면
  └ 이미지 ─ [에셋 고르기] ─┬ 기존 45개 중에서 고르기
                           └ 「새 이미지 올리기」  ← 파일 선택 (미리보기만 생긴다)
@@ -1279,7 +1279,7 @@ function Row() { … }                // 3 이 파일 전용 하위 컴포넌트
 
 ### 14.1 컴포넌트 안 순서
 
-```
+```text
 1. 의존성 획득 훅        바깥에서 값을 가져온다
    1-1 라우터            useNavigate · useLocation · useParams · useSearchParams
    1-2 전역 스토어       useViewer · useTabsStore · useThemeStore
@@ -1371,7 +1371,7 @@ const filtered = useMemo(() => filterItems(items, q), [items, q])  // 2-2 ← q 
 
 ### 15.1 그룹 순서 — 레이어를 따른다
 
-```
+```text
 react                        react · react-dom
 external                     react-router · @tanstack/* · axios · zustand · recharts
 styled-system                Panda 코드젠 산출물
@@ -1439,7 +1439,7 @@ import { groupOf } from '@/domain/nav'
 
 ### 16.1 로그인은 두 경로다
 
-```
+```text
 ① 비밀번호 → TOTP 코드      어디서든. 낯선 기기·새 노트북
 ② 패스키                     등록한 기기. 한 번에        ← 미구현
 ```
@@ -1469,7 +1469,7 @@ TOTP 는 인증 앱이 30초마다 스스로 코드를 바꾸므로 **보낼 것
 
 ### 16.3 TOTP 등록 (`/security`)
 
-```
+```text
 발급          POST /admin/me/totp/enroll     → { secret, account }   아직 계정에 반영 안 됨
   ↓  1단계    QR 스캔 (또는 키 직접 입력)
 확인          POST /admin/me/totp/confirm     → 백업 코드 10개        여기서 실제로 켜진다
@@ -1789,7 +1789,7 @@ condition: string
 **새로고침과 링크 공유는 URL 만 살린다**(§6.3). "이 조건으로 걸러진 화면"을 남에게
 보내지 못하면 운영 도구로서 반쪽이다.
 
-```
+```text
 /items?q=로브&slot=BODY&tier=PAID&view=grid&page=3
 ```
 
@@ -1864,7 +1864,7 @@ getItems({ ...filter, page, perPage }) → { items, total }
 
 ### 18.5 화면 조립
 
-```
+```text
 PageHeader            제목 · 설명 · 우측 액션
 Card(필터 바)          검색 · Segmented 들 · 총 건수 · 뷰 토글
 Table | Grid | Empty   셋 중 하나
@@ -2610,7 +2610,7 @@ total = need * (i + 1) * 0.62     // ← 러닝 합이 아니다
 
 그래서 「실행」 버튼이 바로 실행하지 않는다.
 
-```
+```text
 「대상 확인 후 실행」 → 서버가 대상을 센다 → 확인 창에 몇 명인지 적는다 → 실행
 ```
 
@@ -2627,6 +2627,36 @@ U-10240, U-99999, u-10240, U-88888
 `parseUserIds` 가 **쉼표·줄바꿈으로 나누고 대문자로 맞추고 중복을 없앤다** — 운영자는 스프레드시트에서 복사해 붙이므로 줄바꿈과 뒤따르는 쉼표가 섞여 온다. ⚠️ **탈퇴 회원도 「못 찾음」 이다** — 계정이 없으니 줄 곳도 없는데 조용히 넘어가면 운영자는 준 줄 안다.
 
 ⚠️ **대상이 0명이면 실행하지 않는다.** 성공으로 끝내면 이력에는 남는데 아무에게도 안 간 처리가 생긴다. 파사드에서 막는다(§22.2.3 — 잠근 버튼은 검증이 아니다).
+
+### 25.3.1 값이 있다는 것과 쓸 수 있다는 것은 다르다
+
+`validateGrant` 가 「비었는가」 만 보면 통과하는 값들이 있다.
+
+| 입력 | `> 0` · `!== null` | 실제 |
+|---|---|---|
+| `Infinity` | 통과 | 자릿수 많은 값을 붙여 넣으면 `Number` 가 이걸 준다 |
+| `NaN` | 막힘(비교가 거짓) | — |
+| `1.5` | 통과 | 재화는 정수다 |
+| 지워진 `itemKey` | 통과 | **없는 아이템을 「성공」 으로 기록한다** |
+
+그래서 수량은 **정수 · 1 이상 · `QTY_MAX`(100만) 이하**로 좁히고, 아이템은 `checkGrantItem` 이 **실재 여부까지** 본다. 상한을 두는 이유는 성능이 아니라 **오타 하나가 전체 유저에게 나가는 화면**이라 사람이 실수할 자리를 줄이는 것이다.
+
+⚠️ 아이템 검사는 폼이 아니라 **실행 직전에도** 한다. 폼을 열어 둔 사이에 아이템이 지워질 수 있다(§22.2.3 — 잠근 버튼은 검증이 아니다).
+
+### 25.3.2 확인을 버릴 때는 버렸다고 말한다
+
+「대상 확인 후 실행」 을 누른 뒤 **입력을 바꾸면 그 확인은 거짓**이 된다. 그래서 버리는데, 그냥 버리면 `onSuccess` 가 안 불려 **눌러도 아무 일이 없다.**
+
+```text
+「실행」 누름 → 250ms 도는 사이에 사유를 계속 타이핑
+                → 확인 결과 폐기 · 창도 안 뜨고 아무 표시도 없음
+```
+
+사람은 버튼을 누르고 계속 타이핑한다. 그래서 버린 뒤 **「입력이 바뀌어 대상 확인이 취소됐습니다」** 를 띄운다.
+
+**대상이 0명이면 확인 창을 아예 열지 않는다.** 확인할 것이 없는데 창을 띄우면 「확인」 버튼이 아무 일도 안 하거나, 눌러서 0명짜리 처리를 보내게 된다. 대신 그 자리에서 **못 찾은 ID 를 적어 준다.**
+
+**실행은 확인한 그 입력으로 한다** (`check.variables`). 창이 떠 있는 동안은 네이티브 `<dialog>` 가 배경을 inert 로 만들어 폼이 바뀔 수 없지만, **보여 준 것과 보내는 것이 같다**는 것을 코드로 못박아 둔다.
 
 **「등급」 대상을 뺐다.** 원본은 `개별 · 등급 · 전체` 셋인데 **회원 등급이라는 것이 우리 도메인에 없다.** 골라도 고를 것이 없는 선택지는 막다른 길이라, 둘만 두고 그 자리에 「등급이 생기면 추가됩니다」 를 적었다.
 

@@ -8,6 +8,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   badCalls,
+  bareFences,
   callExamples,
   countArgs,
   danglingSections,
@@ -153,5 +154,25 @@ describe('duplicateSections', () => {
 
   it('번호가 다르면 조용하다', () => {
     expect(duplicateSections('### 9.4 가\n### 9.5 나')).toEqual([])
+  })
+})
+
+describe('bareFences', () => {
+  it('언어를 안 적은 여는 펜스를 잡는다', () => {
+    expect(bareFences('```\nfoo\n```').map((i) => i.line)).toEqual([1])
+  })
+
+  it('언어가 있으면 조용하다', () => {
+    expect(bareFences('```ts\nfoo\n```')).toEqual([])
+    expect(bareFences('```text\nfoo\n```')).toEqual([])
+  })
+
+  // 닫는 펜스에는 언어가 없는 게 정상이다. 이걸 잡으면 모든 블록이 걸린다.
+  it('⚠️ 닫는 펜스는 대상이 아니다', () => {
+    expect(bareFences('```ts\nfoo\n```\n\n```ts\nbar\n```')).toEqual([])
+  })
+
+  it('블록 안의 ``` 처럼 보이는 줄에 속지 않는다', () => {
+    expect(bareFences('```md\n```text\n```')).toEqual([])
   })
 })

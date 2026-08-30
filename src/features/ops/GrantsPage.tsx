@@ -77,6 +77,8 @@ export default function GrantsPage() {
   const [asking, setAsking] = useState(false)
   // ⚠️ 누르기 전에는 빨갛게 하지 않는다 — 열자마자 혼난 기분이 든다(§18.7).
   const [tried, setTried] = useState(false)
+  // 확인이 무효가 됐을 때 그 사실을 말한다. 아래 `set` 참고.
+  const [stale, setStale] = useState(false)
 
   const errors = validateGrant(form)
   const coin = isCoin(form.asset)
@@ -86,30 +88,43 @@ export default function GrantsPage() {
 
   const set = <K extends keyof GrantInput>(k: K, v: GrantInput[K]) => {
     setForm((f) => ({ ...f, [k]: v }))
-    // 확인해 둔 대상 수는 조건이 바뀌는 순간 거짓이 된다.
-    check.reset()
+    // ⚠️ **확인해 둔 대상 수는 조건이 바뀌는 순간 거짓이 된다.** 버리되, 버렸다는 것을
+    //    말한다 — 도는 중에 버리면 `onSuccess` 가 안 불려 **눌러도 아무 일이 없다**(§25.3.2).
+    if (check.isPending || check.data) {
+      check.reset()
+      setStale(true)
+    }
   }
 
   const ask = () => {
     setTried(true)
+    setStale(false)
     if (Object.keys(errors).length > 0) return
     // 확인 창에 **몇 명인지** 적으려면 먼저 세야 한다.
-    check.mutate(form, { onSuccess: () => setAsking(true) })
+    // 0명이면 확인할 것이 없으므로 창을 열지 않고 그 자리에서 말한다.
+    check.mutate(form, { onSuccess: (res) => setAsking(res.count > 0) })
   }
 
-  const commit = () =>
+  const commit = () => {
+    // 확인한 그 입력으로 실행한다. 창이 떠 있는 동안은 배경이 inert 라 폼이 안 바뀌지만,
+    // **보여 준 것과 보내는 것이 같다**는 것을 코드로 못박아 둔다.
+    const checked = check.variables
+    if (!checked || (check.data?.count ?? 0) === 0) return
     run.mutate(
-      { input: form, by: viewer.name },
+      { input: checked, by: viewer.name },
       {
         onSuccess: () => {
           setAsking(false)
           setTried(false)
+          setStale(false)
           setForm(EMPTY)
           check.reset()
         },
       },
     )
+  }
 
+  const shown = check.variables ?? form
   const count = check.data?.count ?? 0
   const missing = check.data?.missing ?? []
 
@@ -121,6 +136,22 @@ export default function GrantsPage() {
       />
 
       {(check.error || run.error) && <ErrorBanner message={(check.error ?? run.error)!.message} />}
+
+      {/* 확인이 도는 사이에 입력을 바꾸면 그 확인은 버려진다. 조용히 넘기면 「눌러도 아무 일이 없다」 가 된다 */}
+      {stale && (
+        <ErrorBanner message="입력이 바뀌어 대상 확인이 취소됐습니다. 「대상 확인 후 실행」 을 다시 누르세요." />
+      )}
+
+      {/* 0명이면 확인할 것이 없다 — 창을 열지 않고 못 찾은 ID 를 그 자리에서 보여 준다 */}
+      {check.data && count === 0 && (
+        <ErrorBanner
+          message={
+            missing.length > 0
+              ? `대상 회원이 없습니다. 찾지 못한 ID — ${missing.join(', ')}`
+              : '대상 회원이 없습니다.'
+          }
+        />
+      )}
 
       <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '18px', alignItems: 'flex-start' })}>
         <Card className={css({ flex: '1 1 340px', maxWidth: '440px', p: '15px 17px' })}>
@@ -250,16 +281,19 @@ export default function GrantsPage() {
         open={asking}
         onCancel={() => setAsking(false)}
         onConfirm={commit}
-        title={`${form.kind} 실행`}
+        title={`${shown.kind} 실행`}
         tone="danger"
-        confirmLabel={run.isPending ? '실행 중…' : `${count}명에게 ${form.kind}`}
+        confirmLabel={run.isPending ? '실행 중…' : `${count}명에게 ${shown.kind}`}
         body={
           <>
             <strong>
               {count}명
             </strong>
-            에게 {coin ? `${form.asset} ${num(form.qty)}개` : (data.itemOptions.find((it) => it.key === form.itemKey)?.name ?? '아이템')}
-            를 {form.kind}합니다. 되돌릴 수 없습니다.
+            에게{' '}
+            {isCoin(shown.asset)
+              ? `${shown.asset} ${num(shown.qty)}개`
+              : (data.itemOptions.find((it) => it.key === shown.itemKey)?.name ?? '아이템')}
+            를 {shown.kind}합니다. 되돌릴 수 없습니다.
             {missing.length > 0 && (
               <span className={css({ display: 'block', mt: '9px', color: 'rFg', fontWeight: '600' })}>
                 {/* 못 찾은 id 를 숨기면 운영자는 전부 줬다고 믿는다 */}

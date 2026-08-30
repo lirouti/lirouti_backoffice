@@ -117,6 +117,16 @@ export function checkTargets(ids: string[], users: User[]): TargetCheck {
 export const activeUserCount = (users: User[]): number =>
   users.filter((u) => u.status !== 'LEFT').length
 
+/**
+ * 한 번에 줄 수 있는 재화 상한.
+ *
+ * ⚠️ **상한이 없으면 `Infinity` 가 통과한다.** 자릿수가 많은 값을 붙여 넣으면
+ *    `Number` 가 `Infinity` 가 되고, `> 0` 은 참이라 그대로 이력에 박힌다.
+ *    오타 하나로 전체 유저에게 나가는 화면이라 사람이 실수할 자리를 좁힌다
+ *    (docs/ARCHITECTURE.md §25.3.1).
+ */
+export const QTY_MAX = 1_000_000
+
 /** 어느 칸이 왜 막혔는가 */
 export type GrantErrors = Partial<Record<'who' | 'qty' | 'itemKey' | 'why', string>>
 
@@ -135,8 +145,8 @@ export function validateGrant(input: GrantInput): GrantErrors {
   if (input.target === '개별' && parseUserIds(input.who).length === 0) {
     errors.who = '대상 회원 ID 를 입력하세요.'
   }
-  if (isCoin(input.asset) && input.qty <= 0) {
-    errors.qty = '수량은 1 이상이어야 합니다.'
+  if (isCoin(input.asset) && !(Number.isInteger(input.qty) && input.qty > 0 && input.qty <= QTY_MAX)) {
+    errors.qty = `수량은 1 이상 ${QTY_MAX.toLocaleString()} 이하의 정수여야 합니다.`
   }
   if (!isCoin(input.asset) && input.itemKey === null) {
     errors.itemKey = '지급할 아이템을 고르세요.'
@@ -145,6 +155,20 @@ export function validateGrant(input: GrantInput): GrantErrors {
     errors.why = '사유를 입력하세요.'
   }
   return errors
+}
+
+/**
+ * 고른 아이템이 실제로 있는가. 없으면 실패 사유.
+ *
+ * ⚠️ **`itemKey` 가 `null` 인지만 보면 부족하다.** 폼을 열어 둔 사이에 아이템이
+ *    지워졌거나 주소로 들어온 값이면, 없는 아이템을 「성공」 으로 기록하게 된다
+ *    (§25.3.1).
+ */
+export function checkGrantItem(input: GrantInput, itemKeys: number[]): string | null {
+  if (isCoin(input.asset)) return null
+  if (input.itemKey === null) return '지급할 아이템을 고르세요.'
+  if (!itemKeys.includes(input.itemKey)) return '없는 아이템입니다. 목록에서 다시 고르세요.'
+  return null
 }
 
 /** 목록 위 지표 */

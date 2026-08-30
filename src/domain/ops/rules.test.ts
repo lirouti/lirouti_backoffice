@@ -9,11 +9,13 @@ import { describe, expect, it } from 'vitest'
 import type { User } from '../user/types'
 import {
   activeUserCount,
+  checkGrantItem,
   checkTargets,
   parseUserIds,
   periodLabel,
   periodStatusOf,
   pinnedCount,
+  QTY_MAX,
   sortEvents,
   summarizeGrants,
   summarizeNotices,
@@ -227,12 +229,48 @@ describe('validateGrant', () => {
 
   it('재화는 수량이 1 이상', () => {
     expect(validateGrant(grant({ qty: 0 })).qty).toBeTruthy()
+    expect(validateGrant(grant({ qty: -5 })).qty).toBeTruthy()
+  })
+
+  // 자릿수가 많은 값을 붙여 넣으면 `Number` 가 Infinity 가 되는데 `> 0` 은 참이다.
+  it('⚠️ NaN · Infinity · 소수는 막는다', () => {
+    for (const qty of [Number.NaN, Number.POSITIVE_INFINITY, 1.5]) {
+      expect(validateGrant(grant({ qty })).qty).toBeTruthy()
+    }
+  })
+
+  // 오타 하나로 전체 유저에게 나가는 화면이라 사람이 실수할 자리를 좁힌다.
+  it('⚠️ 상한을 넘으면 막는다', () => {
+    expect(validateGrant(grant({ qty: QTY_MAX })).qty).toBeUndefined()
+    expect(validateGrant(grant({ qty: QTY_MAX + 1 })).qty).toBeTruthy()
   })
 
   // 아이템일 때 수량은 안 쓰는 값이라 0 이어도 막으면 안 된다.
   it('⚠️ 아이템은 수량 대신 아이템 선택을 본다', () => {
     expect(validateGrant(grant({ asset: '아이템', qty: 0, itemKey: 3 })).qty).toBeUndefined()
     expect(validateGrant(grant({ asset: '아이템', qty: 0, itemKey: null })).itemKey).toBeTruthy()
+  })
+})
+
+describe('checkGrantItem', () => {
+  const keys = [0, 1, 2]
+
+  it('재화면 볼 것이 없다', () => {
+    expect(checkGrantItem(grant({ asset: '파란보석' }), keys)).toBeNull()
+  })
+
+  it('있는 아이템이면 통과', () => {
+    expect(checkGrantItem(grant({ asset: '아이템', itemKey: 1 }), keys)).toBeNull()
+  })
+
+  // 폼을 열어 둔 사이에 지워졌거나 주소로 들어온 값이면 없는 아이템을 「성공」 으로 기록한다.
+  it('⚠️ 없는 아이템은 막는다 — null 인지만 보면 부족하다', () => {
+    expect(checkGrantItem(grant({ asset: '아이템', itemKey: 99 }), keys)).toBeTruthy()
+    expect(checkGrantItem(grant({ asset: '아이템', itemKey: null }), keys)).toBeTruthy()
+  })
+
+  it('아이템이 하나도 없으면 무엇을 골라도 막힌다', () => {
+    expect(checkGrantItem(grant({ asset: '아이템', itemKey: 0 }), [])).toBeTruthy()
   })
 })
 

@@ -9,6 +9,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import type { Item } from '@/domain/item'
 import {
   activeUserCount,
+  checkGrantItem,
   checkTargets,
   parseUserIds,
   periodStatusOf,
@@ -179,6 +180,11 @@ export async function runGrant({ input, by }: RunGrantVars): Promise<GrantLog> {
     const errors = validateGrant(input)
     const first = Object.values(errors)[0]
     if (first) throw apiError('http', first, 400)
+
+    // 폼을 열어 둔 사이에 아이템이 지워졌을 수 있다. 없는 것을 「성공」 으로 기록하면
+    // 이력에는 남는데 아무도 못 받은 처리가 된다 (§25.3.1).
+    const missingItem = checkGrantItem(input, allItems().map((it) => it.key))
+    if (missingItem) throw apiError('http', missingItem, 404)
 
     const { count, missing } = await checkGrantTargets(input)
     if (count === 0) throw apiError('http', '대상 회원이 없습니다.', 400)
