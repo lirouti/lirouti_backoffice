@@ -2198,6 +2198,3 @@ new Intl.DateTimeFormat('sv-SE', { timeZone: OPERATING_TZ }).format(new Date())
 | 환불 | **환불된 건은 누적 결제에 안 들어간다.** `paid` 는 완료 건들에만 나누고 환불 건은 그 밖에 붙인다 |
 
 목 12명 전부를 훑어 완료 합계가 `paid` 와 같은지 확인했다 — 이런 건 눈으로 못 본다.
-
-⚠️ 필터를 걸 때마다 「전체 회원」 이 바뀌면 그건 **필터 결과지 전체가 아니다.**
-파사드가 `summarize(all)` 로 따로 낸다.
