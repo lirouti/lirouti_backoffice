@@ -33,6 +33,8 @@ const IMPLEMENTED: Partial<Record<ScreenId, React.LazyExoticComponent<React.Comp
   itemedit: lazy(() => import('@/features/items/ItemFormPage')),
   itemnew: lazy(() => import('@/features/items/ItemFormPage')),
   items: lazy(() => import('@/features/items/ItemsPage')),
+  pay: lazy(() => import('@/features/payments/PaymentsPage')),
+  paydet: lazy(() => import('@/features/payments/PaymentDetailPage')),
   rig: lazy(() => import('@/features/characters/RigPage')),
   species: lazy(() => import('@/features/characters/SpeciesPage')),
   speciesdet: lazy(() => import('@/features/characters/SpeciesDetailPage')),
