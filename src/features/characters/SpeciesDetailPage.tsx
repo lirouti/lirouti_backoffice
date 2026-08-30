@@ -130,12 +130,12 @@ function Detail({ detail, speciesId }: { detail: SpeciesDetail; speciesId: strin
             {/*
               ⚠️ **주소를 아직 모른다.** 예시 도메인을 넣어 두면 눌렀을 때 엉뚱한 데로 가고,
               그건 "이 도구는 고장났다" 를 학습시킨다 — 헤더의 가짜 검색창을 지운 것과 같은
-              이유다 (docs/ARCHITECTURE.md §18.8). 자리는 두되 잠근다.
+              이유다 (docs/ARCHITECTURE.md §18.8). 자리는 두되 잠그고, **잠긴 이유를 라벨에**
+              적는다 — `title` 은 disabled 버튼에서 포커스가 안 가 뜨지 않고, 스크린리더도
+              읽어 주지 않는다.
               TODO(아트 저장소 주소가 정해지면): `<a href target="_blank" rel="noreferrer noopener">` 로 바꾼다
             */}
-            <Button disabled title="준비 중">
-              아트 저장소 열기
-            </Button>
+            <Button disabled>아트 저장소 열기 · 준비 중</Button>
           </>
         }
       />

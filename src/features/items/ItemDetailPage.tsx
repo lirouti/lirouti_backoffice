@@ -219,9 +219,7 @@ function HeadCard({ detail, onEdit }: { detail: ItemDetail; onEdit: () => void }
 
         <div className={css({ display: 'flex', gap: '7px', flex: 'none' })}>
           {/* TODO(상태 변경 API 가 생기면): 미노출로 */}
-          <Button disabled title="준비 중">
-            미노출로
-          </Button>
+          <Button disabled>미노출로 · 준비 중</Button>
           <Button variant="primary" onClick={onEdit}>
             수정
           </Button>
