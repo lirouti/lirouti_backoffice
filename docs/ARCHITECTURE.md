@@ -1066,7 +1066,9 @@ manualChunks: (id) => (/node_modules\/recharts/.test(id) ? 'charts' : undefined)
 
 **세는 것과 안 세는 것**
 
-- 센다: `<script src>` · `<link rel="modulepreload">` · `<link rel="stylesheet">` 중 `/assets/` 로 시작하는 것
+- 센다: `<script src>` · `<link rel="modulepreload">` · `<link rel="stylesheet">` 중 `/assets/` 로 시작하는 것.
+  ⚠️ **태그와 `rel` 을 본다** — `src|href` 만 긁으면 파비콘(`rel="icon"`)이나 `<img>` 하나가
+  들어오는 순간 **문서에 적은 경계와 다른 것을 재게 되고**, 빌드가 엉뚱하게 실패한다
 - 안 센다: lazy 청크(그게 이 예산이 재려는 경계다) · `preconnect` 같은 외부 링크 ·
   `index.html` 자체(이력과 견줄 수 있게 제외하되 **숨기지 않고 함께 찍는다**)
 

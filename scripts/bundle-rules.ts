@@ -15,20 +15,42 @@ export type BudgetReport = {
   over: boolean
 }
 
+/** `rel` 은 공백으로 여러 개가 올 수 있다 (`rel="preload stylesheet"`) */
+const relHas = (tag: string, want: string): boolean => {
+  const rel = /\brel="([^"]*)"/.exec(tag)?.[1] ?? ''
+  return rel.split(/\s+/).includes(want)
+}
+
+const LOCAL = /^\/assets\//
+
 /**
  * `dist/index.html` 이 **처음부터 받는** 파일들.
  *
- * ⚠️ **`preconnect` 같은 외부 링크를 세면 안 된다.** `href` 만 보고 긁으면
- *    `https://cdn.jsdelivr.net` 이 딸려 들어와 존재하지 않는 파일을 읽으려 한다.
- *    그래서 `/assets/` 로 시작하는 것만 남긴다.
+ * 세는 것은 셋뿐이다 — `<script src>` · `<link rel="modulepreload">` · `<link rel="stylesheet">`.
+ * **lazy 청크는 안 걸린다** — 그게 이 예산이 재려는 경계다.
  *
- * `<script src>` · `<link rel="modulepreload" href>` · `<link rel="stylesheet" href>` 셋이
- * 여기에 걸린다. **lazy 청크는 안 걸린다** — 그게 이 예산이 재려는 경계다.
+ * ⚠️ **태그와 `rel` 을 보지 않고 `src|href` 만 긁으면 안 된다.** 지금 `index.html` 에는
+ *    없지만 파비콘(`rel="icon"`)이나 `<img>` 하나만 들어와도 예산에 딸려 들어가
+ *    **문서에 적은 경계와 다른 것을 재게 된다.** 그러면 빌드가 엉뚱하게 실패하고,
+ *    범인을 찾느라 엔트리를 뒤지게 된다.
+ *
+ * ⚠️ **외부 링크도 빼야 한다.** `preconnect` 의 `href` 는 `https://cdn.jsdelivr.net` 이라
+ *    존재하지 않는 파일을 읽으려 한다.
  */
 export function entryAssets(html: string): string[] {
-  const found = html.matchAll(/(?:src|href)="(\/assets\/[^"]+)"/g)
+  const out: string[] = []
+
+  for (const [tag] of html.matchAll(/<(?:script|link)\b[^>]*>/g)) {
+    const isScript = tag.startsWith('<script')
+    const attr = isScript ? 'src' : 'href'
+    if (!isScript && !relHas(tag, 'modulepreload') && !relHas(tag, 'stylesheet')) continue
+
+    const url = new RegExp(`\\b${attr}="([^"]+)"`).exec(tag)?.[1]
+    if (url && LOCAL.test(url)) out.push(url.replace(LOCAL, ''))
+  }
+
   // 같은 파일이 두 번 참조될 수 있다(modulepreload + script). 바이트를 두 번 세면 안 된다.
-  return [...new Set([...found].map((m) => m[1]!.replace(/^\/assets\//, '')))]
+  return [...new Set(out)]
 }
 
 export const KB = 1024

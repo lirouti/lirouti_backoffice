@@ -12,6 +12,7 @@ const HTML = `<!doctype html>
 <html><head>
 <script>document.documentElement.dataset.theme='light'</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link rel="icon" href="/assets/favicon-jkl.png">
 <script type="module" crossorigin src="/assets/index-abc.js"></script>
 <link rel="modulepreload" crossorigin href="/assets/core-def.js">
 <link rel="stylesheet" crossorigin href="/assets/index-ghi.css">
@@ -36,6 +37,30 @@ describe('entryAssets', () => {
   // lazy 청크는 index.html 에 안 실린다 — 그게 이 예산이 재려는 경계다.
   it('index.html 에 없는 청크는 대상이 아니다', () => {
     expect(entryAssets(HTML)).not.toContain('DashboardPage-xyz.js')
+  })
+
+  // 지금 index.html 에는 없지만 파비콘·로고 하나만 들어와도 예산이 조용히 틀어진다.
+  // 그러면 빌드가 엉뚱하게 실패하고 범인을 찾느라 엔트리를 뒤지게 된다.
+  it('⚠️ 파비콘(`rel="icon"`)은 세지 않는다', () => {
+    expect(entryAssets(HTML).some((a) => a.includes('favicon'))).toBe(false)
+  })
+
+  it('⚠️ `<img src>` 는 세지 않는다 — script·link 만 본다', () => {
+    expect(entryAssets('<img src="/assets/logo-xyz.png">')).toEqual([])
+  })
+
+  // `rel` 은 공백으로 여러 개가 올 수 있다.
+  it('`rel="preload stylesheet"` 처럼 여러 값이어도 잡는다', () => {
+    expect(entryAssets('<link rel="preload stylesheet" href="/assets/a.css">')).toEqual(['a.css'])
+  })
+
+  // `stylesheet` 를 부분 문자열로 찾으면 `rel="not-stylesheet"` 도 걸린다.
+  it('⚠️ `rel` 은 낱말 단위로 본다', () => {
+    expect(entryAssets('<link rel="prefetch" href="/assets/a.js">')).toEqual([])
+  })
+
+  it('인라인 `<script>` 는 대상이 아니다', () => {
+    expect(entryAssets('<script>document.title="x"</script>')).toEqual([])
   })
 
   it('참조가 없으면 빈 배열', () => {
