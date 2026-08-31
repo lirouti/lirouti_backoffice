@@ -10,9 +10,12 @@ import { useNavigate, useParams } from 'react-router'
 
 import { css } from 'styled-system/css'
 
+import { useFormDraft } from '@/shared/hooks/useFormDraft'
+import { restoreDraft } from '@/shared/lib/draft'
 import { AssetThumb } from '@/shared/ui/AssetThumb'
 import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
+import { DraftNotice, DraftSavedAt } from '@/shared/ui/DraftNotice'
 import { EmptyState, Skeleton } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { Input } from '@/shared/ui/Input'
@@ -24,6 +27,7 @@ import { Textarea } from '@/shared/ui/Textarea'
 
 import { kindOfSlot,
   emptyItemInput,
+  isKnownSlot,
   ITEM_SOURCE_LABEL,
   SLOT_LABEL,
   SLOT_ORDER,
@@ -44,8 +48,7 @@ import { useItem, useSaveItem } from '@/api/items'
 import { useUnsavedGuard } from '@/stores/dirtyStore'
 
 import { AssetPicker } from './AssetPicker'
-import { restoreDraft } from './draft'
-import { useItemDraft } from './useItemDraft'
+
 
 const SLOT_OPTIONS: { value: Slot; label: string }[] = SLOT_ORDER.map((s) => ({
   value: s,
@@ -63,6 +66,16 @@ const SOURCE_OPTIONS = (Object.keys(ITEM_SOURCE_LABEL) as ItemSource[]).map((s) 
 }))
 
 /** 원본의 `seasonOpts`. 시즌은 아직 도메인 개념이 아니라 문자열이다. */
+/**
+ * 초안 칸 이름.
+ *
+ * ⚠️ **엔티티 이름을 붙인다.** 그냥 `'new'` 로 두면 `/items/new` 와 `/coupons/new` 가
+ *    같은 칸을 써서 **하나가 다른 하나를 덮어쓴다** (docs/ARCHITECTURE.md §33.2).
+ *
+ * 훅이 이 값을 인자로 받으므로 모듈 함수로 둔다 (§14.2).
+ */
+const draftScope = (itemId?: string): string => `items:${itemId ?? 'new'}`
+
 const SEASON_OPTIONS = ['상시', '시즌 2', '시즌 3', '시즌 4']
 
 /**
@@ -132,14 +145,14 @@ function ItemForm({ itemId, initial }: { itemId?: string; initial: ItemInput }) 
   const save = useSaveItem()
   const upload = useUploadAsset()
   // 폼을 만들기 **전에** 읽는다. 만든 뒤에는 기본값을 갈아 끼울 수 없다.
-  const [restored] = useState(() => restoreDraft(itemId ?? 'new'))
+  const [restored] = useState(() => restoreDraft(draftScope(itemId), initial, isKnownSlot))
   // ⚠️ **알림의 표시 여부는 따로 둔다.** `restored` 는 마운트 시점에 고정되므로
   //    「새로 시작」 으로 초안을 버려도 계속 참이고, 알림이 지워지지 않는다.
   const [noticeOpen, setNoticeOpen] = useState(restored != null)
   // 고르기만 하고 **아직 올리지 않은** 파일. 「등록」 을 눌러야 올라간다 (§4.5).
   const [pending, setPending] = useState<PendingAsset | null>(null)
   const form = useForm<ItemInput>({ defaultValues: initial })
-  const draft = useItemDraft(itemId ?? 'new', form)
+  const draft = useFormDraft(draftScope(itemId), form.watch(), form.formState.isDirty)
   // 임시 저장은 등록이 아니다 — 초안이 있어도 폼이 더러우면 경고를 켠다.
   const markSaved = useUnsavedGuard(form.formState.isDirty)
 
@@ -207,7 +220,7 @@ function ItemForm({ itemId, initial }: { itemId?: string; initial: ItemInput }) 
 
       {save.error && <ErrorBanner message={save.error.message} />}
       {noticeOpen && (
-        <RestoredNotice
+        <DraftNotice
           onDiscard={() => {
             draft.clear()
             // 등록이면 빈 폼, 수정이면 저장돼 있던 값으로 되돌린다.
@@ -247,41 +260,8 @@ function ItemForm({ itemId, initial }: { itemId?: string; initial: ItemInput }) 
         </Button>
       </div>
 
-      {draft.savedAt && (
-        <p
-          // 방금 무슨 일이 있었는지 조용히 알린다. 저장은 사용자가 누른 것이라 alert 는 과하다.
-          aria-live="polite"
-          className={css({ m: '8px 0 0', textAlign: 'right', textStyle: 'caption', color: 'faint' })}
-        >
-          임시 저장됨
-        </p>
-      )}
+      <DraftSavedAt at={draft.savedAt} />
     </form>
-  )
-}
-
-function RestoredNotice({ onDiscard }: { onDiscard: () => void }) {
-  return (
-    <div
-      role="status"
-      className={css({
-        display: 'flex',
-        alignItems: 'center',
-        gap: '10px',
-        p: '10px 14px',
-        mb: '14px',
-        bg: 'warnBg',
-        border: '1px solid token(colors.warnBd)',
-        borderRadius: 'lg',
-        textStyle: 'label',
-        color: 'warnFg',
-      })}
-    >
-      <span className={css({ flex: '1' })}>임시 저장된 내용을 불러왔습니다.</span>
-      <Button size="sm" onClick={onDiscard}>
-        새로 시작
-      </Button>
-    </div>
   )
 }
 

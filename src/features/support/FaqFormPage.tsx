@@ -9,9 +9,12 @@ import { useNavigate, useSearchParams } from 'react-router'
 
 import { css } from 'styled-system/css'
 
+import { useFormDraft } from '@/shared/hooks/useFormDraft'
+import { restoreDraft } from '@/shared/lib/draft'
 import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
 import { Dialog } from '@/shared/ui/Dialog'
+import { DraftNotice, DraftSavedAt } from '@/shared/ui/DraftNotice'
 import { Skeleton } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { Input } from '@/shared/ui/Input'
@@ -43,23 +46,34 @@ const prefillOf = (p: URLSearchParams): FaqInput => ({
 /** 훅이 이 값을 인자로 받으므로 모듈 함수로 둔다 (§14.2) */
 const idOf = (p: URLSearchParams): string => p.get('id') ?? ''
 
+/**
+ * 초안 칸 이름.
+ *
+ * ⚠️ **엔티티 이름을 붙인다.** 그냥 `'new'` 로 두면 화면마다의 `/…/new` 가 **같은 칸을
+ *    써서 하나가 다른 하나를 덮어쓴다** (docs/ARCHITECTURE.md §33.2).
+ */
+const draftScope = (faqId: string): string => `faq:${faqId || 'new'}`
+
+/**
+ * 편집 대상이 정해진 뒤에 폼을 마운트한다.
+ *
+ * ⚠️ **`?id=` 만 바뀌면 경로가 같아서 컴포넌트가 다시 마운트되지 않는다.** 그러면
+ *    3번을 쓰다 만 초안이 5번 화면에 그대로 뜨고, **5번 칸에 저장되며, 저장을 누르면
+ *    3번의 내용이 5번에 덮어써진다** (docs/ARCHITECTURE.md §33.7).
+ */
 export default function FaqFormPage() {
-  const navigate = useNavigate()
   const [params] = useSearchParams()
   const { data, isPending, error } = useFaq(idOf(params))
-  const save = useSaveFaq()
-  const remove = useDeleteFaq()
-  // 손대기 전에는 `null` — 그동안은 서버 값을 그대로 보여 준다.
-  // ⚠️ **`useEffect` 로 폼에 복사하지 않는다.** 서버 값이 늦게 오면 한 번 그린 뒤
-  //    덮어쓰게 되고, 그사이 사용자가 친 글자가 사라진다 (docs/ARCHITECTURE.md §27.3).
-  const [draft, setDraft] = useState<FaqInput | null>(null)
-  const [tried, setTried] = useState(false)
-  const [asking, setAsking] = useState(false)
-  const markSaved = useUnsavedGuard(draft !== null)
 
   const faqId = idOf(params)
   const editing = faqId !== ''
-  const loaded: FaqInput | null = data
+
+  if (editing && isPending) return <Skeleton rows={8} />
+  if (editing && (error || !data)) {
+    return <ErrorBanner message={error?.message ?? 'FAQ 를 불러오지 못했습니다.'} />
+  }
+
+  const initial: FaqInput = data
     ? {
         category: data.category,
         question: data.question,
@@ -67,14 +81,34 @@ export default function FaqFormPage() {
         visible: data.visible,
         tags: joinTags(data.tags),
       }
-    : null
-  const form = draft ?? loaded ?? prefillOf(params)
-  const errors = validateFaq(form)
+    : prefillOf(params)
 
-  if (editing && isPending) return <Skeleton rows={8} />
-  if (editing && (error || !data)) {
-    return <ErrorBanner message={error?.message ?? 'FAQ 를 불러오지 못했습니다.'} />
-  }
+  // ⚠️ **`key` 가 대상을 바꿀 때 초안 · 오류 표시 · 알림을 함께 초기화한다.**
+  return <FaqForm key={faqId} faqId={faqId} initial={initial} />
+}
+
+/**
+ * 폼 본체. 초기값이 준비된 뒤에 마운트되므로 **서버 값을 `useEffect` 로 복사하지
+ * 않는다** — 늦게 온 값이 사용자가 친 글자를 덮어쓰는 사고를 아예 없앤다 (§27.3).
+ */
+function FaqForm({ faqId, initial }: { faqId: string; initial: FaqInput }) {
+  const navigate = useNavigate()
+  const save = useSaveFaq()
+  const remove = useDeleteFaq()
+  // 손대기 전에는 `null` — 그동안은 받아 온 값을 그대로 보여 준다.
+  const [draft, setDraft] = useState<FaqInput | null>(() => restoreDraft(draftScope(faqId), EMPTY))
+  const [tried, setTried] = useState(false)
+  const [asking, setAsking] = useState(false)
+  // ⚠️ **알림 표시 여부는 따로 둔다.** `draft` 는 계속 바뀌므로 「되살렸다」 의 표시로
+  //    쓸 수 없다 — 「새로 시작」 을 눌러도 그 뒤 한 글자만 치면 다시 참이 된다.
+  const [noticeOpen, setNoticeOpen] = useState(draft != null)
+  const markSaved = useUnsavedGuard(draft !== null)
+  // `draft` 가 `null` 이 아니면 손댄 것이다 — 이 화면은 그게 곧 더러움이다.
+  const autosave = useFormDraft(draftScope(faqId), draft, draft !== null)
+
+  const editing = faqId !== ''
+  const form = draft ?? initial
+  const errors = validateFaq(form)
 
   const set = <K extends keyof FaqInput>(k: K, v: FaqInput[K]) => setDraft({ ...form, [k]: v })
 
@@ -85,7 +119,7 @@ export default function FaqFormPage() {
     if (Object.keys(errors).length > 0) return
     save.mutate(
       { input: form, faqId: editing ? Number(faqId) : undefined },
-      { onSuccess: () => { markSaved(); back() } },
+      { onSuccess: () => { autosave.clear(); markSaved(); back() } },
     )
   }
 
@@ -102,12 +136,26 @@ export default function FaqFormPage() {
               </Button>
             )}
             <Button onClick={back}>취소</Button>
+            <Button onClick={autosave.saveNow} disabled={draft === null}>
+              임시 저장
+            </Button>
             <Button variant="primary" onClick={commit} disabled={save.isPending}>
               {editing ? '저장' : '등록'}
             </Button>
           </>
         }
       />
+
+      {noticeOpen && (
+        <DraftNotice
+          onDiscard={() => {
+            autosave.clear()
+            setDraft(null)
+            setNoticeOpen(false)
+          }}
+        />
+      )}
+      <DraftSavedAt at={autosave.savedAt} />
 
       {(save.error || remove.error) && (
         <ErrorBanner message={(save.error ?? remove.error)!.message} />

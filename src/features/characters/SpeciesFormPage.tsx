@@ -9,9 +9,12 @@ import { useNavigate } from 'react-router'
 
 import { css } from 'styled-system/css'
 
+import { useFormDraft } from '@/shared/hooks/useFormDraft'
+import { restoreDraft } from '@/shared/lib/draft'
 import { AssetThumb } from '@/shared/ui/AssetThumb'
 import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
+import { DraftNotice, DraftSavedAt } from '@/shared/ui/DraftNotice'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { Input } from '@/shared/ui/Input'
 import { PageHeader } from '@/shared/ui/PageHeader'
@@ -47,14 +50,30 @@ import { useUnsavedGuard } from '@/stores/dirtyStore'
  * ⚠️ **새 종은 「미출현」 으로 만들어진다.** 클라이언트에 그 종의 아트가 아직 없으므로
  *    등록하자마자 뽑기에 나오면 안 된다. 그 사실을 화면에서도 말한다.
  */
+/**
+ * 초안 칸 이름.
+ *
+ * ⚠️ **엔티티 이름을 붙인다.** 그냥 `'new'` 로 두면 화면마다의 `/…/new` 가 **같은 칸을
+ *    써서 하나가 다른 하나를 덮어쓴다** (docs/ARCHITECTURE.md §33.2).
+ */
+const draftScope = (): string => `species:new`
+
 export default function SpeciesFormPage() {
   const navigate = useNavigate()
   const save = useSaveSpecies()
   const list = useSpeciesList()
-  const [input, setInput] = useState<SpeciesInput>(emptySpeciesInput)
-  const [touched, setTouched] = useState(false)
+  // 폼을 만들기 **전에** 읽는다 — 만든 뒤에는 초기값을 갈아 끼울 수 없다.
+  const [restored] = useState(() => restoreDraft(draftScope(), emptySpeciesInput()))
+  const [input, setInput] = useState<SpeciesInput>(restored ?? emptySpeciesInput)
+  // ⚠️ **되살렸으면 처음부터 「손댔다」 다.** 안 그러면 미저장 경고도 자동 저장도 안 돌아
+  //    되살려 놓고 다음 새로고침에 또 잃는다.
+  const [touched, setTouched] = useState(restored != null)
+  // ⚠️ **알림 표시 여부는 따로 둔다.** `restored` 는 마운트 시점에 고정이라
+  //    「새로 시작」 으로 버려도 계속 참이고 알림이 안 지워진다.
+  const [noticeOpen, setNoticeOpen] = useState(restored != null)
 
   const markSaved = useUnsavedGuard(touched)
+  const draft = useFormDraft(draftScope(), input, touched)
 
   // ⚠️ **목록이 없으면 중복 검사가 조용히 꺼진다.** `taken` 이 빈 배열이라 이미 쓰는
   //    코드도 통과하고, 파사드는 중복을 보지 않으므로 그대로 저장된다. 아직 오는 중이거나
@@ -79,6 +98,7 @@ export default function SpeciesFormPage() {
       { input },
       {
         onSuccess: (sp) => {
+          draft.clear()
           // ⚠️ 표시를 지금 지운다 — 아래 `navigate` 를 이동 가드가 막지 않게.
           markSaved()
           navigate(SCREENS.speciesdet.path.replace(':speciesId', String(sp.key)))
@@ -93,6 +113,18 @@ export default function SpeciesFormPage() {
         title="종 등록"
         sub="종은 대표 색으로 구분됩니다. 아트는 캐릭터팀이 따로 올립니다."
       />
+
+      {noticeOpen && (
+        <DraftNotice
+          onDiscard={() => {
+            draft.clear()
+            setInput(emptySpeciesInput())
+            setTouched(false)
+            setNoticeOpen(false)
+          }}
+        />
+      )}
+      <DraftSavedAt at={draft.savedAt} />
 
       {save.error && <ErrorBanner message={save.error.message} />}
       {list.isError && (
@@ -207,6 +239,9 @@ export default function SpeciesFormPage() {
       <div className={css({ display: 'flex', justifyContent: 'flex-end', gap: '8px', mt: '18px' })}>
         <Button type="button" onClick={() => navigate(SCREENS.species.path)}>
           취소
+        </Button>
+        <Button type="button" onClick={draft.saveNow} disabled={!touched}>
+          임시 저장
         </Button>
         <Button
           type="submit"
