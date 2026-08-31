@@ -33,6 +33,8 @@ const IMPLEMENTED: Partial<Record<ScreenId, React.LazyExoticComponent<React.Comp
   // 등록·수정은 같은 화면이다 — `itemId` 유무로 갈린다.
   itemedit: lazy(() => import('@/features/items/ItemFormPage')),
   itemnew: lazy(() => import('@/features/items/ItemFormPage')),
+  faq: lazy(() => import('@/features/support/FaqPage')),
+  faqnew: lazy(() => import('@/features/support/FaqFormPage')),
   gems: lazy(() => import('@/features/shop/GemsPage')),
   items: lazy(() => import('@/features/items/ItemsPage')),
   levels: lazy(() => import('@/features/levels/LevelsPage')),

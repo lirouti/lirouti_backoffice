@@ -50,6 +50,10 @@ export const qk = {
     /** 상점 첫 화면 진열 + 그 자리에 놓인 아이템 */
     slots: () => ['shop', 'slots'] as const,
   },
+  faq: {
+    all: ['faq'] as const,
+    list: () => ['faq', 'list'] as const,
+  },
   push: {
     all: ['push'] as const,
     list: (filter: Record<string, unknown> = {}) => ['push', 'list', filter] as const,

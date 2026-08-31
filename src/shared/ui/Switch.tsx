@@ -10,6 +10,15 @@ type SwitchProps = {
   /** 라벨 아래 한 줄 설명 */
   hint?: string
   disabled?: boolean
+  /**
+   * 라벨을 **화면에서만** 숨긴다. 접근 이름(`aria-label`)은 그대로 남는다.
+   *
+   * ⚠️ **줄마다 스위치가 있는 표에 쓴다.** 「노출」 처럼 짧게 줄이면 화면은 깔끔하지만
+   *    스크린리더가 **어느 줄의 스위치인지 말하지 못한다** — 같은 이름이 스무 개가 된다.
+   *    라벨에는 무엇의 스위치인지 다 적고 이 옵션으로 감춘다
+   *    (docs/ARCHITECTURE.md §27.2).
+   */
+  labelHidden?: boolean
   className?: string
 }
 
@@ -28,7 +37,7 @@ type SwitchProps = {
  *    3:1 을 요구한다). 꺼짐은 `faint2` 테두리 + `faint2` 노브로 그린다 (3.34:1).
  *    `faint2` 는 원래 이 용도의 토큰이다 — 아이콘·테두리 전용, 텍스트 금지.
  */
-export function Switch({ checked, onChange, label, hint, disabled, className }: SwitchProps) {
+export function Switch({ checked, onChange, label, hint, disabled, labelHidden, className }: SwitchProps) {
   const hintId = useId()
 
   return (
@@ -40,7 +49,10 @@ export function Switch({ checked, onChange, label, hint, disabled, className }: 
       // "재고 0 이면 자동 숨김다음 정산 주기부터 적용됩니다" 가 된다.
       // 이름은 라벨로 못박고 힌트는 설명으로만 붙인다.
       aria-label={label}
-      aria-describedby={hint ? hintId : undefined}
+      // ⚠️ **숨긴 힌트를 가리키면 안 된다.** `labelHidden` 이면 힌트 요소가 아예 없어서
+      //    `aria-describedby` 가 **존재하지 않는 id** 를 가리킨다 — 보조기술이 조용히
+      //    아무것도 못 읽는다 (docs/ARCHITECTURE.md §27.2).
+      aria-describedby={hint && !labelHidden ? hintId : undefined}
       disabled={disabled}
       onClick={() => onChange(!checked)}
       className={`group ${css({
@@ -91,16 +103,18 @@ export function Switch({ checked, onChange, label, hint, disabled, className }: 
         />
       </span>
 
-      <span className={css({ minWidth: '0' })}>
-        <span className={css({ display: 'block', textStyle: 'body', fontWeight: '600', color: 'ink' })}>
-          {label}
-        </span>
-        {hint && (
-          <span id={hintId} className={css({ display: 'block', textStyle: 'caption', color: 'faint' })}>
-            {hint}
+      {!labelHidden && (
+        <span className={css({ minWidth: '0' })}>
+          <span className={css({ display: 'block', textStyle: 'body', fontWeight: '600', color: 'ink' })}>
+            {label}
           </span>
-        )}
-      </span>
+          {hint && (
+            <span id={hintId} className={css({ display: 'block', textStyle: 'caption', color: 'faint' })}>
+              {hint}
+            </span>
+          )}
+        </span>
+      )}
     </button>
   )
 }
