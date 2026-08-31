@@ -34,7 +34,10 @@ export type CodeTone = '파랑' | '빨강' | '노랑' | '초록' | '보라' | '�
 export const CODE_TONES: CodeTone[] = ['파랑', '빨강', '노랑', '초록', '보라', '회색']
 
 export type CodeValue = {
-  /** `ACCOUNT` — 영문 대문자와 밑줄만. **저장된 데이터가 이 값을 그대로 들고 있다** */
+  /**
+   * `ACCOUNT` · `S1` — 영문 대문자로 시작하고 대문자 · 숫자 · 밑줄.
+   * **저장된 데이터가 이 값을 그대로 들고 있다**
+   */
   code: string
   /** 화면에 보이는 이름 */
   label: string

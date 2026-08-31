@@ -7,7 +7,10 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  CODE_RULE_TEXT,
   canDeleteValue,
+  hasDuplicateCodes,
+  normalizeCodeGroupInput,
   deletableValues,
   filterGroups,
   isCodeKey,
@@ -50,7 +53,7 @@ const input = (over: Partial<CodeGroupInput> = {}): CodeGroupInput => ({
 })
 
 describe('isCodeKey', () => {
-  it('영문 대문자와 밑줄만', () => {
+  it('영문 대문자 · 숫자 · 밑줄', () => {
     expect(isCodeKey('QNA_CATEGORY')).toBe(true)
     expect(isCodeKey('A1_B2')).toBe(true)
   })
@@ -60,6 +63,17 @@ describe('isCodeKey', () => {
     for (const bad of ['Account', '문의분류', '1ABC', '_ABC', '', 'A-B']) {
       expect(isCodeKey(bad)).toBe(false)
     }
+  })
+
+  // 시즌 코드가 `S1` · `S2` · `S3` 다 — 숫자를 막으면 지금 있는 데이터가 못 들어온다.
+  it('⚠️ 첫 글자 뒤의 숫자는 허용한다', () => {
+    for (const ok of ['S1', 'S2', 'S3', 'A1_B2']) expect(isCodeKey(ok)).toBe(true)
+  })
+
+  // 메시지와 실제 규칙이 어긋나면 사람이 규칙을 못 배운다.
+  it('⚠️ 안내 문구가 실제 패턴과 맞는다', () => {
+    expect(CODE_RULE_TEXT).toContain('숫자')
+    expect(validateCodeGroup(input({ codeKey: 'bad key' })).codeKey).toContain(CODE_RULE_TEXT)
   })
 })
 
@@ -78,6 +92,40 @@ describe('suggestCodeKey', () => {
     for (const name of ['', '   ', '???', '한글만', '1234']) {
       expect(isCodeKey(suggestCodeKey(name))).toBe(true)
     }
+  })
+})
+
+describe('normalizeCodeGroupInput', () => {
+  it('앞뒤 공백을 없애고 빈 줄을 버린다', () => {
+    const out = normalizeCodeGroupInput(
+      input({
+        name: ' 신고 유형 ',
+        codeKey: 'REPORT_KIND ',
+        note: '  설명  ',
+        values: [
+          { code: ' SPAM ', label: ' 스팸 ', tone: '빨강' },
+          { code: '', label: '', tone: '회색' },
+        ],
+      }),
+    )
+    expect(out.name).toBe('신고 유형')
+    expect(out.codeKey).toBe('REPORT_KIND')
+    expect(out.note).toBe('설명')
+    expect(out.values).toEqual([{ code: 'SPAM', label: '스팸', tone: '빨강' }])
+  })
+
+  // 다듬기가 검증과 저장에 흩어져 있으면 한쪽만 고쳤을 때 둘이 갈린다.
+  it('⚠️ 다듬은 값은 그대로 다시 다듬어도 같다', () => {
+    const once = normalizeCodeGroupInput(input({ codeKey: ' A_B ' }))
+    expect(normalizeCodeGroupInput(once)).toEqual(once)
+  })
+})
+
+describe('hasDuplicateCodes', () => {
+  it('겹치면 참', () => {
+    expect(hasDuplicateCodes(['A', 'B'])).toBe(false)
+    expect(hasDuplicateCodes(['A', 'B', 'A'])).toBe(true)
+    expect(hasDuplicateCodes([])).toBe(false)
   })
 })
 
@@ -208,6 +256,6 @@ describe('validateCodeGroup', () => {
         { code: 'spam', label: '스팸2', tone: '회색' },
       ],
     })
-    expect(validateCodeGroup(lower).values).toBe('코드는 영문 대문자와 밑줄만 씁니다.')
+    expect(validateCodeGroup(lower).values).toBe(`코드는 ${CODE_RULE_TEXT}.`)
   })
 })

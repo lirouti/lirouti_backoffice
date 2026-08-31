@@ -24,6 +24,7 @@ import { Textarea } from '@/shared/ui/Textarea'
 
 import {
   CODE_CATEGORIES,
+  CODE_RULE_TEXT,
   CODE_TONE_BADGE,
   CODE_TONES,
   emptyValue,
@@ -55,7 +56,8 @@ export default function CodeFormPage() {
   const create = useCreateCodeGroup()
   const [form, setForm] = useState<CodeGroupInput>(EMPTY)
   const [tried, setTried] = useState(false)
-  const markSaved = useUnsavedGuard(form.name !== '' || form.codeKey !== '')
+  // ⚠️ **폼 전체를 본다.** 이름·키만 보면 설명·분류·값만 채운 사람이 경고 없이 잃는다.
+  const markSaved = useUnsavedGuard(JSON.stringify(form) !== JSON.stringify(EMPTY))
 
   const errors = validateCodeGroup(form, data?.takenKeys ?? [])
   const rows = usableValues(form)
@@ -116,7 +118,7 @@ export default function CodeFormPage() {
                       onChange={(v) => set('codeKey', v)}
                       label="코드 키"
                       placeholder="REPORT_KIND"
-                      hint="영문 대문자와 밑줄만 · 등록 뒤에는 바꿀 수 없습니다"
+                      hint={`${CODE_RULE_TEXT} · 등록 뒤에는 바꿀 수 없습니다`}
                       error={tried ? errors.codeKey : undefined}
                       required
                     />

@@ -11,8 +11,9 @@ import { nowAt } from '@/shared/lib/today'
 import {
   canDeleteValue,
   filterGroups,
+  hasDuplicateCodes,
+  normalizeCodeGroupInput,
   summarizeCodes,
-  usableValues,
   validateCodeGroup,
   type CodeFilter,
   type CodeGroup,
@@ -103,6 +104,10 @@ export async function saveCodeGroupValues({ codeId, values }: SaveValuesVars): P
       )
     }
     if (values.length === 0) throw apiError('http', '값을 하나 이상 남겨야 합니다.', 400)
+    // ⚠️ **순서 저장으로도 중복이 새어 든다.** 폼만 막으면 이 경로가 열려 있다 (§29.1).
+    if (hasDuplicateCodes(values.map((v) => v.code))) {
+      throw apiError('http', '코드가 중복됐습니다.', 400)
+    }
 
     const saved = saveCodeValues(codeId, values)
     if (!saved) throw apiError('http', `코드 그룹 #${codeId} 을(를) 찾을 수 없습니다.`, 404)
@@ -128,11 +133,12 @@ export type CreateGroupVars = {
 export async function createCodeGroup({ input, by }: CreateGroupVars): Promise<CodeGroup> {
   if (USE_MOCK) {
     await mockDelay()
+    // ⚠️ **검증한 값과 저장할 값이 같아야 한다.** 다듬기를 먼저 하고 그것만 쓴다 (§29.3.1).
+    const clean = normalizeCodeGroupInput(input)
     const takenKeys = allCodeGroups().map((g) => g.codeKey)
-    const first = Object.values(validateCodeGroup(input, takenKeys))[0]
+    const first = Object.values(validateCodeGroup(clean, takenKeys))[0]
     if (first) throw apiError('http', first, 400)
-    // 빈 줄은 폼이 들고 있을 수 있다 — 저장할 때 걸러 낸다.
-    return addCodeGroup({ ...input, values: usableValues(input) }, by, nowAt())
+    return addCodeGroup(clean, by, nowAt())
   }
 
   throw new Error('코드 API 가 아직 연결되지 않았습니다. VITE_USE_MOCK=1 로 두세요.')

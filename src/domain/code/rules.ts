@@ -1,14 +1,22 @@
 /** 공통 코드 규칙. */
 import type { CodeGroup, CodeGroupInput, CodeTone, CodeValue } from './types'
 
-/** 코드 키·코드 값이 지켜야 하는 모양 */
+/**
+ * 코드 키·코드 값이 지켜야 하는 모양.
+ *
+ * **첫 글자는 영문 대문자, 그다음은 대문자 · 숫자 · 밑줄.** 숫자를 허용하는 이유는
+ * 실제로 쓰기 때문이다 — 시즌 코드가 `S1` · `S2` · `S3` 다.
+ */
 export const CODE_PATTERN = /^[A-Z][A-Z0-9_]*$/
+
+/** 사람에게 보여 주는 규칙 설명. **오류 메시지와 화면 안내가 같은 문장을 쓴다** */
+export const CODE_RULE_TEXT = '영문 대문자로 시작하고 대문자 · 숫자 · 밑줄만 씁니다'
 
 /**
  * 코드 키로 쓸 수 있는 값인가.
  *
- * ⚠️ **영문 대문자와 밑줄만.** 서버·앱이 이 문자열을 그대로 들고 다니고, 소문자나
- *    한글이 섞이면 비교가 조용히 어긋난다 (`Account` 와 `ACCOUNT` 는 다른 값이다).
+ * ⚠️ **소문자·한글이 섞이면 안 된다.** 서버·앱이 이 문자열을 그대로 들고 다니므로
+ *    `Account` 와 `ACCOUNT` 는 다른 값이 되고, 비교가 조용히 어긋난다.
  */
 export const isCodeKey = (v: string): boolean => CODE_PATTERN.test(v)
 
@@ -96,6 +104,33 @@ export function summarizeCodes(list: CodeGroup[]): CodeSummary {
   }
 }
 
+/**
+ * 저장 직전 모양으로 다듬는다.
+ *
+ * ⚠️ **검증한 값과 저장할 값이 같아야 한다.** 다듬기가 검증과 저장 두 곳에 흩어져
+ *    있으면, 한쪽만 고쳤을 때 **검증을 통과한 것과 다른 값이 저장된다**
+ *    (docs/ARCHITECTURE.md §29.3.1). 부르는 쪽은 이것 하나만 쓴다.
+ */
+export function normalizeCodeGroupInput(input: CodeGroupInput): CodeGroupInput {
+  return {
+    name: input.name.trim(),
+    codeKey: input.codeKey.trim(),
+    category: input.category,
+    note: input.note.trim(),
+    values: usableValues(input).map((v) => ({
+      code: v.code.trim(),
+      label: v.label.trim(),
+      tone: v.tone,
+    })),
+  }
+}
+
+/**
+ * 코드가 겹치는가. **저장 경로도 이걸 본다** — 폼만 막으면 순서 저장으로 새어 든다
+ * (§29.1).
+ */
+export const hasDuplicateCodes = (codes: string[]): boolean => new Set(codes).size !== codes.length
+
 /** 어느 칸이 왜 막혔는가 */
 export type CodeErrors = {
   name?: string
@@ -116,7 +151,7 @@ export function validateCodeGroup(input: CodeGroupInput, takenKeys: string[] = [
 
   const key = input.codeKey.trim()
   if (!key) errors.codeKey = '코드 키를 입력하세요.'
-  else if (!isCodeKey(key)) errors.codeKey = '코드 키는 영문 대문자와 밑줄만 씁니다.'
+  else if (!isCodeKey(key)) errors.codeKey = `코드 키는 ${CODE_RULE_TEXT}.`
   else if (takenKeys.some((t) => t.toUpperCase() === key.toUpperCase())) {
     errors.codeKey = '이미 쓰고 있는 코드 키입니다.'
   }
@@ -124,15 +159,14 @@ export function validateCodeGroup(input: CodeGroupInput, takenKeys: string[] = [
   const values = input.values.filter((v) => v.code.trim() || v.label.trim())
   if (values.length === 0) errors.values = '값을 하나 이상 넣으세요.'
   else if (values.some((v) => !isCodeKey(v.code.trim()))) {
-    errors.values = '코드는 영문 대문자와 밑줄만 씁니다.'
+    errors.values = `코드는 ${CODE_RULE_TEXT}.`
   } else if (values.some((v) => !v.label.trim())) {
     errors.values = '표시 이름을 모두 채우세요.'
   } else {
     // ⚠️ 같은 코드가 둘이면 저장된 데이터가 어느 쪽인지 알 수 없다.
     //    여기 오면 위에서 `isCodeKey` 를 통과해 **이미 전부 대문자**다 —
     //    `toUpperCase()` 를 한 번 더 하면 테스트가 증명할 수 없는 방어가 된다.
-    const seen = new Set(values.map((v) => v.code.trim()))
-    if (seen.size !== values.length) errors.values = '코드가 중복됐습니다.'
+    if (hasDuplicateCodes(values.map((v) => v.code.trim()))) errors.values = '코드가 중복됐습니다.'
   }
 
   return errors

@@ -125,21 +125,21 @@ export function saveCodeValues(key: number, values: CodeValue[]): CodeGroup | un
 
 let nextKey = ROWS.length
 
+/**
+ * 새 그룹을 만든다.
+ *
+ * ⚠️ **여기서 다듬지 않는다.** `normalizeCodeGroupInput` 이 이미 했다 —
+ *    두 곳에서 다듬으면 한쪽만 고쳤을 때 검증과 저장이 갈린다 (§29.3.1).
+ */
 export function addCodeGroup(input: CodeGroupInput, by: string, at: string): CodeGroup {
   const created: CodeGroup = {
     key: nextKey,
-    name: input.name.trim(),
-    codeKey: input.codeKey.trim(),
+    name: input.name,
+    codeKey: input.codeKey,
     category: input.category,
-    note: input.note.trim(),
+    note: input.note,
     // 새 그룹의 값은 아직 아무 데도 안 쓰인다.
-    values: input.values.map((v) => ({
-      code: v.code.trim(),
-      label: v.label.trim(),
-      tone: v.tone,
-      uses: 0,
-      visible: true,
-    })),
+    values: input.values.map((v) => ({ ...v, uses: 0, visible: true })),
     // 사용처는 코드를 쓰는 화면이 생겨야 붙는다. 등록만으로는 아무 데도 안 쓰인다.
     usages: [],
     updatedAt: at,
