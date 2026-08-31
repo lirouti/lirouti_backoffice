@@ -10,6 +10,7 @@ import {
   canStop,
   couponStatusOf,
   filterCoupons,
+  normalizeCouponInput,
   summarizeCoupons,
   validateCoupon,
   type Coupon,
@@ -136,9 +137,11 @@ export type IssueVars = {
 export async function issueCoupon({ input, by }: IssueVars): Promise<Coupon> {
   if (USE_MOCK) {
     await mockDelay()
-    const first = Object.values(validateCoupon(input, allCoupons().map((c) => c.code)))[0]
+    // ⚠️ **검증한 값과 저장할 값이 같아야 한다** (§29.3.1). 방식이 안 쓰는 칸도 여기서 지운다.
+    const clean = normalizeCouponInput(input)
+    const first = Object.values(validateCoupon(clean, allCoupons().map((c) => c.code)))[0]
     if (first) throw apiError('http', first, 400)
-    return addCoupon(input, by)
+    return addCoupon(clean, by)
   }
 
   throw new Error('쿠폰 API 가 아직 연결되지 않았습니다. VITE_USE_MOCK=1 로 두세요.')

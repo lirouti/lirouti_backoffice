@@ -77,16 +77,21 @@ export function setCouponStopped(key: number, stopped: boolean): Coupon | undefi
 
 let nextKey = ROWS.length
 
+/**
+ * 새 쿠폰을 만든다.
+ *
+ * ⚠️ **여기서 다듬지 않는다.** `normalizeCouponInput` 이 이미 했다 — 두 곳에서
+ *    다듬으면 한쪽만 고쳤을 때 검증과 저장이 갈린다 (§29.3.1).
+ */
 export function addCoupon(input: CouponInput, by: string): Coupon {
   const created: Coupon = {
     key: nextKey,
-    name: input.name.trim(),
-    // 일괄 발급은 개별 코드를 서버가 만든다. 목록에는 접두사만 보인다.
-    code: input.code.trim().toUpperCase(),
+    name: input.name,
+    code: input.code,
     kind: input.kind,
     rewards: input.rewards,
     used: 0,
-    // 단일·인플루언서는 몇 명이 쓸지 미리 정하지 않는다 — 0 이 곧 무제한이다.
+    // 단일·인플루언서는 정규화에서 0 이 된다 — 0 이 곧 무제한이다.
     issued: input.qty,
     startAt: input.startAt,
     endAt: input.endAt,

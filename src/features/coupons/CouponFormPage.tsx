@@ -251,13 +251,20 @@ export default function CouponFormPage() {
                   label="선착순 인원"
                   placeholder="500"
                   inputMode="numeric"
+                  error={tried ? errors.firstComeQty : undefined}
+                  required
                 />
               )}
               <Switch
                 checked={form.limits.dated}
+                // 켜면 오늘부터 시작하도록 **실제로 채운다.** 빈 칸 두 개를 남기면
+                // 켜자마자 오류가 뜨고, 운영자가 오늘 날짜를 직접 쳐야 한다.
                 onChange={(v) =>
-                  // 기간을 켜면 오늘부터 시작하도록 채워 준다 — 빈 칸 두 개를 남기지 않는다.
-                  set('limits', { ...form.limits, dated: v })
+                  setForm((f) => ({
+                    ...f,
+                    limits: { ...f.limits, dated: v },
+                    startAt: v && !f.startAt ? today() : f.startAt,
+                  }))
                 }
                 label="기간 한정"
                 hint="노출 기간이 지나면 사용할 수 없습니다"

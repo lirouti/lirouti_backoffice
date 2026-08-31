@@ -72,7 +72,9 @@ const COLUMNS: Column<CouponEntry>[] = [
   },
   {
     key: 'rate',
-    label: '사용률',
+    // ⚠️ 열 이름이 「사용률」 이면 무제한 행이 그 이름과 안 맞는다. 이 열은 비율과
+    //    건수를 같이 담으므로 **담는 것을 이름으로** 쓴다 (§30.1).
+    label: '사용',
     minWidth: '170px',
     render: (e) => {
       const rate = usageRate(e.coupon)

@@ -50,7 +50,8 @@ export const isSingleCode = (kind: CouponKind): boolean =>
  */
 export function bulkPrefix(name: string): string {
   const kept = [...name.toUpperCase()].filter((ch) => /[A-Z0-9]/.test(ch)).join('').slice(0, 6)
-  return kept.length >= 2 ? kept : 'BULK'
+  // 한 글자여도 코드로 쓸 수 있다. 운영자가 정한 것을 굳이 버리지 않는다.
+  return kept.length >= 1 ? kept : 'BULK'
 }
 
 /**
@@ -62,7 +63,7 @@ export function bulkPrefix(name: string): string {
  */
 export function couponStatusOf(c: Coupon, today: string): CouponStatus {
   if (c.stopped) return '중단'
-  if (c.limits.dated && c.endAt && c.endAt < today) return '종료'
+  if (isExpired(c, today)) return '종료'
   return '진행 중'
 }
 
@@ -84,9 +85,18 @@ export function usageRate(c: Coupon): number | null {
 export const remaining = (c: Coupon): number | null =>
   c.issued <= 0 ? null : Math.max(0, c.issued - c.used)
 
+/**
+ * 기간이 끝났는가. **상태와 따로 본다.**
+ *
+ * ⚠️ **`couponStatusOf` 로 판정하면 안 된다.** 「중단이 기간보다 먼저」(§30.3) 라서,
+ *    **멈춰 둔 채 기간까지 끝난 쿠폰**의 상태는 「중단」 이다 — 그걸로 「끝났나」 를
+ *    물으면 아니라고 답한다 (docs/ARCHITECTURE.md §30.3.1).
+ */
+export const isExpired = (c: Coupon, today: string): boolean =>
+  c.limits.dated && c.endAt !== '' && c.endAt < today
+
 /** 손으로 멈추거나 되살릴 수 있는가. **끝난 것은 되살리지 않는다** */
-export const canStop = (c: Coupon, today: string): boolean =>
-  couponStatusOf(c, today) !== '종료'
+export const canStop = (c: Coupon, today: string): boolean => !isExpired(c, today)
 
 export const COUPON_TABS = ['전체', '진행 중', '단일 코드', '일괄 발급', '종료 · 중단'] as const
 export type CouponTab = (typeof COUPON_TABS)[number]
@@ -134,8 +144,37 @@ export function summarizeCoupons(list: Coupon[], today: string): CouponSummary {
   }
 }
 
+/**
+ * 저장 직전 모양으로 다듬는다.
+ *
+ * ⚠️ **방식이 안 쓰는 칸은 여기서 지운다.** 폼은 방식을 바꿔도 앞서 친 값을 들고
+ *    있으므로, 그대로 저장하면 **단일 코드에 발급 수량이 붙어 무제한이 아니게 되고**
+ *    일괄 발급이 빈 코드로 저장된다 (docs/ARCHITECTURE.md §30.4.1).
+ */
+export function normalizeCouponInput(input: CouponInput): CouponInput {
+  const single = isSingleCode(input.kind)
+  return {
+    kind: input.kind,
+    name: input.name.trim(),
+    // 일괄·시리얼의 개별 코드는 서버가 만든다. 목록에는 접두사만 보인다.
+    code: single ? input.code.trim().toUpperCase() : `${bulkPrefix(input.name)}-****`,
+    // 단일·인플루언서는 몇 명이 쓸지 정하지 않는다 — 언제나 무제한이다.
+    qty: single ? 0 : input.qty,
+    owner: input.kind === 'influencer' ? input.owner.trim() : '',
+    startAt: input.limits.dated ? input.startAt : '',
+    endAt: input.limits.dated ? input.endAt : '',
+    rewards: input.rewards,
+    limits: {
+      ...input.limits,
+      firstComeQty: input.limits.firstCome ? input.limits.firstComeQty : 0,
+    },
+  }
+}
+
 /** 어느 칸이 왜 막혔는가 */
-export type CouponErrors = Partial<Record<'name' | 'code' | 'qty' | 'owner' | 'period' | 'rewards', string>>
+export type CouponErrors = Partial<
+  Record<'name' | 'code' | 'qty' | 'owner' | 'period' | 'firstComeQty' | 'rewards', string>
+>
 
 /**
  * 발급 폼 검증.
@@ -165,6 +204,11 @@ export function validateCoupon(input: CouponInput, takenCodes: string[] = []): C
   if (input.limits.dated) {
     if (!input.startAt || !input.endAt) errors.period = '노출 시작과 종료를 모두 입력하세요.'
     else if (input.endAt < input.startAt) errors.period = '종료일이 시작일보다 빠릅니다.'
+  }
+
+  // ⚠️ 켜 두고 0 이면 상세가 「제한 없음」 으로 보인다 — 운영자가 건 제한이 사라진다.
+  if (input.limits.firstCome && (!Number.isInteger(input.limits.firstComeQty) || input.limits.firstComeQty <= 0)) {
+    errors.firstComeQty = '선착순 인원은 1 이상의 정수여야 합니다.'
   }
 
   if (input.rewards.length === 0) errors.rewards = '보상을 하나 이상 넣으세요.'
