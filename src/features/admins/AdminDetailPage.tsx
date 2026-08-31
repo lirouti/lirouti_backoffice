@@ -86,7 +86,12 @@ function Detail({ detail }: { detail: AdminDetail }) {
     queue.current = queue.current
       .then(() => setScopes.mutateAsync({ adminId: admin.adminId, scopes: next }))
       // 실패하면 서버 값이 진실이 되게 되돌린다. 삼키므로 뒤에 선 요청은 계속 간다.
-      .catch(() => setDraft(null))
+      //
+      // ⚠️ **그냥 `null` 로 되돌리면 뒤에 선 요청의 초안까지 지운다.** 앞의 것이 실패해도
+      //    뒤의 것은 아직 살아 있어서, 화면은 옛 서버 값으로 돌아가는데 서버에는 새 값이
+      //    저장된다 — 그 사이 한 번 더 누르면 **옛 값을 바탕으로** 다음 목록을 만든다
+      //    (docs/ARCHITECTURE.md §31.8). 내가 마지막인 경우에만 되돌린다.
+      .catch(() => setDraft((current) => (current === next ? null : current)))
   }
 
   const enterPreview = () => {
