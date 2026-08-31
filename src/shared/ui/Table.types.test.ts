@@ -19,6 +19,15 @@ type Row = {
   at?: string
   visible: boolean
   tags: string[]
+  /**
+   * 타입이 풀려 버린 자리. 안에 무엇이 들었는지 알 수 없다.
+   *
+   * ⚠️ **여기서만 `any` 를 쓴다.** `no-explicit-any` 가 손으로 적는 길은 이미 막고 있어서
+   *    (저장소에 `any` 는 0건이다), 남는 경로는 **타입 없는 의존성에서 새어 들어오는 것**뿐이다.
+   *    그 경로를 시험하려면 이 자리에 `any` 가 있어야 한다.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- 위 설명 참고
+  loose: any
 }
 
 /** `render` 가 없으면 `key` 는 행에서 꺼낼 필드 이름이다 */
@@ -37,12 +46,14 @@ const bad: Column<Row>[] = [
   { key: 'visible', label: 'boolean 필드' },
   // @ts-expect-error 배열·객체는 그대로 글자가 되지 않는다
   { key: 'tags', label: '배열 필드' },
+  // @ts-expect-error `any` 는 조건부 타입에서 양쪽으로 분배돼 그냥 통과한다 — 따로 막는다
+  { key: 'loose', label: 'any 필드' },
 ]
 
 describe('Column', () => {
   // 이 파일의 요점은 위의 `@ts-expect-error` 들이다. 런타임에서는 볼 것이 없다.
   it('타입 검사는 `bun run typecheck` 이 한다', () => {
     expect(ok).toHaveLength(4)
-    expect(bad).toHaveLength(3)
+    expect(bad).toHaveLength(4)
   })
 })

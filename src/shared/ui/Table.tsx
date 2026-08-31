@@ -45,6 +45,15 @@ export type Column<Row> = ColumnStyle &
   )
 
 /**
+ * `T` 가 `any` 인가.
+ *
+ * ⚠️ **`any` 는 조건부 타입에서 양쪽 가지로 분배된다** — `any extends string | number` 가
+ *    참이자 거짓이라 아래 검사를 그냥 통과한다. `0 extends 1 & T` 는 `T` 가 `any` 일 때만
+ *    참인데, `1 & any` 가 `any` 라서 `0` 이 거기 들어가기 때문이다.
+ */
+type IsAny<T> = 0 extends 1 & T ? true : false
+
+/**
  * 그대로 글자가 되는 필드의 이름만.
  *
  * ⚠️ **`ReactNode` 로 좁히면 부족하다.** `ReactNode` 에는 `boolean` 이 들어 있고 React 는
@@ -52,12 +61,18 @@ export type Column<Row> = ColumnStyle &
  *    바로 그 모양이 된다. 객체·배열·함수도 같은 이유로 뺀다.
  *
  * `null`·`undefined` 는 허용한다 — 「값이 없다」 를 빈 칸으로 그리는 것은 의도된 표시다.
+ *
+ * ⚠️ **`any` 도 막는다.** `any` 는 아래 검사를 그냥 통과하는데, 실제로 들어 있는 값이
+ *    `boolean` 이면 **똑같이 빈 칸**이 된다 — 보증에 예외를 하나 남기면 그 예외가
+ *    다음 사고의 자리가 된다 (docs/ARCHITECTURE.md §35.2).
  */
 type FieldKey<Row> = {
   [K in keyof Row]-?: K extends string
-    ? NonNullable<Row[K]> extends string | number
-      ? K
-      : never
+    ? IsAny<Row[K]> extends true
+      ? never
+      : NonNullable<Row[K]> extends string | number
+        ? K
+        : never
     : never
 }[keyof Row]
 
