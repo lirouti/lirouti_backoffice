@@ -44,8 +44,22 @@ function readTokens(): Record<string, Record<Mode, string>> {
 const T = readTokens()
 const MODES: Mode[] = ['base', 'dark']
 
-/** 텍스트가 얹히는 표면들. 이 중 가장 불리한 것을 기준으로 잡는다. */
+/** **중립 표면.** 텍스트 세 단계가 전부 얹힐 수 있다. 가장 불리한 것을 기준으로 잡는다 */
 const SURFACES = ['page', 'surf', 'surf2'] as const
+
+/**
+ * **틴트 표면.** 색이 들어간 배경이라 중립 표면보다 어둡고, **쓸 수 있는 글자색이 적다.**
+ *
+ * ⚠️ `soft` 위의 `faint` 는 4.35:1 로 **본문 기준에 못 미친다** — `pri` 가 밝은 배경에서
+ *    4.35:1 밖에 안 나와 `priD` 를 따로 둔 것과 같은 상황이다(§3.5). 여기서는 `sub` 까지만
+ *    쓴다. 운영자 말풍선·선택된 세그먼트가 이 표면이다.
+ *
+ * Lighthouse 는 **그 색이 실제로 쓰인 화면**만 보므로, 아직 안 만든 화면까지 보려면
+ * 여기서 막아야 한다 (docs/ARCHITECTURE.md §3.5.1).
+ */
+const TINTED: { surface: string; allow: readonly string[]; deny: readonly string[] }[] = [
+  { surface: 'soft', allow: ['ink', 'sub'], deny: ['faint', 'faint2'] },
+]
 
 /** 본문 텍스트 4.5:1, 큰 글씨·비텍스트 UI 3:1 (WCAG 2.1 AA) */
 const AA_TEXT = 4.5
@@ -87,6 +101,29 @@ for (const mode of MODES) {
 
   // 4. 주 버튼 — pri 를 칠하고 그 위에 onPri 로 글자를 얹는다.
   require_('onPri on pri', mode, T.onPri![mode], T.pri![mode], AA_TEXT, '기본 버튼')
+
+  // 4.5 틴트 표면은 쓸 수 있는 글자색이 따로다.
+  for (const { surface, allow, deny } of TINTED) {
+    const bg = T[surface]?.[mode]
+    if (!bg) continue
+    for (const name of allow) {
+      const fg = T[name]?.[mode]
+      if (fg) require_(`${name} (${surface} 위)`, mode, fg, bg, AA_TEXT, `${surface} 에서 허용한 글자색`)
+    }
+    // 막은 색이 **정말로 못 쓰는 색인지** 확인한다 — 통과해 버리면 금지가 근거를 잃는다.
+    for (const name of deny) {
+      const fg = T[name]?.[mode]
+      if (fg && ratio(fg, bg) >= AA_TEXT) {
+        issues.push({
+          what: `${name} (${surface} 위)`,
+          mode,
+          got: ratio(fg, bg),
+          need: AA_TEXT,
+          detail: `${surface} 에서 막아 뒀는데 기준을 넘는다 — 금지를 풀거나 근거를 고칠 것`,
+        })
+      }
+    }
+  }
 
   // 5. 밝은 배경 위의 파란 텍스트는 pri 가 아니라 priD 다.
   const pd = T.priD![mode]
