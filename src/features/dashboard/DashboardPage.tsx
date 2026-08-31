@@ -13,6 +13,8 @@ import { LineChart } from '@/shared/ui/chart/LineChart'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { StatCard } from '@/shared/ui/StatCard'
 
+import { CURRENT_SEASON, seasonLabel } from '@/domain/season'
+
 import { useDashboard } from '@/api/dashboard'
 
 import { LiveChallengesCard } from './LiveChallengesCard'
@@ -37,7 +39,7 @@ export default function DashboardPage() {
       */}
       <PageHeader
         title="지표"
-        sub="시즌 3 · 최근 14일 기준 참여와 경제 지표입니다."
+        sub={`${seasonLabel(CURRENT_SEASON.no)} · 최근 14일 기준 참여와 경제 지표입니다.`}
         actions={
           <>
             <Button disabled>기간 설정 · 준비 중</Button>

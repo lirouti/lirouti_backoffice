@@ -16,8 +16,15 @@ export type Unlock = '조건 없음' | '레벨 5 이상' | '업적 3개 달성' 
 
 export const UNLOCKS: Unlock[] = ['조건 없음', '레벨 5 이상', '업적 3개 달성', '친구 3명 이상']
 
-export const SEASONS = ['상시', '시즌 1', '시즌 2', '시즌 3'] as const
-export type Season = (typeof SEASONS)[number]
+/**
+ * 시즌 한정 여부. **`상시` 또는 `시즌 N`.**
+ *
+ * ⚠️ **유니온 타입으로 두지 않는다.** 고를 수 있는 시즌은 **지금 시즌에 따라 바뀌는
+ *    값**이라(`seasonOptions`), 타입으로 굳히면 시즌이 넘어갈 때마다 코드를 고쳐야 하고
+ *    실제로 그래서 네 곳이 서로 다른 목록을 들고 있었다 (docs/ARCHITECTURE.md §34.1).
+ *    아는 값인지는 `validateSpecies` 가 본다.
+ */
+export type SpeciesSeason = string
 
 /** 리그의 여섯 슬롯. 종마다 기본 부품만 다르다 */
 export type RigSlot = '정수리' | '눈' | '부리' | '꼬리' | '몸' | '손'
@@ -50,7 +57,7 @@ export type Species = {
   /** 출현 가중치. 같은 희귀도 안에서 서로의 비율을 정한다 */
   weight: number
   unlock: Unlock
-  season: Season
+  season: SpeciesSeason
   /** 슬롯별 기본 부품 */
   slots: Record<RigSlot, string>
   /** 이 종을 가진 계정 수 */

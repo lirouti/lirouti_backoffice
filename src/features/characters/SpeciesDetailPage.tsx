@@ -21,13 +21,13 @@ import { PageHeader } from '@/shared/ui/PageHeader'
 import { Select } from '@/shared/ui/Select'
 import { Table, type Column } from '@/shared/ui/Table'
 
+import { CURRENT_SEASON, seasonOptions } from '@/domain/season'
 import {
   appearanceLabel,
   appearanceShare,
   appearanceTone,
   RARITY_TONE,
   RIG_SLOTS,
-  SEASONS,
   SLOT_PARTS,
   speciesTint,
   toSpeciesInput,
@@ -208,7 +208,8 @@ function Detail({ detail, speciesId }: { detail: SpeciesDetail; speciesId: strin
                   <Select
                     value={draft.season}
                     onChange={(v) => set('season', v as SpeciesInput['season'])}
-                    options={SEASONS}
+                    options={seasonOptions(CURRENT_SEASON, draft.season)}
+                    error={errors.season}
                     label="시즌 한정"
                     className={css({ flex: '1 1 160px' })}
                   />

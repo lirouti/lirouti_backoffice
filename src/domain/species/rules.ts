@@ -3,6 +3,7 @@
  *
  * 데이터가 목이든 서버든 여기 규칙은 그대로다.
  */
+import { CURRENT_SEASON, seasonOptions } from '../season'
 import { RIG_SLOTS, SLOT_PARTS, type Species, type SpeciesInput } from './types'
 
 /** `#RRGGBB` 만 받는다. 세 자리 축약(`#abc`)은 넓히지 않고 막는다 — 값이 둘로 갈린다 */
@@ -59,6 +60,10 @@ export function validateSpecies(input: SpeciesInput, taken: string[] = []): Spec
   if (!Number.isFinite(input.weight) || input.weight <= 0) {
     errors.weight = '출현 가중치는 1 이상이어야 합니다.'
   }
+
+  // ⚠️ **아는 시즌인지 여기서 본다.** 목록이 값(`seasonOptions`)이라 타입이 못 막는다 —
+  //    모르는 시즌으로 저장하면 그 종은 어느 시즌에도 안 뜬다 (docs/ARCHITECTURE.md §34.1).
+  if (!seasonOptions(CURRENT_SEASON).includes(v.season)) errors.season = '없는 시즌입니다.'
 
   // 목록에 없는 부품을 넣으면 클라이언트가 그릴 것이 없다.
   const badSlot = RIG_SLOTS.find((s) => !SLOT_PARTS[s].includes(input.slots[s]))

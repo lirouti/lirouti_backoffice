@@ -6,6 +6,7 @@
  */
 import { describe, expect, it } from 'vitest'
 
+import { ALWAYS, CURRENT_SEASON, seasonLabel } from '../season'
 import {
   appearanceShare,
   emptySpeciesInput,
@@ -15,6 +16,17 @@ import {
   validateSpecies,
 } from './rules'
 import type { Species, SpeciesInput } from './types'
+
+/**
+ * ⚠️ **시즌 이름을 손으로 적지 않는다.** `CURRENT_SEASON` 이 넘어가면 `'시즌 3'` 은
+ *    지금 시즌이 아니게 되고 `'시즌 9'` 는 **언젠가 유효해진다** — 그때 테스트는
+ *    빨개지는 게 아니라 **엉뚱한 것을 재기 시작한다** (docs/ARCHITECTURE.md §34.2).
+ */
+const NOW = seasonLabel(CURRENT_SEASON.no)
+const FIRST = seasonLabel(1)
+const NEXT = seasonLabel(CURRENT_SEASON.no + 1)
+/** 목록은 다음 시즌까지다. 그 하나 너머는 언제나 밖이다 */
+const BEYOND = seasonLabel(CURRENT_SEASON.no + 2)
 
 const input = (over: Partial<SpeciesInput> = {}): SpeciesInput => ({
   ...emptySpeciesInput(),
@@ -38,6 +50,28 @@ const species = (over: Partial<Species> = {}): Species => ({
 describe('validateSpecies', () => {
   it('다 채우면 오류가 없다', () => {
     expect(validateSpecies(input())).toEqual({})
+  })
+
+  it('상시와 지금 시즌을 받는다', () => {
+    expect(validateSpecies(input({ season: ALWAYS })).season).toBeUndefined()
+    expect(validateSpecies(input({ season: NOW })).season).toBeUndefined()
+  })
+
+  // 목록이 값(`seasonOptions`)이라 타입이 못 막는다 — 모르는 시즌으로 저장하면
+  // 그 종은 어느 시즌에도 안 뜬다.
+  it('⚠️ 없는 시즌은 막는다', () => {
+    expect(validateSpecies(input({ season: BEYOND })).season).toBe('없는 시즌입니다.')
+    expect(validateSpecies(input({ season: '' })).season).toBe('없는 시즌입니다.')
+  })
+
+  // 시즌 1 종을 수정하려고 열었을 때 그 시즌이 목록에 없으면 저장하는 순간 값이 바뀐다.
+  it('⚠️ 지난 시즌도 받는다', () => {
+    expect(validateSpecies(input({ season: FIRST })).season).toBeUndefined()
+  })
+
+  // 다음 시즌 콘텐츠는 지금 시즌 동안 미리 만든다.
+  it('⚠️ 다음 시즌도 받는다', () => {
+    expect(validateSpecies(input({ season: NEXT })).season).toBeUndefined()
   })
 
   it('이름은 필수 — 공백만 있는 것도 빈 것이다', () => {

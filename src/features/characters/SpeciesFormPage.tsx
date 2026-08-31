@@ -23,11 +23,11 @@ import { Select } from '@/shared/ui/Select'
 import { Textarea } from '@/shared/ui/Textarea'
 
 import { SCREENS } from '@/domain/screens'
+import { CURRENT_SEASON, seasonOptions } from '@/domain/season'
 import {
   emptySpeciesInput,
   RARITIES,
   RIG_SLOTS,
-  SEASONS,
   SLOT_PARTS,
   speciesTint,
   UNLOCKS,
@@ -208,7 +208,8 @@ export default function SpeciesFormPage() {
               <Select
                 value={input.season}
                 onChange={(v) => set('season', v as SpeciesInput['season'])}
-                options={SEASONS}
+                options={seasonOptions(CURRENT_SEASON, input.season)}
+                error={shown.season}
                 label="시즌 한정"
                 className={css({ flex: '1 1 160px' })}
               />
@@ -307,6 +308,7 @@ function SideCard({ input, errors }: { input: SpeciesInput; errors: ReturnType<t
     { ok: !errors.code, label: errors.code ?? '코드 확인됨' },
     { ok: !errors.tone, label: errors.tone ?? '대표 색 확인됨' },
     { ok: !errors.weight, label: errors.weight ?? '출현 가중치 설정됨' },
+    { ok: !errors.season, label: errors.season ?? '시즌 확인됨' },
   ]
 
   return (

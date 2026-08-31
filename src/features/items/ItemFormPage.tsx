@@ -41,6 +41,7 @@ import { kindOfSlot,
   type Tier,
 } from '@/domain/item'
 import { SCREENS } from '@/domain/screens'
+import { CURRENT_SEASON, seasonOptions } from '@/domain/season'
 
 import { useAssets, useUploadAsset } from '@/api/assets'
 import { useItem, useSaveItem } from '@/api/items'
@@ -75,8 +76,6 @@ const SOURCE_OPTIONS = (Object.keys(ITEM_SOURCE_LABEL) as ItemSource[]).map((s) 
  * 훅이 이 값을 인자로 받으므로 모듈 함수로 둔다 (§14.2).
  */
 const draftScope = (itemId?: string): string => `items:${itemId ?? 'new'}`
-
-const SEASON_OPTIONS = ['상시', '시즌 2', '시즌 3', '시즌 4']
 
 /**
  * 칸 하나를 바꾸고 **더러움 표시를 켠다.**
@@ -323,7 +322,8 @@ function BasicsCard({ form, errors }: { form: UseFormReturn<ItemInput>; errors: 
           <Select
             value={v.season}
             onChange={(season) => set('season', season)}
-            options={SEASON_OPTIONS}
+            /* ⚠️ 지금 값을 함께 넘긴다 — 목록 밖의 값이면 셀렉트가 빈 칸이 된다 (§34.8) */
+            options={seasonOptions(CURRENT_SEASON, v.season)}
             label="시즌"
             className={css({ flex: '0 1 160px' })}
           />

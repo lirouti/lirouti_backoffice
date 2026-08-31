@@ -68,3 +68,24 @@ export function nowAt(): string {
   // `sv-SE` 는 `2026-08-31 21:04` 로 준다 — 우리가 쓰는 모양 그대로다.
   return parts
 }
+
+/**
+ * `from` 에서 `to` 까지 며칠인가. 같은 날이면 0, `to` 가 미래면 양수.
+ *
+ * ⚠️ **`shiftDays` 와 같은 이유로 UTC 자정 기준으로 뺀다.** 실행 환경 시간대로 파싱하면
+ *    서머타임이 있는 곳에서 두 끝의 오프셋이 달라져 **하루가 어긋난다** — D-day 는 그
+ *    하루가 곧 「오늘 마감인가」 라 조용히 넘어가지 않는다.
+ *
+ * UTC 자정끼리의 차는 **정확히 86,400,000 의 배수**라 반올림이 필요 없다. 나눗셈만으로
+ * 정수가 나온다 — `Math.round` 를 두면 「무언가를 막고 있다」 로 읽히는데 막을 것이 없다.
+ *
+ * @param from `YYYY-MM-DD`
+ * @param to   `YYYY-MM-DD`
+ */
+export function daysBetween(from: string, to: string): number {
+  const at = (iso: string): number => {
+    const [y, m, d] = iso.split('-').map(Number)
+    return Date.UTC(y!, m! - 1, d!)
+  }
+  return (at(to) - at(from)) / 86_400_000
+}
