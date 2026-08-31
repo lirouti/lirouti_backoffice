@@ -4078,3 +4078,33 @@ bun run a11y /items    # 골라서
 
 > ⚠️ `puppeteer-core` 는 **lighthouse 가 쓰는 버전에 맞춰 고정**한다. 안 맞추면 두 벌이
 > 설치돼 `Page` 타입이 갈리고 `typecheck` 이 깨진다 — 캐스팅으로 덮을 자리가 아니다.
+
+### 38.3 도구의 의존성을 모두의 설치에 얹지 않는다
+
+Lighthouse 와 크롬 조종기는 **190 패키지가 넘는다.** 화면을 만들 때만 쓰는 도구를
+`devDependencies` 에 넣으면 **아무 것도 안 하는 사람의 `bun install` 까지 무거워진다.**
+
+`scripts/a11y/` 를 **의존성을 따로 갖는 미니 프로젝트**로 갈랐다.
+
+```text
+scripts/a11y/package.json   ← lighthouse · chrome-launcher · puppeteer-core
+scripts/a11y/check.ts
+scripts/a11y/node_modules   ← gitignore. `bun run a11y` 가 처음 돌 때만 생긴다
+```
+
+`bun run a11y` 가 `bun install --cwd scripts/a11y --silent` 를 먼저 돌린다. 루트에
+`workspaces` 가 없어서 **루트 설치는 이쪽을 쳐다보지 않는다.**
+
+> **순수한 `bunx` 로는 안 된다.** `bunx` 는 패키지의 실행 파일을 돌리는 것이고,
+> Lighthouse CLI 에는 **목 세션을 심을 방법이 없다**(`--extra-headers` 로는 `localStorage`
+> 를 못 넣는다) — 인증 뒤 화면을 하나도 못 잰다. 그래서 스크립트가 필요하고, 스크립트에는
+> 의존성이 필요하다. 갈라 두는 것이 그 둘을 다 만족시키는 자리다.
+
+⚠️ **`tsconfig` 에서 `scripts/a11y` 를 뺀다.** 깨끗한 클론에는 그 `node_modules` 가 없어서
+`typecheck` 이 import 를 못 푼다. 대신 그 파일은 타입 검사를 못 받는다 — 도구 하나를
+검사 밖에 두는 값으로 모두의 설치 시간을 산 것이다.
+
+⚠️ **`check-docs` 가 `node_modules` 를 건너뛰게 했다.** `scripts/` 를 훑는 검사라, 미니
+프로젝트를 만든 순간 **남의 코드에서 이름을 주워 와 우리 문서를 남의 시그니처로 판정**하기
+시작했다 — `reset` 이 실제로 그렇게 잡혔다. `check-order`·`check-comments` 는 `src/` 만
+훑어서 해당이 없다.

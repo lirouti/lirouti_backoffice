@@ -14,7 +14,7 @@
     "lint": "eslint . && bun run scripts/check-order.ts && bun run scripts/check-contrast.ts && bun run scripts/check-comments.ts && bun run scripts/check-docs.ts",
     "format": "prettier --write .",
     "assets": "bun run scripts/build-assets.ts",
-    "a11y": "bun run scripts/check-a11y.ts"
+    "a11y": "bun install --cwd scripts/a11y --silent && bun scripts/a11y/check.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.102.4",
@@ -34,16 +34,13 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react-swc": "^4.3.3",
-    "chrome-launcher": "^1.2.1",
     "eslint": "^10.8.1",
     "eslint-plugin-perfectionist": "^5.10.1",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.4",
     "globals": "^17.11.0",
-    "lighthouse": "12",
     "postcss": "^8.5.26",
     "prettier": "^3.9.6",
-    "puppeteer-core": "24.43.1",
     "typescript": "6.0.3",
     "typescript-eslint": "^8.67.0",
     "vite": "^8.2.2",

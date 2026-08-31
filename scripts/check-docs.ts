@@ -29,7 +29,12 @@ const DOCS = ['docs/ARCHITECTURE.md']
 function sources(dir: string): string[] {
   return readdirSync(dir).flatMap((name) => {
     const p = join(dir, name)
-    if (statSync(p).isDirectory()) return name === 'assets' ? [] : sources(p)
+    // ⚠️ **`node_modules` 를 건너뛴다.** 안 그러면 남의 코드에서 이름을 주워 와
+    //    **우리 문서를 남의 시그니처로 판정한다** — 실제로 `reset` 이 그렇게 잡혔다
+    //    (docs/ARCHITECTURE.md §38.3). `assets` 는 생성물이라 뺀다.
+    if (statSync(p).isDirectory()) {
+      return name === 'assets' || name === 'node_modules' ? [] : sources(p)
+    }
     // 테스트 파일은 뺀다 — 거기 헬퍼가 프로덕션 이름을 가릴 수 있다.
     return /\.tsx?$/.test(p) && !/\.test\./.test(p) ? [p] : []
   })

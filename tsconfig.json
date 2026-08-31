@@ -23,5 +23,8 @@
       "styled-system/*": ["./styled-system/*"]
     }
   },
-  "include": ["src", "styled-system", "scripts", "vite.config.ts", "panda.config.ts"]
+  "include": ["src", "styled-system", "scripts", "vite.config.ts", "panda.config.ts"],
+  // 접근성 검사는 의존성을 따로 갖는 미니 프로젝트다 (docs/ARCHITECTURE.md §38.3).
+  // 깨끗한 클론에는 그 `node_modules` 가 없어서, 여기 두면 `typecheck` 이 못 푼다.
+  "exclude": ["scripts/a11y"]
 }

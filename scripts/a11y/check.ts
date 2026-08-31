@@ -7,6 +7,10 @@ import lighthouse from 'lighthouse'
  *   bun run a11y           # 전부
  *   bun run a11y /items    # 골라서
  *
+ * ⚠️ **이 폴더는 의존성을 따로 갖는 미니 프로젝트다.** Lighthouse 와 크롬 조종기는
+ *    190 패키지가 넘는데, 화면을 만들 때만 쓰는 도구를 **모두의 `bun install` 에 얹지
+ *    않으려고** 갈라 뒀다. `bun run a11y` 가 처음 돌 때 여기에만 설치한다 (§38.3).
+ *
  * **왜 필요한가** — 점수만 보면 못 찾는 것이 있다. `label-content-name-mismatch` 와
  * `td-has-header` 는 **가중치가 0** 이라 100 점을 유지한 채 몇 달 동안 실패해 있었다
  * (§37 · §38). 그래서 이 검사는 **점수와 함께 실패한 검사 id 를 찍고, 하나라도 있으면
@@ -39,8 +43,11 @@ const VIEWER = JSON.stringify({
  * ⚠️ **아직 안 만든 화면도 뺀다** — placeholder 를 재 봐야 언제나 100 이다.
  */
 function screenPaths(): string[] {
-  const screens = readFileSync('src/domain/screens.ts', 'utf8')
-  const router = readFileSync('src/app/router.tsx', 'utf8')
+  // ⚠️ **저장소 뿌리 기준으로 읽는다.** `bun run a11y` 는 뿌리에서 도는데, 사람이
+  //    `scripts/a11y` 안에서 직접 돌릴 수도 있다.
+  const root = new URL('../../', import.meta.url).pathname
+  const screens = readFileSync(`${root}src/domain/screens.ts`, 'utf8')
+  const router = readFileSync(`${root}src/app/router.tsx`, 'utf8')
   const built = new Set([...router.matchAll(/^\s*(\w+): lazy/gm)].map((m) => m[1]))
 
   const out: string[] = []

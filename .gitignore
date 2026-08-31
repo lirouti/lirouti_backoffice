@@ -26,3 +26,6 @@ CLAUDE.md
 .eslintcache
 tsconfig.tsbuildinfo
 *.tsbuildinfo
+
+# 접근성 검사 전용 미니 프로젝트의 설치물 (docs/ARCHITECTURE.md §38.3)
+scripts/a11y/node_modules
