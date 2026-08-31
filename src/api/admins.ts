@@ -1,0 +1,193 @@
+/**
+ * 관리자 계정 파사드.
+ *
+ * ⚠️ **같은 아이디로 두 계정이 생기면 로그인이 어느 쪽인지 알 수 없다.** 화면이 막아도
+ *    여기서 다시 본다 — 화면의 중복 목록은 불러온 시점의 것이라, 그 사이 다른
+ *    최고 관리자가 같은 아이디를 발급했으면 통과한다 (docs/ARCHITECTURE.md §31.6).
+ */
+import { useMutation, useQuery } from '@tanstack/react-query'
+
+import { visibleNav } from '@/domain/access'
+import {
+  adminStatusOf,
+  filterAdmins,
+  normalizeAdminInput,
+  sameEmail,
+  suspendBlockReason,
+  summarizeAdmins,
+  validateAdmin,
+  viewerOf,
+  type Admin,
+  type AdminFilter,
+  type AdminInput,
+  type AdminLog,
+  type AdminStatus,
+  type AdminSummary,
+} from '@/domain/admin'
+import type { ScopeId } from '@/domain/screens'
+
+import {
+  addAdmin,
+  adminLogs,
+  adminMonthlyActions,
+  allAdmins,
+  findAdmin,
+  setAdminScopes,
+  setAdminSuspended,
+} from '@/mocks/admins'
+
+import { mockDelay, qk, queryClient, today, USE_MOCK } from './core'
+import { apiError } from './error'
+
+/** 관리자 + 그 시점의 표시 상태. **상태는 화면이 아니라 여기서 낸다** (§25.1) */
+export type AdminEntry = { admin: Admin; status: AdminStatus }
+
+export type AdminsResult = {
+  admins: AdminEntry[]
+  summary: AdminSummary
+  /** 이미 쓰이고 있는 아이디. 초대 화면의 중복 검사가 쓴다 */
+  takenEmails: string[]
+}
+
+const entry = (admin: Admin): AdminEntry => ({ admin, status: adminStatusOf(admin) })
+
+export async function getAdmins(filter: AdminFilter): Promise<AdminsResult> {
+  if (USE_MOCK) {
+    await mockDelay()
+    const all = allAdmins()
+    return {
+      admins: filterAdmins(all, filter).map(entry),
+      // 지표는 **거르기 전 전체**로 낸다 — 탭마다 「활성」 이 바뀌면 안 된다.
+      summary: summarizeAdmins(all),
+      takenEmails: all.map((a) => a.email),
+    }
+  }
+
+  // TODO(백엔드 스펙 확정 후): http.get<AdminDto[]>('/admin/admins')
+  throw new Error('관리자 API 가 아직 연결되지 않았습니다. VITE_USE_MOCK=1 로 두세요.')
+}
+
+export type AdminDetail = AdminEntry & {
+  /** 이 계정으로 로그인하면 사이드바에 뜨는 그룹 이름들 */
+  menu: string[]
+  logs: AdminLog[]
+  /** 이번 달 활동 건수 */
+  actions: number
+  /** 지금 로그인한 사람의 아이디로 정지가 막히는 이유. 없으면 `null` */
+  suspendBlocked: string | null
+}
+
+/** @param meEmail 지금 로그인한 사람의 아이디. 자기 계정 정지를 막는 판정에 쓴다 */
+export async function getAdmin(adminId: string, meEmail: string): Promise<AdminDetail> {
+  if (USE_MOCK) {
+    await mockDelay()
+    const admin = findAdmin(Number(adminId))
+    if (!admin) throw apiError('http', `관리자 #${adminId} 을(를) 찾을 수 없습니다.`, 404)
+    return {
+      ...entry(admin),
+      // 「사이드바에 표시」 와 「이 계정으로 보기」 가 **같은 판정을 쓴다** —
+      // 보여 준 목록과 실제로 들어갔을 때가 다르면 미리보기가 거짓말이 된다.
+      menu: visibleNav(viewerOf(admin)).map((g) => g.label),
+      logs: adminLogs(admin.adminId),
+      actions: adminMonthlyActions(admin.adminId),
+      suspendBlocked: suspendBlockReason(admin, meEmail),
+    }
+  }
+
+  throw new Error('관리자 API 가 아직 연결되지 않았습니다. VITE_USE_MOCK=1 로 두세요.')
+}
+
+export function useAdmins(filter: AdminFilter) {
+  return useQuery({ queryKey: qk.admins.list(filter), queryFn: () => getAdmins(filter) })
+}
+
+export function useAdmin(adminId: string, meEmail: string) {
+  return useQuery({
+    queryKey: qk.admins.detail(adminId),
+    queryFn: () => getAdmin(adminId, meEmail),
+    enabled: adminId !== '',
+  })
+}
+
+/** @param invitedBy 발급하는 사람의 이름. 상세의 「발급자」 로 남는다 */
+export async function inviteAdmin(v: { input: AdminInput; invitedBy: string }): Promise<Admin> {
+  if (USE_MOCK) {
+    await mockDelay()
+    // **다듬은 값으로 검증하고 그 값을 그대로 저장한다** — 검사한 것과 저장한 것이
+    // 다르면 검증이 아무것도 보장하지 못한다 (§29.3.1).
+    const input = normalizeAdminInput(v.input)
+    const taken = allAdmins().map((a) => a.email)
+    const errors = validateAdmin(input, taken)
+    const first = errors.name ?? errors.email ?? errors.scopes
+    if (first) throw apiError('http', first, 400)
+    return addAdmin(input, v.invitedBy, today())
+  }
+
+  throw new Error('관리자 API 가 아직 연결되지 않았습니다. VITE_USE_MOCK=1 로 두세요.')
+}
+
+export function useInviteAdmin() {
+  return useMutation({
+    mutationFn: inviteAdmin,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.admins.all }),
+  })
+}
+
+export async function suspendAdmin(v: {
+  adminId: number
+  suspended: boolean
+  meEmail: string
+}): Promise<void> {
+  if (USE_MOCK) {
+    await mockDelay()
+    const admin = findAdmin(v.adminId)
+    if (!admin) throw apiError('http', `관리자 #${v.adminId} 을(를) 찾을 수 없습니다.`, 404)
+    // 화면이 버튼을 잠그지만, 잠긴 버튼은 **보이는 것만** 막는다.
+    if (v.suspended) {
+      const blocked = suspendBlockReason(admin, v.meEmail)
+      if (blocked) throw apiError('http', blocked, 409)
+    }
+    setAdminSuspended(v.adminId, v.suspended)
+    return
+  }
+
+  throw new Error('관리자 API 가 아직 연결되지 않았습니다. VITE_USE_MOCK=1 로 두세요.')
+}
+
+export function useSuspendAdmin() {
+  return useMutation({
+    mutationFn: suspendAdmin,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.admins.all }),
+  })
+}
+
+/**
+ * 담당 모듈 변경. **저장 버튼 없이 즉시 반영된다** — 권한 회수는 미루면 안 된다.
+ *
+ * ⚠️ **최고 관리자의 모듈은 바꿀 수 없다.** 전체 접근이라 목록 자체가 의미가 없는데,
+ *    저장되면 `scopes` 가 채워진 `top` 계정이 생겨 다음에 역할을 내릴 때 그 값이
+ *    되살아난다.
+ */
+export async function setScopes(v: { adminId: number; scopes: ScopeId[] }): Promise<void> {
+  if (USE_MOCK) {
+    await mockDelay()
+    const admin = findAdmin(v.adminId)
+    if (!admin) throw apiError('http', `관리자 #${v.adminId} 을(를) 찾을 수 없습니다.`, 404)
+    if (admin.role === 'top') throw apiError('http', '최고 관리자는 전체 모듈에 접근합니다.', 409)
+    setAdminScopes(v.adminId, v.scopes)
+    return
+  }
+
+  throw new Error('관리자 API 가 아직 연결되지 않았습니다. VITE_USE_MOCK=1 로 두세요.')
+}
+
+export function useSetScopes() {
+  return useMutation({
+    mutationFn: setScopes,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.admins.all }),
+  })
+}
+
+/** 아이디가 이미 쓰이고 있는가. 초대 화면이 입력 도중에 부른다 */
+export const isEmailTaken = (email: string, taken: string[]): boolean =>
+  taken.some((t) => sameEmail(t, email))
