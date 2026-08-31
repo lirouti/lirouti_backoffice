@@ -40,6 +40,23 @@ describe('validateSpecies', () => {
     expect(validateSpecies(input())).toEqual({})
   })
 
+  it('상시와 지금 시즌을 받는다', () => {
+    expect(validateSpecies(input({ season: '상시' })).season).toBeUndefined()
+    expect(validateSpecies(input({ season: '시즌 3' })).season).toBeUndefined()
+  })
+
+  // 목록이 값(`seasonOptions`)이라 타입이 못 막는다 — 모르는 시즌으로 저장하면
+  // 그 종은 어느 시즌에도 안 뜬다.
+  it('⚠️ 없는 시즌은 막는다', () => {
+    expect(validateSpecies(input({ season: '시즌 9' })).season).toBe('없는 시즌입니다.')
+    expect(validateSpecies(input({ season: '' })).season).toBe('없는 시즌입니다.')
+  })
+
+  // 시즌 1 종을 수정하려고 열었을 때 그 시즌이 목록에 없으면 저장하는 순간 값이 바뀐다.
+  it('⚠️ 지난 시즌도 받는다', () => {
+    expect(validateSpecies(input({ season: '시즌 1' })).season).toBeUndefined()
+  })
+
   it('이름은 필수 — 공백만 있는 것도 빈 것이다', () => {
     expect(validateSpecies(input({ name: '  ' })).name).toBeTruthy()
   })

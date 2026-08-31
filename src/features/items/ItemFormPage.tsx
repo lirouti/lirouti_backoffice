@@ -41,6 +41,7 @@ import { kindOfSlot,
   type Tier,
 } from '@/domain/item'
 import { SCREENS } from '@/domain/screens'
+import { CURRENT_SEASON, seasonOptions } from '@/domain/season'
 
 import { useAssets, useUploadAsset } from '@/api/assets'
 import { useItem, useSaveItem } from '@/api/items'
@@ -76,7 +77,8 @@ const SOURCE_OPTIONS = (Object.keys(ITEM_SOURCE_LABEL) as ItemSource[]).map((s) 
  */
 const draftScope = (itemId?: string): string => `items:${itemId ?? 'new'}`
 
-const SEASON_OPTIONS = ['상시', '시즌 2', '시즌 3', '시즌 4']
+/** ⚠️ **직접 적지 않는다.** 지난 시즌이 빠져 있으면 옛 아이템을 열었을 때 값이 바뀐다 (§34.1) */
+const SEASON_OPTIONS = seasonOptions(CURRENT_SEASON)
 
 /**
  * 칸 하나를 바꾸고 **더러움 표시를 켠다.**

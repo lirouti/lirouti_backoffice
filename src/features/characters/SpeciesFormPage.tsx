@@ -23,11 +23,11 @@ import { Select } from '@/shared/ui/Select'
 import { Textarea } from '@/shared/ui/Textarea'
 
 import { SCREENS } from '@/domain/screens'
+import { CURRENT_SEASON, seasonOptions } from '@/domain/season'
 import {
   emptySpeciesInput,
   RARITIES,
   RIG_SLOTS,
-  SEASONS,
   SLOT_PARTS,
   speciesTint,
   UNLOCKS,
@@ -208,7 +208,7 @@ export default function SpeciesFormPage() {
               <Select
                 value={input.season}
                 onChange={(v) => set('season', v as SpeciesInput['season'])}
-                options={SEASONS}
+                options={seasonOptions(CURRENT_SEASON)}
                 label="시즌 한정"
                 className={css({ flex: '1 1 160px' })}
               />
