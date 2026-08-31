@@ -8,6 +8,7 @@ import { useState } from 'react'
 
 import { css } from 'styled-system/css'
 
+import { moveSlot } from '@/shared/lib/array'
 import { num } from '@/shared/lib/format'
 import { AssetThumb } from '@/shared/ui/AssetThumb'
 import { Badge } from '@/shared/ui/Badge'
@@ -18,7 +19,6 @@ import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { PageHeader } from '@/shared/ui/PageHeader'
 
 import { SLOT_LABEL, TIER_LABEL, type Item } from '@/domain/item'
-import { moveSlot } from '@/domain/shop'
 
 import { useResetShop, useSaveShop, useShopSlots, type ShopEntry } from '@/api/shop'
 
