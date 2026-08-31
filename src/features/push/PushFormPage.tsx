@@ -84,7 +84,10 @@ export default function PushFormPage() {
   const [noticeOpen, setNoticeOpen] = useState(restored != null)
   const [tried, setTried] = useState(false)
   const [asking, setAsking] = useState(false)
-  const markSaved = useUnsavedGuard(form.title !== '' || form.body !== '')
+  // ⚠️ **폼 전체를 본다.** 제목·본문만 보면 **대상·예약 시각·링크만 고친 사람이
+  //    경고 없이 잃는다.** 자동 저장은 전체를 보므로, 좁게 보면 두 판정이 어긋나
+  //    「초안은 남았는데 경고는 안 뜬다」 가 된다 (docs/ARCHITECTURE.md §33.8).
+  const markSaved = useUnsavedGuard(changed(form, EMPTY))
   const draft = useFormDraft(DRAFT, form, changed(form, EMPTY))
 
   if (isPending) return <Skeleton rows={8} />
