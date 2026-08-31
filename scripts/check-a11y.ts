@@ -19,7 +19,6 @@ import { readFileSync } from 'node:fs'
 import puppeteer from 'puppeteer-core'
 
 const BASE = process.env.A11Y_BASE ?? 'http://localhost:5173'
-const CHROME = process.env.CHROME_PATH ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 
 /**
  * 인증 뒤 화면이라 목 세션을 먼저 심는다.
@@ -54,8 +53,13 @@ function screenPaths(): string[] {
 
 const targets = process.argv.slice(2).length > 0 ? process.argv.slice(2) : screenPaths()
 
+/**
+ * ⚠️ **크롬 경로를 주지 않는다.** `chrome-launcher` 가 macOS · Linux · Windows 를 스스로
+ *    찾고, `CHROME_PATH` 도 **직접 본다**(`chrome-finder.js`). 여기서 맥 경로를 넘기면
+ *    **그 탐색을 통째로 가려서**, 크롬이 깔린 윈도에서도 실행이 실패한다 — 감사 로그에
+ *    `Chrome · Windows` 가 찍히는 팀이다 (docs/ARCHITECTURE.md §38.2).
+ */
 const chrome = await chromeLauncher.launch({
-  chromePath: CHROME,
   chromeFlags: ['--headless=new', '--no-sandbox', '--disable-gpu'],
 })
 const browser = await puppeteer.connect({
