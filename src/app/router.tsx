@@ -42,6 +42,8 @@ const IMPLEMENTED: Partial<Record<ScreenId, React.LazyExoticComponent<React.Comp
   pay: lazy(() => import('@/features/payments/PaymentsPage')),
   paydet: lazy(() => import('@/features/payments/PaymentDetailPage')),
   push: lazy(() => import('@/features/push/PushListPage')),
+  qna: lazy(() => import('@/features/support/InquiriesPage')),
+  qnadet: lazy(() => import('@/features/support/InquiryDetailPage')),
   pushdet: lazy(() => import('@/features/push/PushDetailPage')),
   pushnew: lazy(() => import('@/features/push/PushFormPage')),
   rig: lazy(() => import('@/features/characters/RigPage')),

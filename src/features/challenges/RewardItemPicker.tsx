@@ -161,7 +161,8 @@ function Row({ item, on, onPick }: { item: Item; on: boolean; onPick: () => void
         >
           {item.name}
         </span>
-        <span className={css({ display: 'block', mt: '1px', textStyle: 'micro', color: 'faint' })}>
+        {/* ⚠️ 고른 줄은 `soft` 배경이라 `faint` 가 4.35:1 로 모자란다 (docs/ARCHITECTURE.md §3.5.1) */}
+        <span className={css({ display: 'block', mt: '1px', textStyle: 'micro', color: 'sub' })}>
           {SLOT_LABEL[item.slot]} · {item.code}
         </span>
       </span>

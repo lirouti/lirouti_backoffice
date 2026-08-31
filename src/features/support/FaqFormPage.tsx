@@ -29,6 +29,17 @@ import { useUnsavedGuard } from '@/stores/dirtyStore'
 
 const EMPTY: FaqInput = { category: '계정', question: '', answer: '', visible: true, tags: '' }
 
+/**
+ * 주소에 실려 온 초기값. **1:1 문의 상세의 「FAQ로 등록」 이 채워 준다** —
+ * 같은 질문이 또 오지 않게 하는 것이 CS 의 목적이라, 답변을 옮겨 적게 하지 않는다
+ * (docs/ARCHITECTURE.md §28.3).
+ */
+const prefillOf = (p: URLSearchParams): FaqInput => ({
+  ...EMPTY,
+  question: p.get('q') ?? '',
+  answer: p.get('a') ?? '',
+})
+
 /** 훅이 이 값을 인자로 받으므로 모듈 함수로 둔다 (§14.2) */
 const idOf = (p: URLSearchParams): string => p.get('id') ?? ''
 
@@ -57,7 +68,7 @@ export default function FaqFormPage() {
         tags: joinTags(data.tags),
       }
     : null
-  const form = draft ?? loaded ?? EMPTY
+  const form = draft ?? loaded ?? prefillOf(params)
   const errors = validateFaq(form)
 
   if (editing && isPending) return <Skeleton rows={8} />
