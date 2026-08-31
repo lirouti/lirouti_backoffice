@@ -4,7 +4,7 @@
  * ⚠️ **여기가 keep-alive 를 탭 스토어에 연결하는 자리다.** `KeepAlive` 는 탭을
  *    모르므로, 닫힌 탭의 캐시를 파기하는 배선을 지우면 메모리에 계속 남는다.
  */
-import { Suspense, useEffect } from 'react'
+import { Suspense, useCallback, useEffect, useState } from 'react'
 
 import { KeepAlive, useKeepAliveRef } from 'keepalive-for-react'
 import { Navigate, useLocation, useOutlet } from 'react-router'
@@ -20,9 +20,11 @@ import { useBeforeUnloadWhenDirty } from '@/stores/dirtyStore'
 import { livePaths, MAX_TABS, useTabsStore } from '@/stores/tabsStore'
 import { useViewer } from '@/stores/viewerStore'
 
+import { CommandPalette } from './CommandPalette'
 import { Sidebar } from './Sidebar'
 import { TabBar } from './TabBar'
 import { Topbar } from './Topbar'
+import { usePaletteHotkey } from './usePaletteHotkey'
 import { useCurrentScreen, useFirstScreen } from './useScopedNav'
 import { useUnsavedNavGuard } from './useUnsavedNavGuard'
 import { ViewerBanner } from './ViewerBanner'
@@ -35,6 +37,7 @@ export function AdminLayout() {
   const tabs = useTabsStore((s) => s.tabs)
   const fallback = useFirstScreen()
   const aliveRef = useKeepAliveRef()
+  const [palette, setPalette] = useState(false)
   // ⚠️ **`<Outlet/>` 이 아니라 `useOutlet()` 이다.** `<Outlet/>` 은 그릴 때마다 라우터
   //    컨텍스트를 다시 읽어 **캐시해 둔 화면까지 "지금 경로"를 그린다** — 캐시가
   //    무의미해지고 탭을 옮기면 상태가 사라진다. 여기는 지금 라우트의 **엘리먼트**를
@@ -43,9 +46,16 @@ export function AdminLayout() {
   // 같은 탭 안에서 화면을 옮기면 앞의 화면이 파기된다 — 저장 안 된 게 있으면 먼저 묻는다.
   const blocker = useUnsavedNavGuard()
 
+
   // 저장 안 된 변경이 있으면 새로고침·닫기를 막는다.
   // (문구는 브라우저가 정한다 — 우리가 못 바꾼다. stores/dirtyStore.ts 참고)
   useBeforeUnloadWhenDirty()
+
+  // ⚠️ **`useCallback` 이 필요하다.** 단축키 훅이 이 함수를 의존성으로 갖는데, 매 렌더
+  //    새로 만들면 `keydown` 리스너를 **렌더마다 떼었다 붙인다.**
+  const openPalette = useCallback(() => setPalette(true), [])
+  const closePalette = useCallback(() => setPalette(false), [])
+  usePaletteHotkey(useCallback(() => setPalette((v) => !v), []))
 
   // 이 경로를 열 권한이 있는가. 아래 조기 반환과 **같은 판정**을 effect 에서도 쓴다.
   const allowed = current != null && canAccess(viewer, SCREENS[current].scope)
@@ -111,7 +121,7 @@ export function AdminLayout() {
             backdropFilter: 'blur(6px)',
           })}
         >
-          <Topbar current={current} />
+          <Topbar current={current} onSearch={openPalette} />
           <TabBar />
           <ViewerBanner />
         </div>
@@ -146,6 +156,8 @@ export function AdminLayout() {
           </div>
         </main>
       </div>
+
+      {palette && <CommandPalette onClose={closePalette} />}
 
       <Dialog
         open={blocker.state === 'blocked'}
