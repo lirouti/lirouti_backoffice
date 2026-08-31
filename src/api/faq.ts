@@ -58,7 +58,10 @@ export async function saveFaq({ input, faqId }: SaveFaqVars): Promise<Faq> {
     if (!input.question.trim()) throw apiError('http', '질문을 입력하세요.', 400)
     // ⚠️ 답변이 비면 앱에 빈 칸이 나간다 — 눌러 봤는데 아무것도 없는 FAQ 다.
     if (!input.answer.trim()) throw apiError('http', '답변을 입력하세요.', 400)
-    return upsertFaq(input, faqId)
+    const saved = upsertFaq(input, faqId)
+    // 열어 둔 사이에 지워졌을 수 있다. 조용히 새로 만들면 안 지운 것처럼 보인다.
+    if (!saved) throw apiError('http', `FAQ #${faqId} 을(를) 찾을 수 없습니다. 목록에서 다시 여세요.`, 404)
+    return saved
   }
 
   throw new Error('FAQ API 가 아직 연결되지 않았습니다. VITE_USE_MOCK=1 로 두세요.')

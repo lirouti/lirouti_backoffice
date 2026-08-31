@@ -85,8 +85,14 @@ export function setFaqVisible(key: number, visible: boolean): Faq | undefined {
 
 let nextKey = ROWS.length
 
-/** 등록(`key` 없음) 또는 수정 */
-export function upsertFaq(input: FaqInput, key?: number): Faq {
+/**
+ * 등록(`key` 없음) 또는 수정.
+ *
+ * ⚠️ **없는 `key` 로 부르면 `undefined` 다.** 새로 만들지 않는다 — 다른 탭에서 지운 뒤
+ *    열어 둔 편집 화면에서 저장하면 **의도하지 않은 FAQ 가 생긴다**
+ *    (docs/ARCHITECTURE.md §27.5).
+ */
+export function upsertFaq(input: FaqInput, key?: number): Faq | undefined {
   const patch = {
     category: input.category,
     question: input.question.trim(),
@@ -96,7 +102,7 @@ export function upsertFaq(input: FaqInput, key?: number): Faq {
   }
   if (key !== undefined) {
     const found = FAQS.find((f) => f.key === key)
-    if (found) return Object.assign(found, patch)
+    return found ? Object.assign(found, patch) : undefined
   }
   // 새 FAQ 는 조회·도움됨이 없다. 화면은 0 이 아니라 「—」 로 그린다.
   const created: Faq = { key: nextKey, views: 0, helpful: 0, ...patch }

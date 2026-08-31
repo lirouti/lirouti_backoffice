@@ -25,11 +25,24 @@ export type FaqSummary = {
 /** 이 아래면 답이 문제를 못 풀어 주고 있다는 신호 */
 export const POOR_HELPFUL = 60
 
+/**
+ * 도움됨을 **잴 수 있는가.**
+ *
+ * ⚠️ **아무도 안 본 FAQ 의 `helpful` 은 0 이 아니라 「아직 없음」 이다.** 방금 등록한
+ *    글이 그렇다 — 이걸 낮은 점수로 세면 **등록하자마자 「손봐야 함」 에 잡힌다**
+ *    (docs/ARCHITECTURE.md §27.4).
+ */
+export const isMeasured = (f: Faq): boolean => f.views > 0
+
+/** 답이 문제를 못 풀어 주고 있는가. **재 본 것만** 판단한다 */
+export const needsWork = (f: Faq): boolean =>
+  f.visible && isMeasured(f) && f.helpful < POOR_HELPFUL
+
 export function summarizeFaqs(list: Faq[]): FaqSummary {
   return {
     live: list.filter((f) => f.visible).length,
     total: list.length,
-    poor: list.filter((f) => f.visible && f.helpful < POOR_HELPFUL).length,
+    poor: list.filter(needsWork).length,
   }
 }
 

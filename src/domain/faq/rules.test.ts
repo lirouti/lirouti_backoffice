@@ -8,6 +8,8 @@ import { describe, expect, it } from 'vitest'
 
 import {
   filterFaqs,
+  isMeasured,
+  needsWork,
   joinTags,
   parseTags,
   POOR_HELPFUL,
@@ -67,6 +69,26 @@ describe('summarizeFaqs', () => {
   it('경계값은 손볼 대상이 아니다', () => {
     expect(summarizeFaqs([faq({ helpful: POOR_HELPFUL })]).poor).toBe(0)
     expect(summarizeFaqs([faq({ helpful: POOR_HELPFUL - 1 })]).poor).toBe(1)
+  })
+
+  // 방금 등록한 FAQ 는 `views: 0 · helpful: 0` 이다. 이걸 낮은 점수로 세면
+  // **등록하자마자 「손봐야 함」 에 잡힌다** — 화면은 같은 값을 「—」 로 그린다.
+  it('⚠️ 아직 아무도 안 본 FAQ 는 손볼 대상이 아니다', () => {
+    expect(summarizeFaqs([faq({ views: 0, helpful: 0 })]).poor).toBe(0)
+  })
+})
+
+describe('isMeasured · needsWork', () => {
+  it('한 번이라도 본 것만 잰 값이다', () => {
+    expect(isMeasured(faq({ views: 0 }))).toBe(false)
+    expect(isMeasured(faq({ views: 1 }))).toBe(true)
+  })
+
+  it('손볼 대상은 「노출 중 · 재 봤고 · 낮은 것」 셋을 다 만족한다', () => {
+    expect(needsWork(faq({ visible: true, views: 100, helpful: 30 }))).toBe(true)
+    expect(needsWork(faq({ visible: false, views: 100, helpful: 30 }))).toBe(false)
+    expect(needsWork(faq({ visible: true, views: 0, helpful: 0 }))).toBe(false)
+    expect(needsWork(faq({ visible: true, views: 100, helpful: 90 }))).toBe(false)
   })
 })
 

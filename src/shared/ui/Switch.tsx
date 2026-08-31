@@ -49,7 +49,10 @@ export function Switch({ checked, onChange, label, hint, disabled, labelHidden, 
       // "재고 0 이면 자동 숨김다음 정산 주기부터 적용됩니다" 가 된다.
       // 이름은 라벨로 못박고 힌트는 설명으로만 붙인다.
       aria-label={label}
-      aria-describedby={hint ? hintId : undefined}
+      // ⚠️ **숨긴 힌트를 가리키면 안 된다.** `labelHidden` 이면 힌트 요소가 아예 없어서
+      //    `aria-describedby` 가 **존재하지 않는 id** 를 가리킨다 — 보조기술이 조용히
+      //    아무것도 못 읽는다 (docs/ARCHITECTURE.md §27.2).
+      aria-describedby={hint && !labelHidden ? hintId : undefined}
       disabled={disabled}
       onClick={() => onChange(!checked)}
       className={`group ${css({

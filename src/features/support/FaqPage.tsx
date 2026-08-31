@@ -23,7 +23,7 @@ import { Segmented } from '@/shared/ui/Segmented'
 import { StatTile } from '@/shared/ui/StatTile'
 import { Switch } from '@/shared/ui/Switch'
 
-import { FAQ_TABS, filterFaqs, POOR_HELPFUL, type Faq, type FaqTab } from '@/domain/faq'
+import { FAQ_TABS, filterFaqs, isMeasured, POOR_HELPFUL, type Faq, type FaqTab } from '@/domain/faq'
 import { SCREENS } from '@/domain/screens'
 
 import { useFaqs, useReorderFaqs, useToggleFaq } from '@/api/faq'
@@ -56,6 +56,19 @@ export default function FaqPage() {
     const at = all.findIndex((f) => f.key === key)
     setDraft(moveSlot(all, at, at + delta))
   }
+
+  /**
+   * ⚠️ **순서 초안이 있으면 화면은 초안을 본다.** 서버만 고치면 토글이 반응하지 않는다 —
+   *    무효화로 새 데이터가 와도 `draft` 가 그걸 가린다 (docs/ARCHITECTURE.md §27.2.1).
+   */
+  const toggleVisible = (faqId: number, visible: boolean) =>
+    toggle.mutate(
+      { faqId, visible },
+      {
+        onSuccess: () =>
+          setDraft((prev) => prev && prev.map((f) => (f.key === faqId ? { ...f, visible } : f))),
+      },
+    )
 
   const commit = () =>
     reorder.mutate(
@@ -131,7 +144,7 @@ export default function FaqPage() {
               canMove={canMove}
               onUp={all.indexOf(f) === 0 ? undefined : () => move(f.key, -1)}
               onDown={all.indexOf(f) === all.length - 1 ? undefined : () => move(f.key, 1)}
-              onToggle={(visible) => toggle.mutate({ faqId: f.key, visible })}
+              onToggle={(visible) => toggleVisible(f.key, visible)}
               onEdit={() => navigate(`${SCREENS.faqnew.path}?id=${f.key}`)}
               busy={reorder.isPending || toggle.isPending}
             />
@@ -192,14 +205,15 @@ function FaqRow({
         </button>
         <span className={css({ flex: 'none', width: '64px', textAlign: 'right', textStyle: 'caption', color: 'sub' })}>
           {/* 새로 등록한 FAQ 는 아직 아무도 안 봤다 — 0 이 아니라 잴 것이 없다 */}
-          {f.views === 0 ? '—' : num(f.views)}
+          {isMeasured(f) ? num(f.views) : '—'}
         </span>
         <span className={css({ flex: 'none', width: '110px', display: 'flex', alignItems: 'center', gap: '8px' })}>
           <span className={css({ flex: '1' })}>
-            <ProgressBar rate={f.helpful} label={`${f.question} 도움됨`} />
+            {/* 못 잰 값을 0% 막대로 그리면 「아무도 도움 안 됐다」 로 읽힌다 */}
+            <ProgressBar rate={isMeasured(f) ? f.helpful : 0} label={`${f.question} 도움됨`} />
           </span>
           <span className={css({ flex: 'none', width: '34px', textAlign: 'right', textStyle: 'caption', color: 'sub' })}>
-            {f.views === 0 ? '—' : `${f.helpful}%`}
+            {isMeasured(f) ? `${f.helpful}%` : '—'}
           </span>
         </span>
         <span className={css({ flex: 'none' })}>
