@@ -18,6 +18,15 @@ import { useThemeStore } from '@/stores/themeStore'
 
 import { Breadcrumbs } from './Breadcrumbs'
 
+/**
+ * 눌러야 하는 키를 **실제로** 보여 준다.
+ *
+ * ⚠️ 단축키는 ⌘ 와 Ctrl 을 둘 다 받는데(`usePaletteHotkey`) 표시가 ⌘K 하나면
+ *    **윈도 운영자에게는 없는 기능**이 된다 — 안내가 반만 맞으면 안 맞는 것과 같다.
+ *    감사 로그에 `Chrome · Windows` 가 찍히는 팀이다.
+ */
+const SHORTCUT = navigator.userAgent.includes('Mac') ? '⌘K' : 'Ctrl K'
+
 export function Topbar({ current, onSearch }: { current: ScreenId | null; onSearch: () => void }) {
   const theme = useThemeStore((s) => s.theme)
   const toggle = useThemeStore((s) => s.toggle)
@@ -83,7 +92,7 @@ export function Topbar({ current, onSearch }: { current: ScreenId | null; onSear
             fontWeight: '700',
           })}
         >
-          ⌘K
+          {SHORTCUT}
         </kbd>
       </button>
 

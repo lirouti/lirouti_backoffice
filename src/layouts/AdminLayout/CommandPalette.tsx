@@ -70,6 +70,11 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
   }
 
   const onKeyDown = (e: React.KeyboardEvent) => {
+    // ⚠️ **한글을 조합하는 중에는 손대지 않는다.** 「감사」 를 치면 마지막 글자가 조합
+    //    중이고, 그걸 확정하는 Enter 를 우리가 가로채면 **글자가 완성되기도 전에 화면이
+    //    바뀐다.** 한국어 어드민에서 매번 밟는 자리다 (docs/ARCHITECTURE.md §36.7).
+    if (e.nativeEvent.isComposing) return
+
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       e.preventDefault()
       if (found.length === 0) return
@@ -88,6 +93,9 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
   return (
     <dialog
       ref={ref}
+      // 열린 창이 무엇인지 스크린리더가 먼저 읽는 자리다. 안의 입력에만 이름을 주면
+      // 「대화상자」 라고만 읽히고 무슨 대화상자인지는 말하지 않는다.
+      aria-label="화면 검색"
       onCancel={cancel}
       onClick={(e) => {
         // 배경을 누르면 닫는다. `<dialog>` 자신이 배경이라 자기 위 클릭만 본다.
