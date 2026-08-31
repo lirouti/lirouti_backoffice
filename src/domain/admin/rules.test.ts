@@ -8,8 +8,11 @@ import { describe, expect, it } from 'vitest'
 import {
   adminStatusOf,
   ASSIGNABLE_SCOPES,
+  assignableOnly,
   canSuspend,
   filterAdmins,
+  hasSignedIn,
+  isAdminEmail,
   isPending,
   normalizeAdminInput,
   sameEmail,
@@ -50,6 +53,62 @@ describe('ASSIGNABLE_SCOPES', () => {
   it('⚠️ `admin` 과 `me` 는 고를 수 없다', () => {
     expect(ASSIGNABLE_SCOPES).not.toContain('admin')
     expect(ASSIGNABLE_SCOPES).not.toContain('me')
+  })
+})
+
+describe('assignableOnly', () => {
+  // 화면은 고를 수 있는 것만 그리지만 파사드는 그 화면만 부르는 게 아니다.
+  it('⚠️ 고를 수 없는 스코프를 버린다', () => {
+    expect(assignableOnly(['cs', 'admin', 'me', 'pay'])).toEqual(['cs', 'pay'])
+  })
+
+  it('정해진 순서로 눕힌다 — 같은 조합이 두 모양으로 남지 않게', () => {
+    expect(assignableOnly(['pay', 'dash', 'items'])).toEqual(['dash', 'items', 'pay'])
+  })
+
+  it('전부 버려도 빈 배열이지 오류가 아니다 — 권한 회수는 정당한 조작이다', () => {
+    expect(assignableOnly(['admin'])).toEqual([])
+  })
+})
+
+describe('hasSignedIn', () => {
+  // 계정 카드의 「아직 로그인하지 않음」 과 활동 표가 같은 함수를 써야 서로를 배신하지 않는다.
+  it('⚠️ 최초 로그인이 비어 있으면 한 번도 들어온 적이 없다', () => {
+    expect(hasSignedIn(adm({ firstLoginAt: '' }))).toBe(false)
+    expect(hasSignedIn(adm({ firstLoginAt: '2026-01-08 10:22' }))).toBe(true)
+  })
+
+  // 정지는 덮개라 로그인했던 사실을 지우지 않는다.
+  it('⚠️ 정지해도 로그인했던 사실은 그대로다', () => {
+    expect(hasSignedIn(adm({ suspended: true }))).toBe(true)
+  })
+})
+
+describe('isAdminEmail', () => {
+  it('사내 아이디를 통과시킨다', () => {
+    expect(isAdminEmail('jimin@riruti.co')).toBe(true)
+    expect(isAdminEmail('a.b-c_1@riruti.co')).toBe(true)
+  })
+
+  // `endsWith` 만 보면 **아무도 그 아이디로 로그인할 수 없는 계정**이 만들어진다.
+  it('⚠️ 로컬 파트가 없으면 아이디가 아니다', () => {
+    expect(isAdminEmail('@riruti.co')).toBe(false)
+  })
+
+  it('⚠️ `@` 가 둘이면 아이디가 아니다', () => {
+    expect(isAdminEmail('user@other@riruti.co')).toBe(false)
+  })
+
+  it('⚠️ 로컬 파트에 공백이 있으면 아이디가 아니다', () => {
+    expect(isAdminEmail('a b@riruti.co')).toBe(false)
+  })
+
+  // 헷갈리게 만든 도메인이 통과하면 **바깥 사람에게 어드민 계정이 나간다.**
+  it('⚠️ 닮은 도메인도 막는다', () => {
+    expect(isAdminEmail('jimin@gmail.com')).toBe(false)
+    expect(isAdminEmail('jimin@riruti.com')).toBe(false)
+    expect(isAdminEmail('jimin@my-riruti.co')).toBe(false)
+    expect(isAdminEmail('jimin@sub.riruti.co')).toBe(false)
   })
 })
 
@@ -198,6 +257,12 @@ describe('validateAdmin', () => {
 
   it('사내 이메일이 아니면 막는다', () => {
     expect(validateAdmin(input({ email: 'jimin@gmail.com' }), taken).email).toContain('사내 이메일')
+  })
+
+  // 끝만 보면 `@riruti.co` 가 그대로 통과해 **로그인할 수 없는 계정**이 만들어진다.
+  it('⚠️ 도메인만 적은 것도 막는다', () => {
+    expect(validateAdmin(input({ email: '@riruti.co' }), taken).email).toContain('사내 이메일')
+    expect(validateAdmin(input({ email: 'a@b@riruti.co' }), taken).email).toContain('사내 이메일')
   })
 
   // 같은 아이디로 두 계정이 생기면 로그인이 어느 쪽인지 알 수 없다.

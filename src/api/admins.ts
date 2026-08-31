@@ -10,7 +10,9 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { visibleNav } from '@/domain/access'
 import {
   adminStatusOf,
+  assignableOnly,
   filterAdmins,
+  hasSignedIn,
   normalizeAdminInput,
   sameEmail,
   suspendBlockReason,
@@ -70,6 +72,7 @@ export async function getAdmins(filter: AdminFilter): Promise<AdminsResult> {
 export type AdminDetail = AdminEntry & {
   /** 이 계정으로 로그인하면 사이드바에 뜨는 그룹 이름들 */
   menu: string[]
+  /** ⚠️ **한 번도 로그인하지 않은 계정은 빈 배열이다** (§31.10) */
   logs: AdminLog[]
   /** 이번 달 활동 건수 */
   actions: number
@@ -88,8 +91,10 @@ export async function getAdmin(adminId: string, meEmail: string): Promise<AdminD
       // 「사이드바에 표시」 와 「이 계정으로 보기」 가 **같은 판정을 쓴다** —
       // 보여 준 목록과 실제로 들어갔을 때가 다르면 미리보기가 거짓말이 된다.
       menu: visibleNav(viewerOf(admin)).map((g) => g.label),
-      logs: adminLogs(admin.adminId),
-      actions: adminMonthlyActions(admin.adminId),
+      // ⚠️ **로그인한 적 없는 계정에는 활동이 있을 수 없다.** 계정 카드가 「아직
+      //    로그인하지 않음」 이라고 적어 둔 옆에 로그인 기록 여섯 줄이 떠 있었다.
+      logs: hasSignedIn(admin) ? adminLogs(admin.adminId) : [],
+      actions: hasSignedIn(admin) ? adminMonthlyActions(admin.adminId) : 0,
       suspendBlocked: suspendBlockReason(admin, meEmail),
     }
   }
@@ -164,6 +169,9 @@ export function useSuspendAdmin() {
 /**
  * 담당 모듈 변경. **저장 버튼 없이 즉시 반영된다** — 권한 회수는 미루면 안 된다.
  *
+ * ⚠️ **0개로 만드는 것은 막지 않는다.** 초대와 달리 이건 권한 회수라는 정당한 조작이다
+ *    (§31.5). 모듈이 없어도 내 계정 보안(`me`)은 열리므로 계정이 잠기지도 않는다.
+ *
  * ⚠️ **최고 관리자의 모듈은 바꿀 수 없다.** 전체 접근이라 목록 자체가 의미가 없는데,
  *    저장되면 `scopes` 가 채워진 `top` 계정이 생겨 다음에 역할을 내릴 때 그 값이
  *    되살아난다.
@@ -174,7 +182,9 @@ export async function setScopes(v: { adminId: number; scopes: ScopeId[] }): Prom
     const admin = findAdmin(v.adminId)
     if (!admin) throw apiError('http', `관리자 #${v.adminId} 을(를) 찾을 수 없습니다.`, 404)
     if (admin.role === 'top') throw apiError('http', '최고 관리자는 전체 모듈에 접근합니다.', 409)
-    setAdminScopes(v.adminId, v.scopes)
+    // 화면이 `ASSIGNABLE_SCOPES` 만 그리지만 파사드는 그 화면만 부르는 게 아니다 —
+    // 목록에 없는 스코프가 저장되면 아무도 못 보는 권한이 계정에 붙는다.
+    setAdminScopes(v.adminId, assignableOnly(v.scopes))
     return
   }
 

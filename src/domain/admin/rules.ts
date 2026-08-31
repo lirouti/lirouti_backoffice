@@ -36,6 +36,25 @@ export const ASSIGNABLE_SCOPES: ScopeId[] = [
 ]
 
 /**
+ * 고를 수 있는 것만 남기고 **정해진 순서로 눕힌다.**
+ *
+ * ⚠️ **화면이 거르는 것에 기대지 않는다.** 화면은 `ASSIGNABLE_SCOPES` 만 그리지만,
+ *    파사드는 그 화면만 부르는 게 아니다 — 목록에 없는 스코프가 저장되면 아무도
+ *    못 보는 권한이 계정에 붙는다 (docs/ARCHITECTURE.md §31.6).
+ */
+export const assignableOnly = (scopes: ScopeId[]): ScopeId[] =>
+  ASSIGNABLE_SCOPES.filter((s) => scopes.includes(s))
+
+/**
+ * 한 번이라도 로그인했는가.
+ *
+ * ⚠️ **활동 기록이 있을 수 있는지를 이 함수가 정한다.** 상태(`대기`)가 아니라 **사실**
+ *    (`firstLoginAt`)로 판정한다 — 계정 카드의 「아직 로그인하지 않음」 과 활동 표가
+ *    같은 함수를 써야 서로를 배신하지 않는다 (docs/ARCHITECTURE.md §31.10).
+ */
+export const hasSignedIn = (a: Admin): boolean => a.firstLoginAt !== ''
+
+/**
  * 이 계정으로 로그인하면 무엇이 보이는가.
  *
  * 「이 계정으로 보기」 와 「사이드바에 표시」 미리보기가 **같은 함수를 쓴다** — 보여 준
@@ -147,7 +166,7 @@ export function normalizeAdminInput(input: AdminInput): AdminInput {
     name: input.name.trim(),
     email: input.email.trim().toLowerCase(),
     role: input.role,
-    scopes: top ? [] : ASSIGNABLE_SCOPES.filter((s) => input.scopes.includes(s)),
+    scopes: top ? [] : assignableOnly(input.scopes),
   }
 }
 
@@ -160,6 +179,21 @@ export type AdminErrors = {
 
 /** 사내 아이디 도메인. 화면의 안내 문구와 검증이 이 하나를 함께 쓴다 */
 export const ADMIN_EMAIL_DOMAIN = '@riruti.co'
+
+/**
+ * 쓸 수 있는 사내 아이디인가.
+ *
+ * ⚠️ **끝만 보면 안 된다.** `endsWith` 하나로는 로컬 파트가 없는 `@riruti.co` 와 `@` 가
+ *    둘인 `user@other@riruti.co` 가 그대로 통과해서, **아무도 그 아이디로 로그인할 수
+ *    없는 계정**이 만들어진다 (docs/ARCHITECTURE.md §31.11).
+ *
+ * 도메인은 `ADMIN_EMAIL_DOMAIN` 에서 잘라 낸다 — 정규식에 도메인을 또 적으면 둘이 어긋난다.
+ */
+export function isAdminEmail(v: string): boolean {
+  if (!v.endsWith(ADMIN_EMAIL_DOMAIN)) return false
+  const local = v.slice(0, -ADMIN_EMAIL_DOMAIN.length)
+  return local !== '' && !/[@\s]/.test(local)
+}
 
 /**
  * 초대 폼 검증.
@@ -178,7 +212,7 @@ export function validateAdmin(input: AdminInput, taken: string[]): AdminErrors {
   if (!v.name) errors.name = '이름을 입력하세요.'
 
   if (!v.email) errors.email = '아이디를 입력하세요.'
-  else if (!v.email.endsWith(ADMIN_EMAIL_DOMAIN))
+  else if (!isAdminEmail(v.email))
     errors.email = `아이디는 사내 이메일(${ADMIN_EMAIL_DOMAIN})이어야 합니다.`
   else if (taken.some((t) => sameEmail(t, v.email))) errors.email = '이미 쓰이고 있는 아이디입니다.'
 

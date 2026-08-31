@@ -4,7 +4,7 @@
  * ⚠️ **담당 모듈은 저장 버튼 없이 즉시 반영된다.** 권한 회수를 저장까지 미루면, 창을
  *    닫아 버린 사이 그 사람은 계속 들어올 수 있다 (docs/ARCHITECTURE.md §31.8).
  */
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 import { useNavigate, useParams } from 'react-router'
 
@@ -15,7 +15,7 @@ import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
 import { Dialog } from '@/shared/ui/Dialog'
-import { Skeleton } from '@/shared/ui/EmptyState'
+import { EmptyState, Skeleton } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Table, type Column } from '@/shared/ui/Table'
@@ -27,6 +27,7 @@ import {
   ADMIN_ROLE_TONE,
   ADMIN_STATUS_TONE,
   DEVICE_LABEL,
+  hasSignedIn,
   viewerOf,
   type AdminLog,
 } from '@/domain/admin'
@@ -64,6 +65,15 @@ function Detail({ detail }: { detail: AdminDetail }) {
    */
   const [draft, setDraft] = useState<ScopeId[] | null>(null)
   const [asking, setAsking] = useState(false)
+  /**
+   * 보낸 순서대로 서버에 닿게 하는 줄.
+   *
+   * ⚠️ **토글마다 전체 목록을 보내므로 응답이 뒤바뀌면 옛 값이 최신을 덮는다.** 빨리 두 번
+   *    누르면 `[a,b]` 와 `[a]` 가 함께 날아가는데, 늦게 도착한 쪽이 서버에 남는다 —
+   *    화면은 `[a]` 인데 서버는 `[a,b]` 다 (docs/ARCHITECTURE.md §31.8).
+   *    **누를 때마다 잠그는 대신** 줄을 세운다 — 잠그면 즉시 반영이 아니게 된다.
+   */
+  const queue = useRef<Promise<unknown>>(Promise.resolve())
 
   const { admin, status, menu, logs, actions, suspendBlocked } = detail
   const scopes = draft ?? admin.scopes
@@ -73,10 +83,10 @@ function Detail({ detail }: { detail: AdminDetail }) {
   const toggle = (scope: ScopeId) => {
     const next = scopes.includes(scope) ? scopes.filter((s) => s !== scope) : [...scopes, scope]
     setDraft(next)
-    setScopes.mutate(
-      { adminId: admin.adminId, scopes: next },
-      { onError: () => setDraft(null) },
-    )
+    queue.current = queue.current
+      .then(() => setScopes.mutateAsync({ adminId: admin.adminId, scopes: next }))
+      // 실패하면 서버 값이 진실이 되게 되돌린다. 삼키므로 뒤에 선 요청은 계속 간다.
+      .catch(() => setDraft(null))
   }
 
   const enterPreview = () => {
@@ -151,7 +161,14 @@ function Detail({ detail }: { detail: AdminDetail }) {
             <div className={css({ p: '18px 20px 0' })}>
               <CardTitle title="최근 활동" sub="전체 기록은 감사 로그에 남습니다." />
             </div>
-            <Table columns={LOG_COLUMNS} rows={logs} minWidth={640} className={css({ border: '0' })} />
+            {logs.length > 0 ? (
+              <Table columns={LOG_COLUMNS} rows={logs} minWidth={640} className={css({ border: '0' })} />
+            ) : (
+              <EmptyState
+                title="아직 활동이 없습니다"
+                body="초대만 받고 한 번도 로그인하지 않은 계정입니다."
+              />
+            )}
           </Card>
         </div>
 
@@ -162,7 +179,7 @@ function Detail({ detail }: { detail: AdminDetail }) {
               <Row k="발급자" v={admin.invitedBy} />
               <Row k="발급일" v={admin.invitedAt} />
               {/* ⚠️ 대기 계정은 최초 로그인이 없다. 「—」 는 0시가 아니라 **아직 없음**이다. */}
-              <Row k="최초 로그인" v={admin.firstLoginAt || '— · 아직 로그인하지 않음'} />
+              <Row k="최초 로그인" v={hasSignedIn(admin) ? admin.firstLoginAt : '— · 아직 로그인하지 않음'} />
               <Row k="최근 접속" v={admin.seenAt} />
               <Row k="2단계 인증" v={admin.mfa} />
               <Row k="담당 모듈" v={top ? '전체' : `${num(scopes.length)}개`} />
