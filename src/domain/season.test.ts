@@ -89,6 +89,22 @@ describe('seasonOptions', () => {
   it('첫 시즌이면 상시 · 시즌 1 · 시즌 2', () => {
     expect(seasonOptions({ ...S, no: 1 })).toEqual([ALWAYS, '시즌 1', '시즌 2'])
   })
+
+  // 셀렉트는 모르는 값의 라벨을 못 그려 **빈 칸**이 된다 — 「없는 시즌입니다」 라고 써 놓고
+  // 정작 무엇이 잘못됐는지는 안 보여 주게 된다.
+  it('⚠️ 목록 밖의 지금 값은 뒤에 붙인다', () => {
+    expect(seasonOptions(S, '시즌 9')).toEqual([ALWAYS, '시즌 1', '시즌 2', '시즌 3', '시즌 4', '시즌 9'])
+  })
+
+  it('이미 있는 값이면 두 번 넣지 않는다', () => {
+    expect(seasonOptions(S, '시즌 2')).toEqual(seasonOptions(S))
+    expect(seasonOptions(S, ALWAYS)).toEqual(seasonOptions(S))
+  })
+
+  // 빈 값은 「아직 안 골랐다」 이지 고를 수 있는 시즌이 아니다.
+  it('⚠️ 빈 값은 붙이지 않는다', () => {
+    expect(seasonOptions(S, '')).toEqual(seasonOptions(S))
+  })
 })
 
 describe('CURRENT_SEASON', () => {

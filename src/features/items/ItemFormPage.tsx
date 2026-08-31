@@ -77,9 +77,6 @@ const SOURCE_OPTIONS = (Object.keys(ITEM_SOURCE_LABEL) as ItemSource[]).map((s) 
  */
 const draftScope = (itemId?: string): string => `items:${itemId ?? 'new'}`
 
-/** ⚠️ **직접 적지 않는다.** 지난 시즌이 빠져 있으면 옛 아이템을 열었을 때 값이 바뀐다 (§34.1) */
-const SEASON_OPTIONS = seasonOptions(CURRENT_SEASON)
-
 /**
  * 칸 하나를 바꾸고 **더러움 표시를 켠다.**
  *
@@ -325,7 +322,8 @@ function BasicsCard({ form, errors }: { form: UseFormReturn<ItemInput>; errors: 
           <Select
             value={v.season}
             onChange={(season) => set('season', season)}
-            options={SEASON_OPTIONS}
+            /* ⚠️ 지금 값을 함께 넘긴다 — 목록 밖의 값이면 셀렉트가 빈 칸이 된다 (§34.8) */
+            options={seasonOptions(CURRENT_SEASON, v.season)}
             label="시즌"
             className={css({ flex: '0 1 160px' })}
           />

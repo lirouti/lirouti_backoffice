@@ -208,7 +208,7 @@ function Detail({ detail, speciesId }: { detail: SpeciesDetail; speciesId: strin
                   <Select
                     value={draft.season}
                     onChange={(v) => set('season', v as SpeciesInput['season'])}
-                    options={seasonOptions(CURRENT_SEASON)}
+                    options={seasonOptions(CURRENT_SEASON, draft.season)}
                     error={errors.season}
                     label="시즌 한정"
                     className={css({ flex: '1 1 160px' })}

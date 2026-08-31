@@ -68,9 +68,13 @@ export function seasonChip(s: Season, today: string): string {
  * ⚠️ **다음 시즌을 넣는다.** 시즌 4 콘텐츠는 시즌 3 동안 미리 만든다 — 그게 시즌제의
  *    운영 방식이다.
  */
-export function seasonOptions(s: Season): string[] {
+export function seasonOptions(s: Season, current?: string): string[] {
   const seasons = Array.from({ length: s.no + 1 }, (_, i) => seasonLabel(i + 1))
-  return [ALWAYS, ...seasons]
+  const options = [ALWAYS, ...seasons]
+  // ⚠️ **지금 값이 목록에 없으면 그 값도 넣는다.** 셀렉트는 모르는 값의 라벨을 못 그려서
+  //    **빈 칸으로 보인다** — 「없는 시즌입니다」 라고 써 붙여 놓고 정작 무엇이 잘못됐는지는
+  //    안 보여 주는 셈이다 (docs/ARCHITECTURE.md §34.8).
+  return current && !options.includes(current) ? [...options, current] : options
 }
 
 /**

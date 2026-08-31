@@ -208,7 +208,7 @@ export default function SpeciesFormPage() {
               <Select
                 value={input.season}
                 onChange={(v) => set('season', v as SpeciesInput['season'])}
-                options={seasonOptions(CURRENT_SEASON)}
+                options={seasonOptions(CURRENT_SEASON, input.season)}
                 error={shown.season}
                 label="시즌 한정"
                 className={css({ flex: '1 1 160px' })}
