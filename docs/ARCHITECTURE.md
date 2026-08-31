@@ -3333,15 +3333,11 @@ const scopes = draft ?? admin.scopes
 `assignableOnly` 를 둘이 함께 쓴다. **다만 0개가 되는 것은 막지 않는다** — §31.5 대로
 권한 회수는 정당한 조작이고, `me` 스코프 때문에 계정이 잠기지도 않는다.
 
-### 31.13 미결 — `Table` 의 `key` 는 타입이 안 잡힌다
+### 31.13 `Table` 의 `key` 는 타입이 안 잡혔다 → §35 에서 고침
 
-`render` 가 없는 열은 `(row as Record<string, ReactNode>)[c.key]` 로 값을 꺼낸다. 캐스팅이라
-**행에 없는 필드를 적으면 에러 없이 빈 칸이 나온다.** 이번에 「최근 접속」 열이 그렇게
+`render` 가 없는 열은 `(row as Record<string, ReactNode>)[c.key]` 로 값을 꺼냈다. 캐스팅이라
+**행에 없는 필드를 적으면 에러 없이 빈 칸이 나왔다.** 이번에 「최근 접속」 열이 그렇게
 비었다 — 행이 `Admin` 이 아니라 `AdminEntry` 였다.
-
-`key` 를 `render` 유무에 따라 갈라 놓으면(`{ render } | { key: keyof Row }`) 타입이 잡지만,
-지금 열 정의 전부를 건드려야 해서 **이 PR 에서는 하지 않았다.**
-TODO(열 정의를 손볼 일이 생기면): `Column` 을 판별 유니온으로 바꾼다.
 
 
 ---
@@ -3750,3 +3746,83 @@ const BEYOND = seasonLabel(CURRENT_SEASON.no + 2)
 
 > 값 목록을 좁히는 화면은 전부 이 함정을 갖는다. 「고를 수 있는 것」 과 「지금 들어 있는 것」
 > 은 다른 집합이고, 셀렉트는 **둘의 합집합**을 받아야 한다.
+
+
+---
+
+## 35. `Column` 은 판별 유니온이다
+
+§31.13 에서 미룬 것을 마무리했다. `Column` 의 `key` 가 `string` 이라 **행에 없는 필드를
+적어도 타입이 아무 말을 하지 않았고**, 꺼낼 때 캐스팅해서 **빈 칸**이 나왔다.
+관리자 목록의 「최근 접속」 이 실제로 그렇게 비었다.
+
+### 35.1 열은 두 종류다
+
+```ts
+export type Column<Row> = ColumnStyle &
+  ({ key: string; render: (row: Row) => ReactNode } | { key: FieldKey<Row>; render?: never })
+```
+
+| | `key` 의 뜻 |
+|---|---|
+| `render` 있음 | **React 키일 뿐**이다. 값은 `render` 가 만든다 — 아무 문자열이어도 된다 |
+| `render` 없음 | **행에서 꺼낼 필드 이름**이라 실재해야 한다 |
+
+`render?: never` 가 판별자다. 이게 없으면 「필드 이름 + render 없음」 을 첫 가지가
+받아 버려 좁혀지지 않는다.
+
+### 35.2 ⚠️ `ReactNode` 로 좁히면 부족하다
+
+처음엔 `Row[K] extends ReactNode` 로 썼는데, **`ReactNode` 에는 `boolean` 이 들어 있고
+React 는 `true`/`false` 를 아무것도 그리지 않는다** — 타입은 통과하는데 칸은 비는,
+고치려던 바로 그 모양이다. 객체·배열·함수도 같은 이유로 뺀다.
+
+```ts
+type FieldKey<Row> = {
+  [K in keyof Row]-?: K extends string
+    ? NonNullable<Row[K]> extends string | number ? K : never
+    : never
+}[keyof Row]
+```
+
+`null`·`undefined` 는 **허용한다** — 「값이 없다」 를 빈 칸으로 그리는 것은 의도된 표시라,
+`at?: string` 같은 열을 막으면 안 된다.
+
+⚠️ **`any` 는 따로 막아야 한다.** `any` 는 조건부 타입에서 **양쪽 가지로 분배돼**
+`any extends string | number` 가 참이자 거짓이라, 위 검사를 그냥 통과한다. 실제로 들어
+있는 값이 `boolean` 이면 **똑같이 빈 칸**이 된다.
+
+```ts
+/** `1 & any` 가 `any` 라서 `0` 이 거기 들어간다 — `T` 가 `any` 일 때만 참이다 */
+type IsAny<T> = 0 extends 1 & T ? true : false
+```
+
+> `no-explicit-any` 가 **손으로 적는 길은 이미 막고 있다**(저장소에 `any` 는 0건이다).
+> 남는 경로는 **타입 없는 의존성에서 새어 들어오는 것**뿐이라 눈에 안 띈다 — 그래서
+> 더 막아야 한다. 시험하려면 `any` 가 필요해서 타입 테스트에서만 규칙을 끄고, 그 이유를
+> 그 자리에 적었다. **보증에 예외를 하나 남기면 그 예외가 다음 사고의 자리가 된다.**
+
+### 35.3 검사기는 `typecheck` 다
+
+`Table.types.test.ts` 는 런타임에 아무것도 하지 않는다. **`@ts-expect-error` 는 오류가
+나지 않으면 그 자체로 오류**라, 타입이 헐거워지는 순간 `bun run typecheck` 이 깨진다.
+
+확인: `key: FieldKey<Row>` 를 `key: string` 으로 되돌리면 **`Unused '@ts-expect-error'`
+3건**이 뜬다. `vitest` 로는 못 잡는 종류라 검사 자리가 다르다.
+
+> ESLint 가 `@ts-expect-error` 에 이유를 요구한다(`ban-ts-comment`). 지시어 뒤에 붙인다 —
+> 억누르는 이유가 안 적힌 억제는 다음 사람이 지워도 되는지 알 수 없다.
+
+**기존 위반은 0건이었다.** 「최근 접속」 이 유일했고 그때 고쳤다 — 이 절은 **다시 나지
+않게 하는 것**이지 새 버그를 고친 것이 아니다.
+
+### 35.4 미결 — `rowKey` 없는 표가 20개다
+
+`rowKey` 를 안 주면 React 키가 배열 인덱스가 된다. 문서에는 「정렬·필터에서 어긋난다」 고
+적혀 있는데, **지금 눈에 보이는 고장은 찾지 못했다** — 셀이 전부 무상태 렌더라 인덱스
+키로도 화면이 맞는다.
+
+필수로 바꾸면 20곳을 건드려야 하는데 **깨지는 것을 보여 줄 수 없어 하지 않았다.**
+셀 안에 입력이나 애니메이션이 생기면 그때 실제로 깨지고, 그게 바꿀 근거다.
+
+TODO(표 셀에 상태가 생기면): `rowKey` 를 필수로 올린다.
