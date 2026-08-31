@@ -80,7 +80,7 @@ const INQUIRIES: Inquiry[] = ROWS.map(
       { from: 'user', name: user.nick, at, text: OPENING[category] },
     ]
     if (answeredAt) {
-      messages.push({ from: 'admin', name: `${assignee} · 운영팀`, at: answeredAt, text: ANSWER })
+      messages.push({ from: 'admin', name: `${assignee} · 운영팀`, at: answeredAt, text: ANSWER, notified: true })
     }
     if (reopened && answeredAt) {
       // ⚠️ **재문의는 답변 뒤 · 지금 앞**이어야 한다. 미래 시각이면 대기 시간이 0 이 된다.
@@ -110,10 +110,16 @@ export const allInquiries = (): Inquiry[] => INQUIRIES
  * ⚠️ **`answeredAt` 은 첫 답변 때만 찍는다.** 재문의에 다시 답할 때 갱신하면
  *    「첫 응답까지 걸린 시간」 이 계속 줄어 지표가 좋아 보인다 (§28.1).
  */
-export function replyToInquiry(key: number, text: string, by: string, at: string): Inquiry | undefined {
+export function replyToInquiry(
+  key: number,
+  text: string,
+  by: string,
+  at: string,
+  notified: boolean,
+): Inquiry | undefined {
   const found = INQUIRIES.find((i) => i.key === key)
   if (!found) return undefined
-  found.messages = [...found.messages, { from: 'admin', name: `${by} · 운영팀`, at, text }]
+  found.messages = [...found.messages, { from: 'admin', name: `${by} · 운영팀`, at, text, notified }]
   found.status = '답변완료'
   found.assignee = by
   if (!found.answeredAt) found.answeredAt = at

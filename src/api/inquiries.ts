@@ -101,6 +101,13 @@ export type ReplyVars = {
    * 답변한 사람. **목에서만 쓴다** — 실서버는 세션에서 가져간다 (§25.3).
    */
   by: string
+  /**
+   * 앱 알림도 함께 보낼 것인가.
+   *
+   * ⚠️ **화면의 스위치가 이 값이다.** 계약에 없으면 스위치는 아무 일도 안 하면서
+   *    운영자에게는 껐다고 믿게 한다 (docs/ARCHITECTURE.md §28.4).
+   */
+  notify: boolean
 }
 
 /**
@@ -109,7 +116,7 @@ export type ReplyVars = {
  * ⚠️ **보내면 유저에게 앱 알림이 간다.** 되돌릴 수 없어 화면이 확인 창을 받고,
  *    여기서도 검증을 한 번 더 한다 (§22.2.3).
  */
-export async function replyInquiry({ qnaId, text, by }: ReplyVars): Promise<Inquiry> {
+export async function replyInquiry({ qnaId, text, by, notify }: ReplyVars): Promise<Inquiry> {
   if (USE_MOCK) {
     await mockDelay()
     const first = Object.values(validateReply(text))[0]
@@ -121,7 +128,9 @@ export async function replyInquiry({ qnaId, text, by }: ReplyVars): Promise<Inqu
       throw apiError('http', '보류 건은 먼저 보류를 풀어야 답할 수 있습니다.', 409)
     }
 
-    const saved = replyToInquiry(qnaId, text.trim(), by, nowAt())
+    // ⚠️ **회원을 못 찾으면 알림은 못 간다.** 켜져 있어도 갔다고 기록하면 거짓이 된다.
+    const reachable = allUsers().some((u) => u.key === target.userKey && u.status !== 'LEFT')
+    const saved = replyToInquiry(qnaId, text.trim(), by, nowAt(), notify && reachable)
     if (!saved) throw apiError('http', `문의 #${qnaId} 을(를) 찾을 수 없습니다.`, 404)
     return saved
   }

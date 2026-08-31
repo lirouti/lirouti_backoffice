@@ -34,6 +34,14 @@ export type InquiryMessage = {
   at: string
   /** 여러 줄. 줄바꿈 그대로 보인다 */
   text: string
+  /**
+   * 이 답변이 **앱 알림으로도 나갔는가.** 운영자 답변에만 있다.
+   *
+   * ⚠️ **남겨야 한다.** 「알림 없이 남긴 답변」 은 유저가 못 볼 수도 있어서,
+   *    나중에 「답을 안 줬다」 는 문의가 다시 올 때 근거가 된다
+   *    (docs/ARCHITECTURE.md §28.4).
+   */
+  notified?: boolean
 }
 
 export type Inquiry = {

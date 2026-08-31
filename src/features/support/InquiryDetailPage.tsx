@@ -77,7 +77,7 @@ function Detail({ detail: { inquiry: q, user, payments, past, now } }: { detail:
 
   const commit = () =>
     reply.mutate(
-      { qnaId: q.key, text, by: viewer.name },
+      { qnaId: q.key, text, by: viewer.name, notify },
       { onSuccess: () => { setAsking(false); setTried(false); setText('') } },
     )
 
@@ -361,7 +361,11 @@ function Bubble({ message: m }: { message: InquiryMessage }) {
         <div className={css({ display: 'flex', justifyContent: 'space-between', gap: '10px', mb: '5px' })}>
           <span className={css({ textStyle: 'caption', fontWeight: '700', color: 'ink' })}>{m.name}</span>
           {/* ⚠️ 운영자 말풍선은 `soft` 배경이라 `faint` 가 4.35:1 로 모자란다 (§3.5.1) */}
-          <span className={css({ textStyle: 'micro', color: 'sub' })}>{m.at}</span>
+          <span className={css({ display: 'flex', alignItems: 'center', gap: '6px', textStyle: 'micro', color: 'sub' })}>
+            {/* 알림 없이 남긴 답변은 유저가 못 볼 수 있다 — 나중에 근거가 된다 (§28.4) */}
+            {m.notified === false && <span className={css({ color: 'warnFg', fontWeight: '700' })}>알림 없음</span>}
+            {m.at}
+          </span>
         </div>
         <p className={css({ m: '0', textStyle: 'body', color: 'sub', whiteSpace: 'pre-line' })}>{m.text}</p>
       </div>
