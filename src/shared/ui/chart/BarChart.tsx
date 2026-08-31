@@ -10,29 +10,37 @@ import {
 import { css } from 'styled-system/css'
 import { token } from 'styled-system/tokens'
 
-/** 2계열 그룹 바 한 칸. 도메인의 SeriesPoint 와 구조적으로 호환된다. */
+/** 그룹 바 한 칸. 도메인의 SeriesPoint 와 구조적으로 호환된다. */
 export type BarDatum = {
   label: string
   /** 1계열 */
   a: number
-  /** 2계열 */
-  b: number
+  /** 2계열. 한 계열만 그릴 때는 없다 */
+  b?: number
 }
 
 type BarChartProps = {
   groups: BarDatum[]
   /** y축 상한 */
   max: number
-  legend: [string, string]
+  /** 계열 이름. **하나만 주면 한 계열만 그린다** */
+  legend: [string] | [string, string]
   height?: number
 }
 
-/** 2계열 그룹 바 차트 (대시보드 젬 유입·소비) */
+/**
+ * 그룹 바 차트 (대시보드 젬 유입·소비 · 푸시 시간대별 열림).
+ *
+ * ⚠️ **왼쪽 여백을 음수로 두면 첫 막대가 잘린다.** `YAxis hide` 는 자리를 아예 안
+ *    잡으므로 뺄 것이 없는데, `left: -30` 이 그림 영역을 통째로 왼쪽으로 밀어
+ *    **첫 칸이 화면 밖으로 나갔다** — 대시보드에서 14개 중 1개가 그렇게 사라져
+ *    있었다 (docs/ARCHITECTURE.md §26.4).
+ */
 export function BarChart({ groups, max, legend, height = 170 }: BarChartProps) {
   return (
     <>
       <ResponsiveContainer width="100%" height={height}>
-        <RcBarChart data={groups} margin={{ top: 8, right: 8, bottom: 0, left: -30 }} barGap={2}>
+        <RcBarChart data={groups} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} barGap={2}>
           <CartesianGrid stroke={token('colors.ln')} vertical={false} />
           <XAxis
             dataKey="label"
@@ -49,14 +57,16 @@ export function BarChart({ groups, max, legend, height = 170 }: BarChartProps) {
             maxBarSize={14}
             isAnimationActive={false}
           />
-          <Bar
-            dataKey="b"
-            name={legend[1]}
-            fill={token('colors.chart')}
-            radius={3}
-            maxBarSize={14}
-            isAnimationActive={false}
-          />
+          {legend[1] !== undefined && (
+            <Bar
+              dataKey="b"
+              name={legend[1]}
+              fill={token('colors.chart')}
+              radius={3}
+              maxBarSize={14}
+              isAnimationActive={false}
+            />
+          )}
         </RcBarChart>
       </ResponsiveContainer>
 
@@ -65,7 +75,7 @@ export function BarChart({ groups, max, legend, height = 170 }: BarChartProps) {
         {(
           [
             ['pri', legend[0]],
-            ['chart', legend[1]],
+            ...(legend[1] === undefined ? [] : [['chart', legend[1]] as const]),
           ] as const
         ).map(([tone, text]) => (
           <div

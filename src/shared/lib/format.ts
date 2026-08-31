@@ -12,6 +12,16 @@ export const gem = (n: number): string => (n > 0 ? `${nf.format(n)} 젬` : '무�
 /** 68.4 → "68.4%" */
 export const pct = (n: number, digits = 0): string => `${n.toFixed(digits)}%`
 
+/**
+ * `part / total` 을 백분율로. **모수가 0 이면 `—`.**
+ *
+ * ⚠️ **0 으로 나눈 결과를 그대로 찍으면 `NaN%` 가 화면에 뜬다.** 「아직 집계 전」 이나
+ *    「대상 없음」 을 0% 로 그리는 것도 틀렸다 — 0% 는 "있는데 하나도 안 됐다" 는 뜻이다
+ *    (docs/ARCHITECTURE.md §26.3).
+ */
+export const share = (part: number, total: number): string =>
+  total === 0 ? '—' : `${Math.round((part / total) * 100)}%`
+
 /** 8_400_000 → "8.4M" — KPI 카드용 축약 표기 */
 export function compact(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`

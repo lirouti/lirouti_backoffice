@@ -45,3 +45,26 @@ export function shiftDays(isoDate: string, n: number): string {
  * 「오늘 결제」 같은 지표가 **영원히 0** 이 된다 — 화면은 멀쩡한데 죽은 숫자다.
  */
 export const daysAgo = (n: number): string => shiftDays(today(), n)
+
+/**
+ * 지금 시각 `YYYY-MM-DD HH:mm` (운영 기준 시간대).
+ *
+ * **야간 발송 차단처럼 「지금」 이 언제인지가 규칙에 들어갈 때 쓴다.** 예약 시각과 같은
+ * 모양이라 도메인 함수가 둘을 구분하지 않아도 된다 (docs/ARCHITECTURE.md §26.2).
+ *
+ * ⚠️ **`Date#getHours()` 를 쓰면 안 된다.** 그건 실행 환경의 시간대라, 서버에 배포된
+ *    브라우저나 해외에서 접속한 운영자에게 **다른 시각**이 나온다.
+ */
+export function nowAt(): string {
+  const parts = new Intl.DateTimeFormat('sv-SE', {
+    timeZone: OPERATING_TZ,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(new Date())
+  // `sv-SE` 는 `2026-08-31 21:04` 로 준다 — 우리가 쓰는 모양 그대로다.
+  return parts
+}
