@@ -55,6 +55,11 @@ export const qk = {
     list: (filter: Record<string, unknown> = {}) => ['coupons', 'list', filter] as const,
     detail: (id: number | string) => ['coupons', 'detail', String(id)] as const,
   },
+  admins: {
+    all: ['admins'] as const,
+    list: (filter: Record<string, unknown> = {}) => ['admins', 'list', filter] as const,
+    detail: (id: number | string) => ['admins', 'detail', String(id)] as const,
+  },
   codes: {
     all: ['codes'] as const,
     list: (filter: Record<string, unknown> = {}) => ['codes', 'list', filter] as const,
