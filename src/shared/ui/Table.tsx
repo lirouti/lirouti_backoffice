@@ -2,16 +2,8 @@ import type { ReactNode } from 'react'
 
 import { css, cx } from 'styled-system/css'
 
-/**
- * 열 하나의 계약.
- *
- * `shared/ui` 는 도메인을 모르므로 행 타입을 **제네릭으로 받는다.** 화면이
- * `Column<Item>[]` 을 넘기면 `render` 안에서 타입이 살아 있고, 여기서는
- * `Item` 이 무엇인지 알 필요가 없다.
- */
-export type Column<Row> = {
-  /** `render` 가 없을 때 꺼내 쓸 필드 */
-  key: string
+/** 열마다 같은 모양새 설정 */
+type ColumnStyle = {
   label: string
   /** 고정 폭. 숫자·날짜처럼 폭이 정해진 열에 준다 */
   width?: string
@@ -28,8 +20,46 @@ export type Column<Row> = {
    * 원본 레퍼런스에는 없던 것을 더했다 — 어드민 목록은 상태 배지와 에셋
    * 썸네일이 섞이는 게 기본이라, 없으면 화면마다 표를 다시 만들게 된다.
    */
-  render?: (row: Row) => ReactNode
 }
+
+/**
+ * 열 하나의 계약.
+ *
+ * `shared/ui` 는 도메인을 모르므로 행 타입을 **제네릭으로 받는다.** 화면이
+ * `Column<Item>[]` 을 넘기면 `render` 안에서 타입이 살아 있고, 여기서는
+ * `Item` 이 무엇인지 알 필요가 없다.
+ *
+ * ⚠️ **`key` 로 값을 꺼내는 열은 `key` 가 행의 필드여야 한다.** 예전에는 `key: string`
+ *    이라 아무 문자열이나 받았고, 꺼낼 때 캐스팅해서 **없는 필드를 적으면 타입 오류
+ *    없이 빈 칸이 나왔다** — 실제로 관리자 목록의 「최근 접속」 이 그렇게 비었다
+ *    (docs/ARCHITECTURE.md §35).
+ *
+ * 그래서 둘 중 하나다.
+ * - `render` 가 있으면 `key` 는 **React 키일 뿐**이라 아무 문자열이어도 된다
+ * - `render` 가 없으면 `key` 는 **행에서 꺼낼 필드 이름**이라 실재해야 한다
+ */
+export type Column<Row> = ColumnStyle &
+  (
+    | { key: string; render: (row: Row) => ReactNode }
+    | { key: FieldKey<Row>; render?: never }
+  )
+
+/**
+ * 그대로 글자가 되는 필드의 이름만.
+ *
+ * ⚠️ **`ReactNode` 로 좁히면 부족하다.** `ReactNode` 에는 `boolean` 이 들어 있고 React 는
+ *    `true`/`false` 를 **아무것도 그리지 않는다** — 타입은 통과하는데 칸은 비는, 고치려던
+ *    바로 그 모양이 된다. 객체·배열·함수도 같은 이유로 뺀다.
+ *
+ * `null`·`undefined` 는 허용한다 — 「값이 없다」 를 빈 칸으로 그리는 것은 의도된 표시다.
+ */
+type FieldKey<Row> = {
+  [K in keyof Row]-?: K extends string
+    ? NonNullable<Row[K]> extends string | number
+      ? K
+      : never
+    : never
+}[keyof Row]
 
 type TableProps<Row> = {
   columns: Column<Row>[]
@@ -155,10 +185,10 @@ export function Table<Row>({
                       c.render(row)
                     ) : c.truncate ? (
                       <div className={css({ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' })}>
-                        {(row as Record<string, ReactNode>)[c.key]}
+                        {value(row, c)}
                       </div>
                     ) : (
-                      (row as Record<string, ReactNode>)[c.key]
+                      value(row, c)
                     )}
                   </td>
                 ))}
@@ -169,4 +199,14 @@ export function Table<Row>({
       </div>
     </div>
   )
+}
+
+/**
+ * `render` 가 없는 열의 값.
+ *
+ * ⚠️ **캐스팅이지만 이제는 안전하다** — `Column` 의 유니온이 `key` 를 행의 필드로
+ *    좁혀 두므로, 여기 도달하는 `key` 는 반드시 실재하는 필드다 (§35).
+ */
+function value<Row>(row: Row, c: Column<Row>): ReactNode {
+  return (row as Record<string, ReactNode>)[c.key]
 }
