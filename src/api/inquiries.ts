@@ -128,8 +128,10 @@ export async function replyInquiry({ qnaId, text, by, notify }: ReplyVars): Prom
       throw apiError('http', '보류 건은 먼저 보류를 풀어야 답할 수 있습니다.', 409)
     }
 
-    // ⚠️ **회원을 못 찾으면 알림은 못 간다.** 켜져 있어도 갔다고 기록하면 거짓이 된다.
-    const reachable = allUsers().some((u) => u.key === target.userKey && u.status !== 'LEFT')
+    // ⚠️ **없거나 이미 탈퇴한 회원에게는 알림이 못 간다.** 켜져 있어도 갔다고
+    //    기록하면 거짓이 된다 (§28.4).
+    const author = allUsers().find((u) => u.key === target.userKey)
+    const reachable = author !== undefined && author.status !== 'LEFT'
     const saved = replyToInquiry(qnaId, text.trim(), by, nowAt(), notify && reachable)
     if (!saved) throw apiError('http', `문의 #${qnaId} 을(를) 찾을 수 없습니다.`, 404)
     return saved

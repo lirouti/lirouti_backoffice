@@ -80,7 +80,11 @@ const INQUIRIES: Inquiry[] = ROWS.map(
       { from: 'user', name: user.nick, at, text: OPENING[category] },
     ]
     if (answeredAt) {
-      messages.push({ from: 'admin', name: `${assignee} · 운영팀`, at: answeredAt, text: ANSWER, notified: true })
+      // ⚠️ **탈퇴한 뒤에는 알림이 못 간다.** 파사드가 새 답변에 거는 규칙(§28.4)을
+      //    씨앗 데이터에도 똑같이 건다 — 한쪽만 지키면 화면이 스스로 모순된다.
+      //    탈퇴 **전에** 답한 것은 갔다. 그래서 상태가 아니라 시점을 비교한다.
+      const notified = user.leftAt === '' || answeredAt < user.leftAt
+      messages.push({ from: 'admin', name: `${assignee} · 운영팀`, at: answeredAt, text: ANSWER, notified })
     }
     if (reopened && answeredAt) {
       // ⚠️ **재문의는 답변 뒤 · 지금 앞**이어야 한다. 미래 시각이면 대기 시간이 0 이 된다.
