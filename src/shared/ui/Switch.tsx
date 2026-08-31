@@ -2,25 +2,40 @@ import { useId } from 'react'
 
 import { css, cx } from 'styled-system/css'
 
-type SwitchProps = {
+type SwitchBase = {
   checked: boolean
   onChange: (v: boolean) => void
   /** 오른쪽에 붙는 이름. 이게 스크린리더가 읽는 이름이 된다 */
   label: string
-  /** 라벨 아래 한 줄 설명 */
-  hint?: string
   disabled?: boolean
-  /**
-   * 라벨을 **화면에서만** 숨긴다. 접근 이름(`aria-label`)은 그대로 남는다.
-   *
-   * ⚠️ **줄마다 스위치가 있는 표에 쓴다.** 「노출」 처럼 짧게 줄이면 화면은 깔끔하지만
-   *    스크린리더가 **어느 줄의 스위치인지 말하지 못한다** — 같은 이름이 스무 개가 된다.
-   *    라벨에는 무엇의 스위치인지 다 적고 이 옵션으로 감춘다
-   *    (docs/ARCHITECTURE.md §27.2).
-   */
-  labelHidden?: boolean
   className?: string
 }
+
+/**
+ * ⚠️ **라벨을 감추면 힌트를 줄 수 없다.** 힌트는 **라벨에 붙는 설명**이라, 라벨이 없으면
+ *    무엇을 설명하는지 없는 글자가 된다 — 표 한 줄에 설명만 덩그러니 놓이는 모양이다.
+ *    주석으로 적어 두는 대신 **타입으로 막는다** (docs/ARCHITECTURE.md §37.3).
+ */
+type SwitchProps = SwitchBase &
+  (
+    | {
+        labelHidden?: false
+        /** 라벨 아래 한 줄 설명 */
+        hint?: string
+      }
+    | {
+        /**
+         * 라벨을 **화면에서만** 숨긴다. 접근 이름(`aria-label`)은 그대로 남는다.
+         *
+         * ⚠️ **줄마다 스위치가 있는 표에 쓴다.** 「노출」 처럼 짧게 줄이면 화면은 깔끔하지만
+         *    스크린리더가 **어느 줄의 스위치인지 말하지 못한다** — 같은 이름이 스무 개가 된다.
+         *    라벨에는 무엇의 스위치인지 다 적고 이 옵션으로 감춘다
+         *    (docs/ARCHITECTURE.md §27.2).
+         */
+        labelHidden: true
+        hint?: never
+      }
+  )
 
 /**
  * 켜고 끄는 스위치. **즉시 반영되는 설정**에 쓴다.

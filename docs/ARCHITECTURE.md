@@ -3997,3 +3997,22 @@ Lighthouse 접근성은 세 화면에서 **100 인데 `label-content-name-mismat
 
 TODO(다음에 Lighthouse 를 돌릴 때): 점수뿐 아니라 **`score < 1` 인 검사 id 를 함께 찍는다.**
 가중치 0 짜리가 거기 숨는다.
+
+### 37.3 ⚠️ 라벨을 감추면 힌트를 줄 수 없다
+
+`labelHidden` 은 「라벨만 화면에서 숨긴다」 고 적혀 있었는데, 실제로는 **힌트 렌더링과
+`aria-describedby` 까지 함께 지우고 있었다.** 문서와 동작이 갈라진 자리다.
+
+동작 쪽이 맞다 — **힌트는 라벨에 붙는 설명**이라, 라벨이 없으면 무엇을 설명하는지 없는
+글자가 된다. 표 한 줄에 설명만 덩그러니 놓이는 모양이다.
+
+**주석으로 적어 두는 대신 타입으로 막았다.**
+
+```ts
+type SwitchProps = SwitchBase &
+  ({ labelHidden?: false; hint?: string } | { labelHidden: true; hint?: never })
+```
+
+`Switch.types.test.ts` 가 `@ts-expect-error` 로 고정한다 — `hint?: never` 를 `hint?: string`
+으로 되돌리면 **`Unused '@ts-expect-error'`** 로 `typecheck` 이 깨진다. `Column`(§35.3)과
+같은 방식이고, 같은 이유다: **주석은 규칙의 제일 약한 형태다.**
