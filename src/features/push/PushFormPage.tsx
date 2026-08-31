@@ -10,11 +10,14 @@ import { useNavigate } from 'react-router'
 
 import { css } from 'styled-system/css'
 
+import { useFormDraft } from '@/shared/hooks/useFormDraft'
+import { changed, restoreDraft } from '@/shared/lib/draft'
 import { num, share } from '@/shared/lib/format'
 import { nowAt } from '@/shared/lib/today'
 import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
 import { Dialog } from '@/shared/ui/Dialog'
+import { DraftNotice, DraftSavedAt } from '@/shared/ui/DraftNotice'
 import { Skeleton } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { Icon } from '@/shared/ui/Icon'
@@ -48,6 +51,14 @@ const KINDS: PushKind[] = ['service', 'marketing', 'routine']
 const AUDIENCES: PushAudience[] = ['전체', '30일 내 접속', '미인증 회원', '휴면 회원', '직접 지정']
 const LINKS: PushLink[] = ['앱 열기', '오늘의 루틴', '상점', '내 캐릭터', '월간 리포트', '1:1 문의']
 
+/**
+ * 초안 칸 이름.
+ *
+ * ⚠️ **엔티티 이름을 붙인다.** 그냥 `'new'` 로 두면 화면마다의 `/…/new` 가 **같은 칸을
+ *    써서 하나가 다른 하나를 덮어쓴다** (docs/ARCHITECTURE.md §33.2).
+ */
+const DRAFT = 'push:new'
+
 const EMPTY: PushInput = {
   kind: 'service',
   title: '',
@@ -65,10 +76,16 @@ export default function PushFormPage() {
   const { data: consent, isPending, error } = useConsent()
   const send = useSendPush()
   const check = useCheckDirect()
-  const [form, setForm] = useState<PushInput>(EMPTY)
+  // 폼을 만들기 **전에** 읽는다 — 만든 뒤에는 초기값을 갈아 끼울 수 없다.
+  const [restored] = useState(() => restoreDraft(DRAFT, EMPTY))
+  const [form, setForm] = useState<PushInput>(restored ?? EMPTY)
+  // ⚠️ **알림 표시 여부는 따로 둔다.** `restored` 는 마운트 시점에 고정이라
+  //    「새로 시작」 으로 버려도 계속 참이고 알림이 안 지워진다.
+  const [noticeOpen, setNoticeOpen] = useState(restored != null)
   const [tried, setTried] = useState(false)
   const [asking, setAsking] = useState(false)
   const markSaved = useUnsavedGuard(form.title !== '' || form.body !== '')
+  const draft = useFormDraft(DRAFT, form, changed(form, EMPTY))
 
   if (isPending) return <Skeleton rows={8} />
   if (error || !consent) return <ErrorBanner message={error?.message ?? '수신 동의 정보를 불러오지 못했습니다.'} />
@@ -100,6 +117,7 @@ export default function PushFormPage() {
       { input: form, by: viewer.name },
       {
         onSuccess: () => {
+          draft.clear()
           markSaved()
           navigate(SCREENS.push.path)
         },
@@ -114,12 +132,26 @@ export default function PushFormPage() {
         actions={
           <>
             <Button onClick={() => navigate(SCREENS.push.path)}>취소</Button>
+            <Button onClick={draft.saveNow} disabled={!changed(form, EMPTY)}>
+              임시 저장
+            </Button>
             <Button variant="primary" onClick={ask} disabled={send.isPending}>
               {form.now ? '지금 발송' : '예약 저장'}
             </Button>
           </>
         }
       />
+
+      {noticeOpen && (
+        <DraftNotice
+          onDiscard={() => {
+            draft.clear()
+            setForm(EMPTY)
+            setNoticeOpen(false)
+          }}
+        />
+      )}
+      <DraftSavedAt at={draft.savedAt} />
 
       {(send.error || check.error) && <ErrorBanner message={(send.error ?? check.error)!.message} />}
 

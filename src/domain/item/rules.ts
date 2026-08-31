@@ -5,7 +5,7 @@
  * 사라져도 이 파일은 남는다 — 그게 이 층을 따로 둔 이유다.
  */
 import type { AssetKind } from '../asset'
-import type { Item, ItemInput, ItemStatus, Slot, Tier } from './types'
+import { SLOT_ORDER, type Item, type ItemInput, type ItemStatus, type Slot, type Tier } from './types'
 
 /**
  * 판매량 상위 N개.
@@ -120,3 +120,12 @@ export function toItemInput(item: Item): ItemInput {
   const { name, sub, slot, tier, price, source, season, assetId, visibleFrom, visibleTo, flags } = item
   return { name, sub, slot, tier, price, source, season, assetId, visibleFrom, visibleTo, flags }
 }
+
+/**
+ * 아는 슬롯인가.
+ *
+ * ⚠️ **초안 복원이 쓴다.** 모양 검사는 `'HEAD'` 자리의 `'WING'` 을 못 거르는데
+ *    (둘 다 문자열), 슬롯은 **어느 칸을 그릴지 정하는 값**이라 모르는 값이 들어오면
+ *    폼이 빈 화면이 된다 (docs/ARCHITECTURE.md §33.1).
+ */
+export const isKnownSlot = (v: { slot: string }): boolean => (SLOT_ORDER as string[]).includes(v.slot)

@@ -9,9 +9,12 @@ import { useNavigate, useParams } from 'react-router'
 
 import { css } from 'styled-system/css'
 
+import { useFormDraft } from '@/shared/hooks/useFormDraft'
+import { restoreDraft } from '@/shared/lib/draft'
 import { AssetThumb } from '@/shared/ui/AssetThumb'
 import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
+import { DraftNotice, DraftSavedAt } from '@/shared/ui/DraftNotice'
 import { Skeleton } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { Input } from '@/shared/ui/Input'
@@ -45,6 +48,14 @@ const KIND_OPTIONS = CHALLENGE_KINDS.map((k) => ({ value: k, label: CHALLENGE_KI
 /** 「없음」 은 보상 아이템을 안 붙인다는 뜻이다 — 값이 아니라 선택지 하나로 둔다 */
 const NO_ITEM = '없음'
 
+/**
+ * 초안 칸 이름.
+ *
+ * ⚠️ **엔티티 이름을 붙인다.** 그냥 `'new'` 로 두면 화면마다의 `/…/new` 가 **같은 칸을
+ *    써서 하나가 다른 하나를 덮어쓴다** (docs/ARCHITECTURE.md §33.2).
+ */
+const draftScope = (chalId?: string): string => `challenges:${chalId ?? 'new'}`
+
 export default function ChallengeFormPage() {
   const { chalId } = useParams()
   // 수정이면 원본을 받아 초기값으로 쓴다. 등록이면 부르지 않는다.
@@ -65,9 +76,17 @@ export default function ChallengeFormPage() {
 function ChallengeForm({ chalId, initial }: { chalId?: string; initial: ChallengeInput }) {
   const navigate = useNavigate()
   const save = useSaveChallenge()
-  const [input, setInput] = useState<ChallengeInput>(initial)
-  const [touched, setTouched] = useState(false)
+  // 폼을 만들기 **전에** 읽는다 — 만든 뒤에는 초기값을 갈아 끼울 수 없다.
+  const [restored] = useState(() => restoreDraft(draftScope(chalId), initial))
+  const [input, setInput] = useState<ChallengeInput>(restored ?? initial)
+  // ⚠️ **되살렸으면 처음부터 「손댔다」 다.** 안 그러면 미저장 경고도 자동 저장도 안 돌아
+  //    되살려 놓고 다음 새로고침에 또 잃는다.
+  const [touched, setTouched] = useState(restored != null)
+  // ⚠️ **알림 표시 여부는 따로 둔다.** `restored` 는 마운트 시점에 고정이라
+  //    「새로 시작」 으로 버려도 계속 참이고 알림이 안 지워진다.
+  const [noticeOpen, setNoticeOpen] = useState(restored != null)
   const markSaved = useUnsavedGuard(touched)
+  const draft = useFormDraft(draftScope(chalId), input, touched)
 
   const errors = validateChallenge(input)
   const blocked = Object.keys(errors).length > 0
@@ -86,6 +105,7 @@ function ChallengeForm({ chalId, initial }: { chalId?: string; initial: Challeng
       { chalId, input },
       {
         onSuccess: (c) => {
+          draft.clear()
           // ⚠️ 표시를 지금 지운다 — 아래 `navigate` 를 이동 가드가 막지 않게.
           markSaved()
           navigate(SCREENS.chaldet.path.replace(':chalId', String(c.key)))
@@ -100,6 +120,18 @@ function ChallengeForm({ chalId, initial }: { chalId?: string; initial: Challeng
         title={chalId ? '챌린지 수정' : '챌린지 등록'}
         sub="달성 조건과 보상을 정합니다. 주기가 반복 규칙을 결정합니다."
       />
+
+      {noticeOpen && (
+        <DraftNotice
+          onDiscard={() => {
+            draft.clear()
+            setInput(initial)
+            setTouched(false)
+            setNoticeOpen(false)
+          }}
+        />
+      )}
+      <DraftSavedAt at={draft.savedAt} />
 
       {save.error && <ErrorBanner message={save.error.message} />}
 
@@ -195,6 +227,9 @@ function ChallengeForm({ chalId, initial }: { chalId?: string; initial: Challeng
       <div className={css({ display: 'flex', justifyContent: 'flex-end', gap: '8px', mt: '18px' })}>
         <Button type="button" onClick={() => navigate(SCREENS.chal.path)}>
           취소
+        </Button>
+        <Button type="button" onClick={draft.saveNow} disabled={!touched}>
+          임시 저장
         </Button>
         <Button type="submit" variant="primary" disabled={blocked || save.isPending}>
           {save.isPending ? '저장 중…' : chalId ? '수정' : '등록'}
