@@ -31,6 +31,7 @@ const IMPLEMENTED: Partial<Record<ScreenId, React.LazyExoticComponent<React.Comp
   adminnew: lazy(() => import('@/features/admins/AdminInvitePage')),
   admins: lazy(() => import('@/features/admins/AdminsPage')),
   ai: lazy(() => import('@/features/moderation/AiReviewPage')),
+  audit: lazy(() => import('@/features/audit/AuditPage')),
   dash: lazy(() => import('@/features/dashboard/DashboardPage')),
   item: lazy(() => import('@/features/items/ItemDetailPage')),
   // 등록·수정은 같은 화면이다 — `itemId` 유무로 갈린다.
