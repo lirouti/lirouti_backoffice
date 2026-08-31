@@ -1,7 +1,8 @@
 /**
  * 셸 상단 — 브레드크럼 · 테마 토글 · 시즌 표시.
  *
- * 동작하지 않던 것 둘(가짜 검색창, 정적 `● 라이브` 배지)을 지웠다.
+ * 동작하지 않던 것 둘(가짜 검색창, 정적 `● 라이브` 배지)을 지웠다. 검색은 ⌘K 팔레트로
+ * **진짜로 붙였다** (docs/ARCHITECTURE.md §36).
  * **나쁜 상태를 표시할 수 없는 상태등은 없느니만 못하다** — 점검 중에도 초록 점이
  * 켜져 있으면 운영자가 그걸 믿는다.
  */
@@ -17,7 +18,7 @@ import { useThemeStore } from '@/stores/themeStore'
 
 import { Breadcrumbs } from './Breadcrumbs'
 
-export function Topbar({ current }: { current: ScreenId | null }) {
+export function Topbar({ current, onSearch }: { current: ScreenId | null; onSearch: () => void }) {
   const theme = useThemeStore((s) => s.theme)
   const toggle = useThemeStore((s) => s.toggle)
   const dark = theme === 'dark'
@@ -36,6 +37,55 @@ export function Topbar({ current }: { current: ScreenId | null }) {
     >
       <Breadcrumbs current={current} />
       <div className={css({ flex: '1' })} />
+
+      {/*
+        원본의 가짜 검색창 자리다. 이제 눌리고, 무엇이 열리는지 단축키까지 적어 둔다 —
+        **단축키를 안 적으면 아무도 두 번째부터는 안 쓴다.**
+      */}
+      <button
+        type="button"
+        onClick={onSearch}
+        className={css({
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          flex: '1 1 260px',
+          maxWidth: '320px',
+          minWidth: '0',
+          p: '6px 11px',
+          border: '1px solid token(colors.bd)',
+          borderRadius: 'md',
+          bg: 'surf2',
+          color: 'faint',
+          font: 'inherit',
+          textStyle: 'label',
+          textAlign: 'left',
+          cursor: 'pointer',
+          _hover: { bg: 'hov', borderColor: 'faint2' },
+        })}
+      >
+        <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" className={css({ flex: 'none' })}>
+          <circle cx="7" cy="7" r="4.4" fill="none" stroke="currentColor" strokeWidth="1.7" />
+          <path d="M10.4,10.4 L13.5,13.5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+        </svg>
+        <span className={css({ flex: '1', minWidth: '0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' })}>
+          화면 검색
+        </span>
+        <kbd
+          className={css({
+            flex: 'none',
+            p: '1px 6px',
+            borderRadius: 'sm',
+            bg: 'nBg',
+            color: 'sub',
+            font: 'inherit',
+            textStyle: 'micro',
+            fontWeight: '700',
+          })}
+        >
+          ⌘K
+        </kbd>
+      </button>
 
       <Button
         size="icon"
