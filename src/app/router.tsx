@@ -35,6 +35,7 @@ const IMPLEMENTED: Partial<Record<ScreenId, React.LazyExoticComponent<React.Comp
   dash: lazy(() => import('@/features/dashboard/DashboardPage')),
   item: lazy(() => import('@/features/items/ItemDetailPage')),
   // 등록·수정은 같은 화면이다 — `itemId` 유무로 갈린다.
+  growth: lazy(() => import('@/features/characters/GrowthPage')),
   bg: lazy(() => import('@/features/backgrounds/BackgroundsPage')),
   bgnew: lazy(() => import('@/features/backgrounds/BackgroundFormPage')),
   bgedit: lazy(() => import('@/features/backgrounds/BackgroundFormPage')),
