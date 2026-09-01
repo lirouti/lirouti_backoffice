@@ -148,5 +148,14 @@ describe('assertResolved', () => {
     expect(() => assertResolved('<sc-for list="x"></sc-for>', 'bg_0')).toThrow()
     expect(() => assertResolved('<sc-if value="x"></sc-if>', 'bg_0')).toThrow()
   })
+
+  // `foldIf` 는 **여는 태그 기준**이라 짝 없는 닫는 태그를 그냥 남긴다. 구간 경계가 바깥 분기
+  // 안쪽에서 시작하게 바뀌면 실제로 그렇게 되고, 여는 쪽만 보면 SVG 안으로 그대로 나간다.
+  it('⚠️ 짝 없는 닫는 태그를 잡는다', () => {
+    expect(foldIf('<sc-if value="{{ on }}"><rect/></sc-if></sc-if>', { on: true })).toBe(
+      '<rect/></sc-if>',
+    )
+    expect(() => assertResolved('<rect/></sc-if>', 'as_nest_0')).toThrow('as_nest_0')
+  })
 })
 

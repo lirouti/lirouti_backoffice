@@ -805,11 +805,13 @@ import { LOGO } from '@/assets/brand'
 
 | | UI 아이콘 | 캐릭터 에셋 |
 |---|---|---|
-| 개수 / 용량 | 15개 · 64KB | 50개 · 360KB |
+| 개수 / 용량 | 15개 · 4.5KB | 81개 · 303KB (§8.6 의 31개 포함) |
 | `currentColor` | **29곳에서 사용** | 0 (색이 박혀 있음) |
 | 위치 | `src/assets/icons/*.svg` | `src/assets/images/*.svg` |
 | 소비 방식 | `?react` (svgr) → **인라인 React 컴포넌트** | URL import → **`<img loading="lazy">`** |
 | 이유 | `<img>`로는 CSS `color`가 닿지 않아 테마별 색을 물려받을 수 없다 | 파일 단위 캐시 + 보이는 것만 다운로드 |
+
+> 용량은 **파일 내용의 바이트 합**이다. `du` 로 재면 작은 파일이 많아 블록 단위로 부풀려진다 — 아이콘 15개가 4.5KB 인데 `du` 는 64KB 라고 한다.
 
 ```tsx
 <Icon name="ic_bird" />                       // 인라인 SVG, color 상속
