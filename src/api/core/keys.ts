@@ -34,6 +34,11 @@ export const qk = {
     list: () => ['species', 'list'] as const,
     detail: (id: number | string) => ['species', 'detail', String(id)] as const,
   },
+  achievements: {
+    all: ['achievements'] as const,
+    list: () => ['achievements', 'list'] as const,
+    detail: (id: number | string) => ['achievements', 'detail', String(id)] as const,
+  },
   security: {
     all: ['security'] as const,
     /** 내 계정의 2단계 인증 상태 */

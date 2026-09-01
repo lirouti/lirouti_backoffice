@@ -21,12 +21,27 @@ type AssetThumbProps = {
    * 안쪽에 또 그리면 둥근 상자 안에 둥근 상자가 생긴다.
    */
   fluid?: boolean
-  /** 유료 등급이면 타일 배경을 어둡게 (원본 규칙) */
-  paid?: boolean
   /** 스크린리더용 이름. 없으면 장식으로 처리한다. */
   alt?: string
   className?: string
-}
+} & PlateProps
+
+/**
+ * 그림 뒤에 깔리는 판.
+ *
+ * ⚠️ **판 없이 세워야 하는 그림이 있다.** 업적 뱃지가 그렇다 — 원본이 「배경판 없이
+ *    오브젝트 자체로 선다」 고 정했고, 판을 깔면 12종이 한 세트로 보이던 게 깨진다.
+ *
+ * `paid` 는 **판의 색**이라 판이 없으면 뜻이 없다. 유니온으로 묶어 둘을 같이 넘기면
+ * 타입에서 걸리게 한다 — 조용히 무시하면 왜 안 어두워지는지 알 수 없다 (`Switch` 와 같은 방식).
+ */
+type PlateProps =
+  | {
+      plate?: true
+      /** 유료 등급이면 타일 배경을 어둡게 (원본 규칙) */
+      paid?: boolean
+    }
+  | { plate: false; paid?: never }
 
 /**
  * 캐릭터 에셋 썸네일.
@@ -35,7 +50,7 @@ type AssetThumbProps = {
  * 파일 단위로 캐시되고, 화면에 실제로 보이는 것만 내려받는다 — 50개를 한 덩어리로
  * 받던 예전 스프라이트 방식과 다른 점이다. (docs/ARCHITECTURE.md §8)
  */
-export function AssetThumb({ assetId, src: given, size = 42, fluid = false, paid = false, alt, className }: AssetThumbProps) {
+export function AssetThumb({ assetId, src: given, size = 42, fluid = false, plate = true, paid = false, alt, className }: AssetThumbProps) {
   const src = given ?? (isAssetId(assetId) ? IMAGES[assetId] : null)
 
   return (
@@ -50,7 +65,7 @@ export function AssetThumb({ assetId, src: given, size = 42, fluid = false, paid
         fluid
           ? css({ width: 'full', aspectRatio: '1' })
           : css({ flex: 'none', borderRadius: 'lg', border: '1px solid token(colors.ln)' }),
-        css({ bg: paid ? 'tilePaid' : 'prev' }),
+        plate ? css({ bg: paid ? 'tilePaid' : 'prev' }) : undefined,
         className,
       )}
       style={fluid ? undefined : { width: size, height: size }}

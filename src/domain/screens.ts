@@ -95,6 +95,8 @@ export const SCREENS = {
   },
 
   ach: { path: '/achievements', label: '업적 목록', scope: 'ach' },
+  achnew: { path: '/achievements/new', label: '업적 등록', scope: 'ach', section: 'ach' },
+  achedit: { path: '/achievements/:achId/edit', label: '업적 수정', scope: 'ach', section: 'ach' },
 
   pay: { path: '/payments', label: '결제 내역', scope: 'pay' },
   paydet: { path: '/payments/:payId', label: '결제 상세', scope: 'pay', section: 'pay' },
