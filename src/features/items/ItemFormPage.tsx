@@ -222,6 +222,10 @@ function ItemForm({ itemId, initial }: { itemId?: string; initial: ItemInput }) 
         <DraftNotice
           onDiscard={() => {
             draft.clear()
+            // ⚠️ **고른 파일도 함께 버린다.** 글자만 되돌리면 미리보기에 그 그림이 남아 있다가
+            //    **저장할 때 그대로 올라간다** — 「새로 시작」 을 누른 사람이 가장 예상하지 못하는 일이다.
+            if (pending) URL.revokeObjectURL(pending.preview)
+            setPending(null)
             // 등록이면 빈 폼, 수정이면 저장돼 있던 값으로 되돌린다.
             form.reset(initial)
             setNoticeOpen(false)

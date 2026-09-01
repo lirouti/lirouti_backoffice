@@ -52,7 +52,13 @@ export async function getAchievement(achId: string): Promise<Achievement> {
 }
 
 export function useAchievement(achId: string) {
-  return useQuery({ queryKey: qk.achievements.detail(achId), queryFn: () => getAchievement(achId) })
+  return useQuery({
+    queryKey: qk.achievements.detail(achId),
+    queryFn: () => getAchievement(achId),
+    // ⚠️ **등록 화면은 빈 id 를 넘긴다.** 그냥 두면 없는 업적을 찾아 404 를 던지고,
+    //    쓰이지도 않을 실패가 캐시에 남는다 (`useItem` 과 같은 이유).
+    enabled: achId !== '',
+  })
 }
 
 export type SaveAchievementVars = { achId?: string; input: AchievementInput }

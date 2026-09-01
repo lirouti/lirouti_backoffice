@@ -294,6 +294,8 @@ lirouti_backoffice/
    │  ├─ security/                # SecurityPage · TotpCard · EnrollWizard
    │  │                           # · BackupCodesPanel · CopyButton (§16.3)
    │  └─ PlaceholderPage.tsx      # 미구현 43개 화면이 공유 — 특정 화면 소유가 아니라 평평하다
+   ├─ entities/                   # 도메인 타입을 받는 공용 UI (§4.4.2)
+   │  └─ asset/                   # AssetPicker — 아이템 폼과 업적 폼이 함께 쓴다
    ├─ stores/                     # localStorage 에 붙는 전역 UI 상태
    │  └─ theme · tabs · nav · viewer · dirty
    ├─ api/
