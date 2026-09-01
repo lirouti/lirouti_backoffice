@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 586 576">
+  <defs>
+    <clipPath id="rvScene"><rect x="80" y="40" width="430" height="520" rx="52"></rect></clipPath>
+  </defs>
+  <g clip-path="url(#rvScene)"><g transform="translate(80,40) scale(2.15,2.6)">
+      <rect x="0" y="0" width="200" height="200" fill="#D9F0FA"></rect>
+
+      
+      
+      
+      
+      
+      
+        <circle cx="40" cy="44" r="20" fill="#FFD07A"></circle>
+        <path d="M0,150 H200 V200 H0 Z" fill="#6FC0E4"></path>
+        <path d="M8,160 C24,152 40,168 56,160 M144,160 C160,152 176,168 192,160" fill="none" stroke="#FFFFFF" stroke-width="3" opacity="0.8"></path>
+        <path d="M14,182 C34,174 50,188 68,180" fill="none" stroke="#FFFFFF" stroke-width="3" opacity="0.6"></path>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+    </g></g>
+</svg>

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs><linearGradient id="m3p" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"></stop><stop offset="1" stop-color="#DDEAFD"></stop></linearGradient></defs>
+          <ellipse cx="100" cy="160" rx="66" ry="6" fill="#16191E" opacity="0.08"></ellipse>
+          <path d="M18,48 H182 V152 H18 Z" fill="url(#m3p)" stroke="#2F7CEF" stroke-width="4" stroke-linejoin="round"></path>
+          <path d="M27,57 H173 V143 H27 Z" fill="none" stroke="#2F7CEF" stroke-width="1.4" stroke-dasharray="4 4" opacity="0.5"></path>
+          <path d="M132,48 V152" stroke="#2F7CEF" stroke-width="3" stroke-dasharray="7 7"></path>
+          <circle cx="132" cy="48" r="10" fill="#FFFFFF" stroke="#2F7CEF" stroke-width="4"></circle>
+          <circle cx="132" cy="152" r="10" fill="#FFFFFF" stroke="#2F7CEF" stroke-width="4"></circle>
+          <text x="76" y="94" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="31" font-weight="800" fill="#134AAE">7 DAYS</text>
+          <text x="76" y="110" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9" font-weight="700" fill="#5C9BF5" letter-spacing="1">NO.0007</text>
+          <g fill="#2F7CEF">
+            <circle cx="38" cy="126" r="5"></circle><circle cx="52" cy="126" r="5"></circle><circle cx="66" cy="126" r="5"></circle><circle cx="80" cy="126" r="5"></circle>
+            <circle cx="94" cy="126" r="5"></circle><circle cx="108" cy="126" r="5"></circle><circle cx="122" cy="126" r="5" opacity="0.25"></circle>
+          </g>
+          <g stroke="#2F7CEF" stroke-width="2">
+            <path d="M142,66 V134 M148,66 V134 M154,72 V128 M160,66 V134 M166,76 V124 M172,70 V130"></path>
+          </g>
+          <g fill="none" stroke="#5C9BF5" stroke-width="1.4" opacity="0.65">
+            <circle cx="34" cy="64" r="7"></circle><circle cx="34" cy="64" r="3"></circle>
+            <circle cx="118" cy="64" r="7"></circle><circle cx="118" cy="64" r="3"></circle>
+          </g>
+          <path d="M18,48 H182 V60 L18,72 Z" fill="#FFFFFF" opacity="0.5"></path>
+</svg>

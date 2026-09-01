@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs><linearGradient id="m5g" x1="0.1" y1="0" x2="0.9" y2="1"><stop offset="0" stop-color="#CDC2F3"></stop><stop offset="0.55" stop-color="#A292DE"></stop><stop offset="1" stop-color="#7A67C8"></stop></linearGradient></defs>
+          <ellipse cx="100" cy="182" rx="40" ry="6" fill="#16191E" opacity="0.09"></ellipse>
+          <path d="M100,18 C114,18 114,38 100,38 C88,38 88,26 96,26" fill="none" stroke="#5B4AA6" stroke-width="5" stroke-linecap="round"></path>
+          <path d="M100,38 V50" stroke="#5B4AA6" stroke-width="5"></path>
+          <path d="M100,50 L160,86 L160,172 L40,172 L40,86 Z" fill="url(#m5g)" stroke="#5B4AA6" stroke-width="5" stroke-linejoin="round"></path>
+          <path d="M100,58 L152,90 L152,164 L48,164 L48,90 Z" fill="none" stroke="#F3F0FC" stroke-width="1.6" stroke-dasharray="5 5" opacity="0.85"></path>
+          <path d="M40,86 L100,50 L160,86 L100,114 Z" fill="#FFFFFF" opacity="0.2"></path>
+          <circle cx="100" cy="98" r="13" fill="#F3F0FC" stroke="#5B4AA6" stroke-width="5"></circle>
+          <circle cx="100" cy="98" r="4" fill="#5B4AA6" opacity="0.35"></circle>
+          <path d="M62,132 H138" stroke="#5B4AA6" stroke-width="5" stroke-linecap="round"></path>
+          <path d="M62,148 H112" stroke="#5B4AA6" stroke-width="5" stroke-linecap="round" opacity="0.5"></path>
+          <g fill="#FFFFFF" opacity="0.8"><circle cx="130" cy="148" r="3"></circle><circle cx="122" cy="158" r="2"></circle></g>
+</svg>

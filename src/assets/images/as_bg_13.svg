@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 586 576">
+  <defs>
+    <clipPath id="rvScene"><rect x="80" y="40" width="430" height="520" rx="52"></rect></clipPath>
+  </defs>
+  <g clip-path="url(#rvScene)"><g transform="translate(80,40) scale(2.15,2.6)">
+      <rect x="0" y="0" width="200" height="200" fill="#DDE6EC"></rect>
+
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+        <ellipse cx="46" cy="38" rx="28" ry="14" fill="#B9C6D4"></ellipse>
+        <ellipse cx="70" cy="44" rx="20" ry="11" fill="#B9C6D4"></ellipse>
+        <path d="M26,64 L20,80 M50,68 L44,84 M170,52 L164,68 M186,74 L180,90 M14,110 L8,126" fill="none" stroke="#8FA5BB" stroke-width="3"></path>
+        <path d="M0,166 H200 V200 H0 Z" fill="#C2CFDC"></path>
+        <ellipse cx="52" cy="182" rx="30" ry="7" fill="#A9BCCE"></ellipse>
+      
+      
+      
+    </g></g>
+</svg>

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+            <mask id="m8m">
+              <rect x="0" y="0" width="200" height="200" fill="#000"></rect>
+              <rect x="26" y="26" width="148" height="148" fill="#fff"></rect>
+              <g fill="#000">
+                <circle cx="26" cy="26" r="7.5"></circle><circle cx="55.6" cy="26" r="7.5"></circle><circle cx="85.2" cy="26" r="7.5"></circle><circle cx="114.8" cy="26" r="7.5"></circle><circle cx="144.4" cy="26" r="7.5"></circle><circle cx="174" cy="26" r="7.5"></circle>
+                <circle cx="26" cy="55.6" r="7.5"></circle><circle cx="26" cy="85.2" r="7.5"></circle><circle cx="26" cy="114.8" r="7.5"></circle><circle cx="26" cy="144.4" r="7.5"></circle>
+                <circle cx="174" cy="55.6" r="7.5"></circle><circle cx="174" cy="85.2" r="7.5"></circle><circle cx="174" cy="114.8" r="7.5"></circle><circle cx="174" cy="144.4" r="7.5"></circle>
+                <circle cx="26" cy="174" r="7.5"></circle><circle cx="55.6" cy="174" r="7.5"></circle><circle cx="85.2" cy="174" r="7.5"></circle><circle cx="114.8" cy="174" r="7.5"></circle><circle cx="144.4" cy="174" r="7.5"></circle><circle cx="174" cy="174" r="7.5"></circle>
+              </g>
+            </mask>
+          </defs>
+          <g mask="url(#m8m)">
+            <rect x="26" y="26" width="148" height="148" fill="#FFFDF9"></rect>
+            <rect x="26" y="26" width="148" height="148" fill="none" stroke="#EBD9C4" stroke-width="10"></rect>
+          </g>
+          <rect x="42" y="42" width="116" height="116" fill="none" stroke="#E8873F" stroke-width="3"></rect>
+          <rect x="49" y="49" width="102" height="102" fill="none" stroke="#E8873F" stroke-width="1.2" stroke-dasharray="3 4" opacity="0.65"></rect>
+          <g fill="none" stroke="#E8873F" stroke-width="2" opacity="0.7">
+            <path d="M42,58 C54,58 58,54 58,42"></path><path d="M158,58 C146,58 142,54 142,42"></path>
+            <path d="M42,142 C54,142 58,146 58,158"></path><path d="M158,142 C146,142 142,146 142,158"></path>
+          </g>
+          <circle cx="84" cy="92" r="19" fill="#F5A623"></circle>
+          <circle cx="116" cy="92" r="19" fill="#F0857A"></circle>
+          <circle cx="100" cy="92" r="19" fill="#F5A623" opacity="0.4"></circle>
+          <path d="M62,128 H138" stroke="#E8873F" stroke-width="5" stroke-linecap="round"></path>
+          <text x="100" y="146" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="10" font-weight="800" fill="#C4750E" letter-spacing="2">INVITE</text>
+          <g fill="none" stroke="#C4453A" stroke-width="2" opacity="0.3" transform="rotate(-14 136 62)">
+            <circle cx="136" cy="62" r="25"></circle><circle cx="136" cy="62" r="18"></circle>
+          </g>
+</svg>

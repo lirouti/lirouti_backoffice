@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+            <radialGradient id="m4s" cx="36%" cy="28%"><stop offset="0" stop-color="#3C5488"></stop><stop offset="0.6" stop-color="#212E4C"></stop><stop offset="1" stop-color="#141C2E"></stop></radialGradient>
+            <linearGradient id="m4r" x1="0.2" y1="0" x2="0.8" y2="1"><stop offset="0" stop-color="#FFE79A"></stop><stop offset="0.5" stop-color="#D9A319"></stop><stop offset="1" stop-color="#9E6B08"></stop></linearGradient>
+          </defs>
+          <ellipse cx="100" cy="184" rx="44" ry="7" fill="#16191E" opacity="0.1"></ellipse>
+          <circle cx="100" cy="100" r="80" fill="url(#m4r)"></circle>
+          <circle cx="100" cy="100" r="71" fill="url(#m4s)"></circle>
+          <circle cx="100" cy="100" r="63" fill="none" stroke="#4A5570" stroke-width="1.4" stroke-dasharray="2 7" opacity="0.8"></circle>
+          <g fill="none" stroke="#8496B8" stroke-width="2" stroke-linejoin="round">
+            <path d="M62,72 L96,92 L82,126 L124,136 L142,80 L96,92"></path>
+          </g>
+          <g fill="#FFFFFF">
+            <circle cx="62" cy="72" r="4.5"></circle><circle cx="96" cy="92" r="7"></circle>
+            <circle cx="82" cy="126" r="4.5"></circle><circle cx="124" cy="136" r="5.5"></circle>
+            <circle cx="142" cy="80" r="4.5"></circle>
+          </g>
+          <circle cx="96" cy="92" r="3" fill="#FFD45E"></circle>
+          <g stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" opacity="0.8">
+            <path d="M62,63 V81 M53,72 H71"></path><path d="M142,72 V88 M134,80 H150"></path>
+          </g>
+          <g fill="#9FB0CE">
+            <circle cx="52" cy="112" r="2"></circle><circle cx="148" cy="118" r="2"></circle><circle cx="118" cy="54" r="2"></circle>
+            <circle cx="66" cy="152" r="1.5"></circle><circle cx="136" cy="156" r="1.5"></circle><circle cx="46" cy="88" r="1.5"></circle>
+          </g>
+          <path d="M100,29 A71,71 0 0 0 44,58" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" opacity="0.14"></path>
+          <g transform="translate(100,168)">
+            <path d="M-30,-13 H30 A6,6 0 0 1 30,13 H-30 A6,6 0 0 1 -30,-13 Z" fill="url(#m4r)"></path>
+            <text x="0" y="7" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="18" font-weight="800" fill="#5B3D04">100</text>
+          </g>
+</svg>
