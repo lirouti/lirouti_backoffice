@@ -4141,7 +4141,7 @@ scripts/a11y/node_modules   ← gitignore. `bun run a11y` 가 처음 돌 때만 
 **타입도 lint 도 빌드도 아무 말을 하지 않았다.** 테두리(`warnBd`)와 글자(`warnFg`)는
 진짜 토큰이라 제대로 나와서, 화면은 「배경만 흰」 배너로 그럴듯하게 보였다.
 
-### 39.1 `bun run check-tokens` — 이름을 실제 토큰과 대조한다
+### 39.1 `check-tokens` — 이름을 실제 토큰과 대조한다
 
 `scripts/check-tokens.ts` 를 `bun run lint` 에 넣었다(이제 여섯 검사).
 
@@ -4158,8 +4158,27 @@ scripts/a11y/node_modules   ← gitignore. `bun run a11y` 가 처음 돌 때만 
 
 | 넣은 것 | 결과 |
 |---|---|
-| 없는 색 토큰 · 없는 `radii` · 없는 `fonts` · 삼항의 뒷가지 | **잡힌다** |
+| 없는 색 · 없는 `radii` · 없는 `fonts` · 삼항의 뒷가지 | **잡힌다** |
+| 반응형 객체·배열 안의 오타 · `compoundVariants` 의 `css` | **잡힌다** |
 | `transparent!` · `#FFFFFF` · `color-mix(…)` · `999px` | 안 잡힌다(맞다) |
+| recipe 의 variant 선택자 · 정상적인 반응형 값 | 안 잡힌다(맞다) |
+
+### 39.2 ⚠️ 검사는 놓쳐도 거짓말해도 안 된다
+
+처음 만든 것에 **구멍 하나와 거짓 양성 하나**가 있었다. 둘 다 지금 코드에는 없는 모양이라
+검사는 초록이었는데, **없는 것과 못 잡는 것은 다르다.**
+
+**놓친 것 — 반응형 값.** `bg: { base: 'pri', md: 'nope' }` 와 `bg: ['pri', 'nope']` 는
+Panda 의 정상 문법인데, 값을 문자열로만 찾고 있어서 **통째로 새어 나갔다.** 값 안의 객체·배열도
+값으로 본다.
+
+**거짓말한 것 — recipe 의 variant 선택자.** `defaultVariants: { color: 'solid' }` 의
+`'solid'` 는 **variant 이름**이지 색이 아니다. 그대로 두면 멀쩡한 recipe 가 막히고,
+**검사가 거짓말하면 사람이 검사를 끈다.** `defaultVariants` 는 통째로 건너뛰고,
+`compoundVariants` 는 **`css` 만** 본다 — 나머지 키는 전부 고르는 조건이다.
+
+> 지금 저장소에는 `color` 라는 이름의 variant 도 반응형 색도 없다. **그래서 더 위험했다** —
+> 처음 쓰는 사람이 밟고, 그 사람은 검사를 의심하지 않는다.
 
 > `strictTokens: true`(미결 사항)를 켜면 이것도 잡히지만, **간격까지 전부 토큰화**해야 해서
 > 훨씬 큰 일이다. 이 검사는 **문서에 이미 적혀 있던 위험 하나**를 그 결정과 무관하게 막는다.

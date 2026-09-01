@@ -69,12 +69,22 @@ function sources(dir: string): string[] {
   })
 }
 
-/** 조건식·`??`·`||` 안의 문자열까지 모은다 — `checked ? 'pri' : 'faint2'` */
-function literals(n: ts.Node): ts.StringLiteral[] {
+/**
+ * 스타일 prop 의 **값 안에 있는 문자열 전부.**
+ *
+ * 조건식(`checked ? 'pri' : 'faint2'`)뿐 아니라 **반응형 문법**도 값이다 —
+ * `bg: { base: 'pri', md: 'priD' }` 와 `bg: ['pri', 'priD']`. 여기까지 안 보면
+ * **반응형으로 쓴 오타가 통째로 새어 나간다** (docs/ARCHITECTURE.md §39.2).
+ */
+function values(n: ts.Node): ts.StringLiteral[] {
   if (ts.isStringLiteral(n)) return [n]
-  if (ts.isConditionalExpression(n)) return [...literals(n.whenTrue), ...literals(n.whenFalse)]
-  if (ts.isBinaryExpression(n)) return [...literals(n.left), ...literals(n.right)]
-  if (ts.isParenthesizedExpression(n)) return literals(n.expression)
+  if (ts.isConditionalExpression(n)) return [...values(n.whenTrue), ...values(n.whenFalse)]
+  if (ts.isBinaryExpression(n)) return [...values(n.left), ...values(n.right)]
+  if (ts.isParenthesizedExpression(n)) return values(n.expression)
+  if (ts.isObjectLiteralExpression(n)) {
+    return n.properties.flatMap((p) => (ts.isPropertyAssignment(p) ? values(p.initializer) : []))
+  }
+  if (ts.isArrayLiteralExpression(n)) return n.elements.flatMap((e) => values(e))
   return []
 }
 
@@ -89,9 +99,27 @@ for (const file of sources('src')) {
   const inStyle = (n: ts.Node) => {
     if (ts.isPropertyAssignment(n) && (ts.isIdentifier(n.name) || ts.isStringLiteral(n.name))) {
       const prop = n.name.text
+
+      // ⚠️ **recipe 의 variant 고르는 자리는 스타일이 아니다.** `defaultVariants: { color: 'solid' }`
+      //    의 `'solid'` 는 **variant 이름**이지 색이 아닌데, 그냥 두면 멀쩡한 recipe 를
+      //    막는다 — 검사가 거짓말하면 사람이 검사를 끈다 (§39.2).
+      if (prop === 'defaultVariants') return
+      if (prop === 'compoundVariants') {
+        // 여기서 스타일인 것은 `css` 뿐이고 나머지 키는 전부 고르는 조건이다
+        for (const el of ts.isArrayLiteralExpression(n.initializer) ? n.initializer.elements : []) {
+          if (!ts.isObjectLiteralExpression(el)) continue
+          for (const p of el.properties) {
+            if (ts.isPropertyAssignment(p) && ts.isIdentifier(p.name) && p.name.text === 'css') {
+              inStyle(p.initializer)
+            }
+          }
+        }
+        return
+      }
+
       const group = GROUP_OF[prop]
       if (group) {
-        for (const s of literals(n.initializer)) {
+        for (const s of values(n.initializer)) {
           // Panda 의 `!` 는 `!important` 다 — 값의 일부가 아니다
           const value = s.text.replace(/\s*!$/, '')
           if (value !== '' && !TOKENS[group]!.has(value) && !KEYWORDS.has(value) && !isRaw(value)) {
@@ -104,6 +132,8 @@ for (const file of sources('src')) {
             })
           }
         }
+        // 값은 다 봤다. 더 내려가면 같은 문자열을 두 번 센다.
+        return
       }
     }
     ts.forEachChild(n, inStyle)
