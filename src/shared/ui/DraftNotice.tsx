@@ -23,7 +23,10 @@ export function DraftNotice({ onDiscard }: { onDiscard: () => void }) {
         gap: '10px',
         p: '10px 14px',
         mb: '14px',
-        bg: 'warnBg',
+        // ⚠️ `warnBg` 라는 토큰은 없다. 예전에는 그렇게 적혀 있어서 **배경이 아예 안
+        //    칠해졌다** — 잘못된 CSS 는 브라우저가 조용히 버린다 (docs/ARCHITECTURE.md §39).
+        //    경고 톤의 배경은 `aBg` 다 (`ViewerBanner` 와 같은 짝).
+        bg: 'aBg',
         border: '1px solid token(colors.warnBd)',
         borderRadius: 'lg',
         textStyle: 'label',

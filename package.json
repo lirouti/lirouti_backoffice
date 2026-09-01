@@ -11,7 +11,7 @@
     "typecheck": "panda codegen && tsc --noEmit",
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
-    "lint": "eslint . && bun run scripts/check-order.ts && bun run scripts/check-contrast.ts && bun run scripts/check-comments.ts && bun run scripts/check-docs.ts",
+    "lint": "eslint . && bun run scripts/check-order.ts && bun run scripts/check-contrast.ts && bun run scripts/check-tokens.ts && bun run scripts/check-comments.ts && bun run scripts/check-docs.ts",
     "format": "prettier --write .",
     "assets": "bun run scripts/build-assets.ts",
     "a11y": "bun install --cwd scripts/a11y --silent && bun scripts/a11y/check.ts"
