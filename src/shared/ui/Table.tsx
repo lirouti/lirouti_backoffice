@@ -4,7 +4,19 @@ import { css, cx } from 'styled-system/css'
 
 /** 열마다 같은 모양새 설정 */
 type ColumnStyle = {
+  /**
+   * 열 제목. **비워 두지 말 것** — 빈 `<th>` 는 헤더로 안 쳐져서 **그 열의 칸들이
+   * 헤더를 잃는다**(`td-has-header`). 제목이 군더더기인 동작 열은 `labelHidden` 을 쓴다.
+   */
   label: string
+  /**
+   * 열 제목을 **화면에서만** 감춘다. 「보기」·「편집」 같은 **동작 열**에 쓴다.
+   *
+   * ⚠️ **`label: ''` 로 비우지 말 것.** 빈 `<th>` 는 헤더로 안 쳐져서 그 열의 칸들이
+   *    헤더를 잃고, 스크린리더가 **몇 번째 칸인지만 읽고 무엇인지는 말하지 못한다**
+   *    (docs/ARCHITECTURE.md §38).
+   */
+  labelHidden?: boolean
   /** 고정 폭. 숫자·날짜처럼 폭이 정해진 열에 준다 */
   width?: string
   minWidth?: string
@@ -154,7 +166,11 @@ export function Table<Row>({
                   className={head}
                   style={{ width: c.width, minWidth: c.minWidth, textAlign: c.align }}
                 >
-                  {c.label}
+                  {/*
+                    감출 때도 **글자는 DOM 에 남긴다.** 안 그리면 `<th>` 가 비어서 헤더로
+                    안 쳐지고, 그 열의 칸들이 헤더를 잃는다 (§38).
+                  */}
+                  {c.labelHidden ? <span className={css({ srOnly: true })}>{c.label}</span> : c.label}
                 </th>
               ))}
             </tr>

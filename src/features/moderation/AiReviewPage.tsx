@@ -56,7 +56,9 @@ const COLUMNS: Column<AiReview>[] = [
   },
   {
     key: 'open',
-    label: '',
+    // 화면에는 제목이 군더더기지만 **비우면 이 열의 칸들이 헤더를 잃는다** (§38).
+    label: '열람',
+    labelHidden: true,
     width: '72px',
     align: 'right',
     // TODO(사진 열람 API 가 생기면): 신고 처리와 같은 열람 규칙을 따른다 (§23.2)

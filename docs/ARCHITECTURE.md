@@ -4016,3 +4016,106 @@ type SwitchProps = SwitchBase &
 `Switch.types.test.ts` 가 `@ts-expect-error` 로 고정한다 — `hint?: never` 를 `hint?: string`
 으로 되돌리면 **`Unused '@ts-expect-error'`** 로 `typecheck` 이 깨진다. `Column`(§35.3)과
 같은 방식이고, 같은 이유다: **주석은 규칙의 제일 약한 형태다.**
+
+
+---
+
+## 38. 접근성은 점수가 아니라 검사 목록으로 본다
+
+§37 에서 **점수 100 인데 실패한 검사가 있는** 것을 처음 봤다. 그 뒤 구현된 화면 32개를
+전부 훑었더니 **하나 더** 나왔다.
+
+```text
+100  /moderation/ai   ✗ td-has-header
+```
+
+둘 다 **가중치가 0** 이라 점수를 깎지 않는다. 손으로 화면마다 100 을 확인하던 몇 달 동안
+목록에는 계속 「실패」 로 있었고, 아무도 안 봤다.
+
+### 38.1 ⚠️ 빈 `<th>` 는 헤더가 아니다
+
+`/moderation/ai` 의 마지막 열은 「보기」 버튼만 있어서 제목을 `label: ''` 로 비워 뒀다.
+빈 `<th>` 는 헤더로 안 쳐져서 **그 열의 칸들이 헤더를 잃는다** — 스크린리더가 몇 번째
+칸인지만 읽고 무엇인지는 말하지 못한다.
+
+`Column.labelHidden` 을 더했다. **글자는 DOM 에 남기고 화면에서만 감춘다**(`srOnly`) —
+안 그리면 다시 빈 `<th>` 가 된다.
+
+```tsx
+{ key: 'open', label: '열람', labelHidden: true, … }
+```
+
+`Switch.labelHidden`(§27.2)과 같은 이름을 쓴다 — 같은 뜻이면 같은 말로 부른다.
+
+> 빈 라벨을 쓰던 곳은 **저장소 전체에 이 한 곳뿐**이었다. 다른 표들이 안 걸린 이유다.
+
+### 38.2 `bun run a11y` — 되풀이할 수 있게
+
+§37.2 에 「다음에 돌릴 때 실패 검사 id 도 찍자」 고 적어 뒀는데, **문서에만 있는 규칙은
+새어 나간다**(§17). 스크립트로 만들었다.
+
+```bash
+bun run dev            # 먼저 띄워 둔다
+bun run a11y           # 구현된 화면 전부
+bun run a11y /items    # 골라서
+```
+
+- **점수와 실패 검사 id 를 함께** 찍고, 하나라도 있으면 **종료 코드 1**
+- 화면 목록은 `screens.ts` + `router.tsx` 에서 뽑는다 — 새 화면이 자동으로 대상이 된다
+- **파라미터 경로와 미구현 화면은 뺀다** — 전자는 열 수 없고, 후자는 placeholder 라 언제나 100 이다
+- 목 세션을 심어 **최고 관리자로** 잰다. 운영자로 재면 권한 밖 화면이 리다이렉트돼서
+  **엉뚱한 화면을 100 점이라고 보고한다**
+
+⚠️ **`bun run lint` 에 넣지 않았다.** 서버와 크롬이 떠 있어야 하고 화면 하나에 몇 초가
+걸린다 — 매 커밋에 물리면 사람이 검사를 끄게 된다. **화면을 새로 만들면 돌린다**(§9.4).
+
+⚠️ **크롬 경로를 주지 않는다.** `chrome-launcher` 가 macOS · Linux · Windows 를 스스로 찾고
+`CHROME_PATH` 도 직접 본다. 맥 경로를 넘기면 **그 탐색을 통째로 가려서** 크롬이 깔린
+윈도에서도 실패한다 — 라이브러리가 이미 하는 일을 다시 하면 **그 라이브러리보다 못하게**
+된다.
+
+확인: `label: ''` 을 되돌려 넣으면 `✗ td-has-header` 와 함께 **종료 코드 1** 이 난다.
+
+> ⚠️ `puppeteer-core` 는 **lighthouse 가 쓰는 버전에 맞춰 고정**한다. 안 맞추면 두 벌이
+> 설치돼 `Page` 타입이 갈리고 `typecheck` 이 깨진다 — 캐스팅으로 덮을 자리가 아니다.
+
+### 38.3 도구의 의존성을 모두의 설치에 얹지 않는다
+
+Lighthouse 와 크롬 조종기는 **190 패키지가 넘는다.** 화면을 만들 때만 쓰는 도구를
+`devDependencies` 에 넣으면 **아무 것도 안 하는 사람의 `bun install` 까지 무거워진다.**
+
+`scripts/a11y/` 를 **의존성을 따로 갖는 미니 프로젝트**로 갈랐다.
+
+```text
+scripts/a11y/package.json   ← lighthouse · chrome-launcher · puppeteer-core
+scripts/a11y/check.ts
+scripts/a11y/node_modules   ← gitignore. `bun run a11y` 가 처음 돌 때만 생긴다
+```
+
+`bun run a11y` 가 `bun install --cwd scripts/a11y --silent` 를 먼저 돌린다. 루트에
+`workspaces` 가 없어서 **루트 설치는 이쪽을 쳐다보지 않는다.**
+
+> **순수한 `bunx` 로는 안 된다.** `bunx` 는 패키지의 실행 파일을 돌리는 것이고,
+> Lighthouse CLI 에는 **목 세션을 심을 방법이 없다**(`--extra-headers` 로는 `localStorage`
+> 를 못 넣는다) — 인증 뒤 화면을 하나도 못 잰다. 그래서 스크립트가 필요하고, 스크립트에는
+> 의존성이 필요하다. 갈라 두는 것이 그 둘을 다 만족시키는 자리다.
+
+⚠️ **`tsconfig` 에서 `scripts/a11y` 를 뺀다.** 깨끗한 클론에는 그 `node_modules` 가 없어서
+`typecheck` 이 import 를 못 푼다. 대신 그 파일은 타입 검사를 못 받는다 — 도구 하나를
+검사 밖에 두는 값으로 모두의 설치 시간을 산 것이다.
+
+⚠️ **`import.meta.url` 을 `fileURLToPath` 로 옮긴다.** 검사 파일은 `scripts/a11y/` 에
+있고 읽을 것은 저장소 뿌리에 있어서 두 칸을 거슬러 올라가는데, `URL.pathname` 을 그대로
+쓰면 **퍼센트 인코딩이 남는다.**
+
+```text
+경로에 공백이 있으면   /Users/me/My%20Drive/repo/   → ENOENT
+윈도에서는            /C:/work/repo/                → 열리지 않는다
+```
+
+공백 있는 경로에 복사해 재 봤다 — **`pathname` 은 `ENOENT`, `fileURLToPath` 는 읽힌다.**
+
+⚠️ **`check-docs` 가 `node_modules` 를 건너뛰게 했다.** `scripts/` 를 훑는 검사라, 미니
+프로젝트를 만든 순간 **남의 코드에서 이름을 주워 와 우리 문서를 남의 시그니처로 판정**하기
+시작했다 — `reset` 이 실제로 그렇게 잡혔다. `check-order`·`check-comments` 는 `src/` 만
+훑어서 해당이 없다.

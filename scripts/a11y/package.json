@@ -1,0 +1,11 @@
+{
+  "name": "riruti-a11y-check",
+  "private": true,
+  "type": "module",
+  "description": "접근성 검사 전용 미니 프로젝트. 루트 설치를 무겁게 하지 않으려고 갈라 뒀다 (docs/ARCHITECTURE.md §38.3)",
+  "dependencies": {
+    "chrome-launcher": "^1.2.0",
+    "lighthouse": "^12.8.2",
+    "puppeteer-core": "24.43.1"
+  }
+}
