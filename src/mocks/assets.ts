@@ -11,24 +11,22 @@
  */
 import type { Asset, AssetExt, AssetKind } from '@/domain/asset'
 
-import { ACH_ASSETS, ASSETS } from './assetTable'
+import { ACH_ASSETS, ASSETS, BG_ASSETS, NEST_ASSETS } from './assetTable'
 
 /**
- * ⚠️ `bg`·`nest`·`growth`·`emoji` 는 **아직 비어 있다.**
- *
- * `bg`·`nest` 는 SVG 가 나왔지만(docs/ARCHITECTURE.md §8.6) 그 화면을 만들 때 표를 채운다.
- * `growth`·`emoji` 는 어드민 화면 자체가 없다.
+ * ⚠️ `growth`·`emoji` 는 **아직 비어 있다** — 어드민 화면 자체가 없다.
  *
  * ⚠️ **비어 있으면 고르기 창이 빈 채로 뜬다** — 「있는 것에서 고르거나」 라고 써 있는데
- *    고를 것이 없다. 에셋을 뽑았으면 `assetTable.ts` 에 표를 같이 넣어야 한다.
+ *    고를 것이 없다. 에셋을 뽑았으면 `assetTable.ts` 에 표를 같이 넣어야 한다
+ *    (docs/ARCHITECTURE.md §8.6).
  */
 const catalog: Record<AssetKind, Asset[]> = {
   head: [...ASSETS.HEAD],
   body: [...ASSETS.BODY],
   hand: [...ASSETS.HAND],
   face: [...ASSETS.FACE],
-  bg: [],
-  nest: [],
+  bg: [...BG_ASSETS],
+  nest: [...NEST_ASSETS],
   growth: [],
   ach: [...ACH_ASSETS],
   emoji: [],

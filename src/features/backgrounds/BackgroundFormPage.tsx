@@ -1,10 +1,9 @@
 /**
- * 업적 등록·수정.
+ * 배경 등록·수정.
  *
- * **원본에 없는 화면이다.** 원본은 「업적 등록」 버튼만 두고 폼은 그리지 않았다 —
- * 아이템 폼(`features/items/ItemFormPage`, docs/ARCHITECTURE.md §18.8)을 본으로 삼되
- * 업적에 없는 것(등급·가격·노출 기간·진열 스위치)은 전부 뺐다. 남는 것은 **그림과 글 다섯 칸**이라
- * 카드 하나로 끝난다.
+ * **원본에 없는 화면이다.** 원본은 「배경 등록」 버튼만 두고 폼은 그리지 않았다 —
+ * 아이템 폼(docs/ARCHITECTURE.md §18.8)을 본으로 삼되 배경에 없는 것(슬롯·노출 기간·
+ * 진열 스위치·획득 경로)은 전부 뺐다. 남는 것은 **그림과 이름, 등급과 가격**뿐이다.
  */
 import { useEffect, useState } from 'react'
 
@@ -23,63 +22,65 @@ import { EmptyState, Skeleton } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { Input } from '@/shared/ui/Input'
 import { PageHeader } from '@/shared/ui/PageHeader'
+import { Segmented } from '@/shared/ui/Segmented'
 
 import {
-  emptyAchievementInput,
-  toAchievementInput,
-  validateAchievement,
-  type AchievementInput,
-} from '@/domain/achievement'
+  emptyBackgroundInput,
+  toBackgroundInput,
+  validateBackground,
+  type BackgroundInput,
+} from '@/domain/background'
+import { TIER_LABEL, type Tier } from '@/domain/item'
 import { SCREENS } from '@/domain/screens'
 
-import { useAchievement, useSaveAchievement } from '@/api/achievements'
 import { useAssets, useUploadAsset } from '@/api/assets'
+import { useBackground, useSaveBackground } from '@/api/backgrounds'
 
 import { useUnsavedGuard } from '@/stores/dirtyStore'
 
 import { AssetPicker } from '@/entities/asset'
 
+const TIER_OPTIONS: { value: Tier; label: string }[] = [
+  { value: 'FREE', label: TIER_LABEL.FREE },
+  { value: 'PAID', label: TIER_LABEL.PAID },
+]
+
 /**
  * 초안 칸 이름.
  *
- * ⚠️ **엔티티 이름을 붙인다.** 그냥 `'new'` 로 두면 `/achievements/new` 와 `/items/new` 가
+ * ⚠️ **엔티티 이름을 붙인다.** 그냥 `'new'` 로 두면 `/backgrounds/new` 와 `/items/new` 가
  *    같은 칸을 써서 **하나가 다른 하나를 덮어쓴다** (§33.2).
  *
  * 훅이 이 값을 인자로 받으므로 모듈 함수로 둔다 (§14.2).
  */
-const draftScope = (achId?: string): string => `achievements:${achId ?? 'new'}`
+const draftScope = (bgId?: string): string => `backgrounds:${bgId ?? 'new'}`
 
-/**
- * 칸 하나를 바꾸고 **더러움 표시를 켠다.**
- *
- * `setValue` 는 기본으로 `shouldDirty` 를 켜지 않는다 — 그러면 미저장 경고도 임시 저장도
- * 동작하지 않는다 (아이템 폼과 같은 이유).
- */
+/** 칸 하나를 바꾸고 **더러움 표시를 켠다** (아이템 폼과 같은 이유) */
 const setter =
-  (form: UseFormReturn<AchievementInput>) =>
-  <K extends FieldPath<AchievementInput>>(k: K, value: FieldPathValue<AchievementInput, K>) =>
+  (form: UseFormReturn<BackgroundInput>) =>
+  <K extends FieldPath<BackgroundInput>>(k: K, value: FieldPathValue<BackgroundInput, K>) =>
     form.setValue(k, value, { shouldDirty: true })
 
 /** 아직 올리지 않은 파일. `preview` 는 `blob:` URL 이라 다 쓰면 놓아 준다 */
 type PendingAsset = { file: File; preview: string }
 
-/** 검증에만 쓰는 가짜 `assetId`. 저장되는 값이 아니다 (아이템 폼과 같은 장치) */
+/** 검증에만 쓰는 가짜 `assetId`. 저장되는 값이 아니다 */
 const PENDING_ASSET_ID = '(올리는 중)'
 
-export default function AchievementFormPage() {
-  const { achId } = useParams()
+export default function BackgroundFormPage() {
+  const { bgId } = useParams()
   // 수정이면 원본을 받아 초기값으로 쓴다. 등록이면 부르지 않는다.
-  const existing = useAchievement(achId ?? '')
+  const existing = useBackground(bgId ?? '')
 
-  // ⚠️ **`key` 로 마운트를 가른다.** `AchievementForm` 은 `initial` 을 `useForm` 의
-  //    `defaultValues` 로 한 번만 읽으므로, 같은 자리에서 `achId` 만 바뀌면
-  //    **A 의 입력으로 B 를 저장한다** (아이템 폼과 같은 불변식, §18.8).
-  if (!achId) return <AchievementForm key="new" initial={emptyAchievementInput()} />
+  // ⚠️ **`key` 로 마운트를 가른다.** `BackgroundForm` 은 `initial` 을 `useForm` 의
+  //    `defaultValues` 로 한 번만 읽으므로, 같은 자리에서 `bgId` 만 바뀌면
+  //    **A 의 입력으로 B 를 저장한다** (§18.8 과 같은 불변식).
+  if (!bgId) return <BackgroundForm key="new" initial={emptyBackgroundInput()} />
   if (existing.isPending) return <Skeleton rows={5} />
   if (existing.error || !existing.data) {
-    return <ErrorBanner message={existing.error?.message ?? '업적을 불러오지 못했습니다.'} />
+    return <ErrorBanner message={existing.error?.message ?? '배경을 불러오지 못했습니다.'} />
   }
-  return <AchievementForm key={achId} achId={achId} initial={toAchievementInput(existing.data)} />
+  return <BackgroundForm key={bgId} bgId={bgId} initial={toBackgroundInput(existing.data)} />
 }
 
 /**
@@ -88,27 +89,26 @@ export default function AchievementFormPage() {
  * 초기값이 준비된 뒤에 마운트되도록 **바깥에서 갈라 둔다** — `useForm` 의 `defaultValues` 는
  * 나중에 바뀌어도 반영되지 않아서, 수정 화면에서 빈 폼이 뜬다.
  */
-function AchievementForm({ achId, initial }: { achId?: string; initial: AchievementInput }) {
+function BackgroundForm({ bgId, initial }: { bgId?: string; initial: BackgroundInput }) {
   const navigate = useNavigate()
-  const save = useSaveAchievement()
+  const save = useSaveBackground()
   const upload = useUploadAsset()
   // 폼을 만들기 **전에** 읽는다. 만든 뒤에는 기본값을 갈아 끼울 수 없다.
-  const [restored] = useState(() => restoreDraft(draftScope(achId), initial))
+  const [restored] = useState(() => restoreDraft(draftScope(bgId), initial))
   // ⚠️ **알림의 표시 여부는 따로 둔다.** `restored` 는 마운트 시점에 고정되므로
   //    「새로 시작」 으로 초안을 버려도 계속 참이고, 알림이 지워지지 않는다.
   const [noticeOpen, setNoticeOpen] = useState(restored != null)
   // 고르기만 하고 **아직 올리지 않은** 파일. 「등록」 을 눌러야 올라간다 (§8.5).
   const [pending, setPending] = useState<PendingAsset | null>(null)
-  const form = useForm<AchievementInput>({ defaultValues: initial })
-  const draft = useFormDraft(draftScope(achId), form.watch(), form.formState.isDirty)
+  const form = useForm<BackgroundInput>({ defaultValues: initial })
+  const draft = useFormDraft(draftScope(bgId), form.watch(), form.formState.isDirty)
   const markSaved = useUnsavedGuard(form.formState.isDirty)
 
   const values = form.watch()
   // 올릴 파일을 고른 상태면 저장할 때 `assetId` 가 생긴다 — 지금 비어 있다고 막지 않는다.
-  const errors = validateAchievement(pending ? { ...values, assetId: PENDING_ASSET_ID } : values)
+  const errors = validateBackground(pending ? { ...values, assetId: PENDING_ASSET_ID } : values)
   const blocked = Object.keys(errors).length > 0
-  // ⚠️ **손대기 전에는 빨갛게 하지 않는다.** 빈 폼을 열자마자 혼나는 화면이 된다.
-  //    무엇이 남았는지는 오른쪽 체크리스트가 말한다 (§18.7).
+  // ⚠️ **손대기 전에는 빨갛게 하지 않는다** (§18.7).
   const shown = form.formState.isDirty ? errors : {}
   const set = setter(form)
 
@@ -142,7 +142,7 @@ function AchievementForm({ achId, initial }: { achId?: string; initial: Achievem
     let assetId = input.assetId
     if (pending) {
       try {
-        const asset = await upload.mutateAsync({ kind: 'ach', file: pending.file, name: input.name })
+        const asset = await upload.mutateAsync({ kind: 'bg', file: pending.file, name: input.name })
         assetId = asset.assetId
       } catch {
         // 오류는 `upload.error` 로 화면에 나온다.
@@ -151,7 +151,7 @@ function AchievementForm({ achId, initial }: { achId?: string; initial: Achievem
     }
 
     save.mutate(
-      { achId, input: { ...input, assetId } },
+      { bgId, input: { ...input, assetId } },
       {
         onSuccess: () => {
           // 초안은 저장에 성공한 뒤에 지운다. 실패했는데 지우면 쓰던 게 사라진다.
@@ -160,7 +160,7 @@ function AchievementForm({ achId, initial }: { achId?: string; initial: Achievem
           // ⚠️ **표시를 지금 지운다.** `reset` 만으로는 다음 effect 에서야 스토어에 닿아,
           //    바로 아래 `navigate` 를 이동 가드가 막는다.
           markSaved()
-          navigate(SCREENS.ach.path)
+          navigate(SCREENS.bg.path)
         },
       },
     )
@@ -169,8 +169,8 @@ function AchievementForm({ achId, initial }: { achId?: string; initial: Achievem
   return (
     <form onSubmit={submit}>
       <PageHeader
-        title={achId ? '업적 수정' : '업적 등록'}
-        sub="조형이 곧 이름표입니다. 수집함에서 그림만 보고 어느 업적인지 알 수 있어야 합니다."
+        title={bgId ? '배경 수정' : '배경 등록'}
+        sub="장소를 정하는 슬롯입니다. 둥지와 독립이라 어떤 조합으로도 쓰입니다."
       />
 
       {save.error && <ErrorBanner message={save.error.message} />}
@@ -196,36 +196,36 @@ function AchievementForm({ achId, initial }: { achId?: string; initial: Achievem
             <Input
               value={values.name}
               onChange={(name) => set('name', name)}
-              label="업적명"
-              placeholder="예: 첫 알"
+              label="배경명"
+              placeholder="예: 밤하늘"
               error={shown.name}
               required
             />
-            <Input
-              value={values.sub}
-              onChange={(sub) => set('sub', sub)}
-              label="조형 설명"
-              placeholder="예: 금속 메달 · 월계관"
-              hint="목록 카드에서 이름 아래에 붙습니다. 무엇으로 그렸는지 적습니다."
+
+            <Segmented
+              value={values.tier}
+              // ⚠️ **무료로 바꾸면 가격도 0 으로 되돌린다.** 값을 남겨 두면 검증이 막고,
+              //    운영자는 보이지도 않는 칸 때문에 저장이 안 된다고 느낀다.
+              onChange={(tier) => {
+                set('tier', tier)
+                if (tier === 'FREE') set('price', 0)
+              }}
+              options={TIER_OPTIONS}
+              aria-label="등급"
             />
-            <Input
-              value={values.cond}
-              onChange={(cond) => set('cond', cond)}
-              label="달성 조건"
-              placeholder="예: 계정 생성"
-              hint="표시용 문구입니다. 실제 판정은 게임 서버가 합니다."
-              error={shown.cond}
-              required
-            />
-            <Input
-              value={values.reward}
-              onChange={(reward) => set('reward', reward)}
-              label="보상"
-              placeholder="예: 젬 50 · 보금자리"
-              hint="젬과 아이템을 함께 적을 수 있습니다."
-              error={shown.reward}
-              required
-            />
+
+            {values.tier === 'PAID' && (
+              <Input
+                value={String(values.price)}
+                // 숫자만 받는다 — 젬 가격에 문자가 들어가면 상점이 값을 못 읽는다.
+                onChange={(v) => set('price', Number(v.replace(/\D/g, '')) || 0)}
+                label="가격"
+                hint="젬"
+                inputMode="numeric"
+                error={shown.price}
+                required
+              />
+            )}
           </div>
         </Card>
 
@@ -243,12 +243,12 @@ function AchievementForm({ achId, initial }: { achId?: string; initial: Achievem
       </div>
 
       <div className={css({ display: 'flex', justifyContent: 'flex-end', gap: '8px', mt: '16px' })}>
-        <Button onClick={() => navigate(SCREENS.ach.path)}>취소</Button>
+        <Button onClick={() => navigate(SCREENS.bg.path)}>취소</Button>
         <Button onClick={draft.saveNow} disabled={!form.formState.isDirty}>
           임시 저장
         </Button>
         <Button type="submit" variant="primary" disabled={blocked || save.isPending || upload.isPending}>
-          {save.isPending || upload.isPending ? '저장 중…' : achId ? '수정' : '등록'}
+          {save.isPending || upload.isPending ? '저장 중…' : bgId ? '수정' : '등록'}
         </Button>
       </div>
 
@@ -260,7 +260,7 @@ function AchievementForm({ achId, initial }: { achId?: string; initial: Achievem
 /**
  * 미리보기 + 체크리스트.
  *
- * ⚠️ **체크리스트는 `validateAchievement` 의 결과로 그린다.** 따로 계산하면 체크는 초록인데
+ * ⚠️ **체크리스트는 `validateBackground` 의 결과로 그린다.** 따로 계산하면 체크는 초록인데
  *    저장이 막히는 화면이 만들어진다.
  */
 function SideCard({
@@ -270,33 +270,32 @@ function SideCard({
   onPick,
   onPickFile,
 }: {
-  input: AchievementInput
-  errors: ReturnType<typeof validateAchievement>
+  input: BackgroundInput
+  errors: ReturnType<typeof validateBackground>
   /** 올릴 파일을 고른 상태. 아직 카탈로그에 없으므로 미리보기는 이쪽을 쓴다 */
   pending: PendingAsset | null
   onPick: (assetId: string) => void
   onPickFile: (file: File) => void
 }) {
-  const assets = useAssets('ach')
+  const assets = useAssets('bg')
   const [picking, setPicking] = useState(false)
 
   const current = assets.data?.find((a) => a.assetId === input.assetId)
+  const paid = input.tier === 'PAID'
   const checks = [
-    { ok: !errors.name, label: errors.name ?? '업적명 입력됨' },
+    { ok: !errors.name, label: errors.name ?? '배경명 입력됨' },
     { ok: !errors.assetId, label: errors.assetId ?? '에셋 선택됨' },
-    { ok: !errors.cond, label: errors.cond ?? '달성 조건 입력됨' },
-    { ok: !errors.reward, label: errors.reward ?? '보상 입력됨' },
+    { ok: !errors.price, label: errors.price ?? '가격 설정 완료' },
   ]
 
   return (
     <Card className={css({ flex: '1 1 280px', minWidth: '250px', maxWidth: '360px', p: '15px' })}>
-      <CardTitle title="수집함 미리보기" sub="배경판 없이 오브젝트 자체로 섭니다." />
+      <CardTitle title="타일 미리보기" sub="유료는 타일 배경이 어두워집니다." />
       <div className={css({ mt: '12px' })}>
-        {/* ⚠️ `plate={false}` — 업적 뱃지는 판 없이 오브젝트 자체로 선다 (목록과 같은 규칙). */}
         {pending ? (
-          <AssetThumb assetId="" src={pending.preview} fluid plate={false} />
+          <AssetThumb assetId="" src={pending.preview} fluid paid={paid} />
         ) : input.assetId ? (
-          <AssetThumb assetId={input.assetId} src={current?.src} fluid plate={false} />
+          <AssetThumb assetId={input.assetId} src={current?.src} fluid paid={paid} />
         ) : (
           <EmptyState title="에셋 없음" body="아래에서 고르거나 올려 주세요." className={css({ border: '0' })} />
         )}
@@ -327,7 +326,7 @@ function SideCard({
 
       <AssetPicker
         open={picking}
-        kind="ach"
+        kind="bg"
         value={input.assetId}
         onClose={() => setPicking(false)}
         onPick={onPick}

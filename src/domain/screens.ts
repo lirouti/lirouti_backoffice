@@ -75,6 +75,8 @@ export const SCREENS = {
   itemedit: { path: '/items/:itemId/edit', label: '아이템 수정', scope: 'items', section: 'items' },
 
   bg: { path: '/backgrounds', label: '배경', scope: 'bg' },
+  bgnew: { path: '/backgrounds/new', label: '배경 등록', scope: 'bg', section: 'bg' },
+  bgedit: { path: '/backgrounds/:bgId/edit', label: '배경 수정', scope: 'bg', section: 'bg' },
   nest: { path: '/nests', label: '둥지', scope: 'bg' },
 
   levels: { path: '/levels', label: '레벨 테이블', scope: 'levels' },
