@@ -36,6 +36,14 @@ describe('topSelling', () => {
 describe('validateItem', () => {
   const ok = (): ItemInput => ({ ...emptyItemInput(), name: '성좌의 로브', assetId: 'as_body_0' })
 
+  // ⚠️ 309자리 이상을 붙여넣으면 `Number` 가 Infinity 가 된다. `Infinity > 0` 은 참이라
+  //    등급·가격 규칙을 그냥 통과하고 목록에 「∞ 젬」 이 찍힌다.
+  it('⚠️ 숫자로 다룰 수 없는 가격은 막는다', () => {
+    const huge = Number('9'.repeat(400))
+    expect(Number.isFinite(huge)).toBe(false)
+    expect(validateItem({ ...ok(), tier: 'PAID', price: huge }).price).toBeTruthy()
+  })
+
   it('다 채우면 오류가 없다', () => {
     expect(validateItem(ok())).toEqual({})
   })

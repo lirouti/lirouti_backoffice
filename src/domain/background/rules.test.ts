@@ -37,6 +37,14 @@ describe('validateBackground', () => {
     expect(validateBackground(input({ tier: 'FREE', price: 900 })).price).toBeTruthy()
   })
 
+  // ⚠️ 309자리 이상을 붙여넣으면 `Number` 가 Infinity 가 된다. `Infinity > 0` 은 참이라
+  //    아래 규칙을 그냥 통과하고 목록에 「∞ 젬」 이 찍힌다.
+  it('⚠️ 숫자로 다룰 수 없는 가격은 막는다', () => {
+    const huge = Number('9'.repeat(400))
+    expect(Number.isFinite(huge)).toBe(false)
+    expect(validateBackground(input({ tier: 'PAID', price: huge })).price).toBeTruthy()
+  })
+
   it('⚠️ 이름과 에셋은 필수', () => {
     expect(validateBackground(input({ name: '  ' })).name).toBeTruthy()
     expect(validateBackground(input({ assetId: '' })).assetId).toBeTruthy()

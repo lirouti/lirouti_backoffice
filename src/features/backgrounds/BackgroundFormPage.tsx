@@ -118,8 +118,19 @@ function BackgroundForm({ bgId, initial }: { bgId?: string; initial: BackgroundI
     if (restored) form.reset(restored, { keepDefaultValues: true })
   }, [restored, form])
 
+  // ⚠️ **미리보기 URL 은 여기 한 곳에서만 놓아 준다.** 바꿀 때·버릴 때마다 손으로 부르면
+  //    **화면을 떠나는 경로를 반드시 하나 빠뜨린다** — 실제로 취소·저장 후 이동·탭 닫기
+  //    셋 다 빠져 있어서 blob URL 이 문서 수명 내내 남았다. cleanup 은 `pending` 이 바뀔 때와
+  //    언마운트 때 함께 돈다.
+  //
+  //    ⚠️ **탭 전환에서는 돌지 않는다**(keep-alive, docs/ARCHITECTURE.md §10). 그게 맞다 —
+  //    돌아왔을 때 미리보기가 살아 있어야 한다.
+  useEffect(() => {
+    if (!pending) return
+    return () => URL.revokeObjectURL(pending.preview)
+  }, [pending])
+
   const pickFile = (file: File) => {
-    if (pending) URL.revokeObjectURL(pending.preview)
     setPending({ file, preview: URL.createObjectURL(file) })
     // 올린 그림을 쓸 것이므로 골라 뒀던 에셋은 버린다.
     set('assetId', '')
@@ -168,9 +179,8 @@ function BackgroundForm({ bgId, initial }: { bgId?: string; initial: BackgroundI
         <DraftNotice
           onDiscard={() => {
             draft.clear()
-            // ⚠️ **고른 파일도 함께 버린다.** 글자만 되돌리면 미리보기에 그 그림이 남아 있다가
-            //    **저장할 때 그대로 올라간다** (§33.3 — 아이템·업적 폼에서 실제로 났던 버그).
-            if (pending) URL.revokeObjectURL(pending.preview)
+            // ⚠️ **고른 파일도 함께 버린다.** 글자만 되돌리면 미리보기에 그 그림이 남아
+            //    있다가 **저장할 때 그대로 올라간다** (§33.3 — 실제로 났던 버그).
             setPending(null)
             // 등록이면 빈 폼, 수정이면 저장돼 있던 값으로 되돌린다.
             form.reset(initial)
@@ -226,7 +236,6 @@ function BackgroundForm({ bgId, initial }: { bgId?: string; initial: BackgroundI
           onPickFile={pickFile}
           onPick={(assetId) => {
             // 목록에서 골랐으면 올리려던 파일은 버린다 — 둘 다 가질 수 없다.
-            if (pending) URL.revokeObjectURL(pending.preview)
             setPending(null)
             set('assetId', assetId)
           }}
