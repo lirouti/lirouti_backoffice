@@ -39,6 +39,16 @@ export const qk = {
     list: () => ['achievements', 'list'] as const,
     detail: (id: number | string) => ['achievements', 'detail', String(id)] as const,
   },
+  backgrounds: {
+    all: ['backgrounds'] as const,
+    list: () => ['backgrounds', 'list'] as const,
+    detail: (id: number | string) => ['backgrounds', 'detail', String(id)] as const,
+  },
+  /** 둥지는 고정 3단계라 상세가 없다 (docs/ARCHITECTURE.md §41.3) */
+  nests: {
+    all: ['nests'] as const,
+    list: () => ['nests', 'list'] as const,
+  },
   security: {
     all: ['security'] as const,
     /** 내 계정의 2단계 인증 상태 */
