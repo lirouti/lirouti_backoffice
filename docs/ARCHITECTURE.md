@@ -4104,6 +4104,17 @@ scripts/a11y/node_modules   ← gitignore. `bun run a11y` 가 처음 돌 때만 
 `typecheck` 이 import 를 못 푼다. 대신 그 파일은 타입 검사를 못 받는다 — 도구 하나를
 검사 밖에 두는 값으로 모두의 설치 시간을 산 것이다.
 
+⚠️ **`import.meta.url` 을 `fileURLToPath` 로 옮긴다.** 검사 파일은 `scripts/a11y/` 에
+있고 읽을 것은 저장소 뿌리에 있어서 두 칸을 거슬러 올라가는데, `URL.pathname` 을 그대로
+쓰면 **퍼센트 인코딩이 남는다.**
+
+```text
+경로에 공백이 있으면   /Users/me/My%20Drive/repo/   → ENOENT
+윈도에서는            /C:/work/repo/                → 열리지 않는다
+```
+
+공백 있는 경로에 복사해 재 봤다 — **`pathname` 은 `ENOENT`, `fileURLToPath` 는 읽힌다.**
+
 ⚠️ **`check-docs` 가 `node_modules` 를 건너뛰게 했다.** `scripts/` 를 훑는 검사라, 미니
 프로젝트를 만든 순간 **남의 코드에서 이름을 주워 와 우리 문서를 남의 시그니처로 판정**하기
 시작했다 — `reset` 이 실제로 그렇게 잡혔다. `check-order`·`check-comments` 는 `src/` 만

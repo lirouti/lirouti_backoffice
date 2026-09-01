@@ -20,6 +20,7 @@ import lighthouse from 'lighthouse'
  *    걸린다 — 매 커밋에 물리면 사람이 검사를 끄게 된다. **화면을 새로 만들면 돌린다.**
  */
 import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import puppeteer from 'puppeteer-core'
 
 const BASE = process.env.A11Y_BASE ?? 'http://localhost:5173'
@@ -45,7 +46,12 @@ const VIEWER = JSON.stringify({
 function screenPaths(): string[] {
   // ⚠️ **저장소 뿌리 기준으로 읽는다.** `bun run a11y` 는 뿌리에서 도는데, 사람이
   //    `scripts/a11y` 안에서 직접 돌릴 수도 있다.
-  const root = new URL('../../', import.meta.url).pathname
+  //
+  // ⚠️ **`URL.pathname` 을 그대로 쓰면 안 된다.** 퍼센트 인코딩이 남아
+  //    `My Drive` 가 `My%20Drive` 로 오고, 윈도에서는 `/C:/…` 가 된다 — 둘 다
+  //    열리지 않는다. `fileURLToPath` 가 그 둘을 다 되돌린다
+  //    (docs/ARCHITECTURE.md §38.3).
+  const root = fileURLToPath(new URL('../../', import.meta.url))
   const screens = readFileSync(`${root}src/domain/screens.ts`, 'utf8')
   const router = readFileSync(`${root}src/app/router.tsx`, 'utf8')
   const built = new Set([...router.matchAll(/^\s*(\w+): lazy/gm)].map((m) => m[1]))
