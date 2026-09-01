@@ -9,7 +9,10 @@ import tseslint from 'typescript-eslint'
  * 레이어 경계를 ESLint 로 강제한다. (docs/ARCHITECTURE.md §4.3)
  *
  * 의존은 아래로만 흐른다:
- *   app → layouts │ features → stores │ api → mocks → domain → shared → assets
+ *   app → layouts │ features → entities │ stores │ api → mocks → domain → shared → assets
+ *
+ * entities 는 features 바로 아래의 **도메인 UI** 다. api 는 부르지만 stores 는 못 본다 —
+ * 전역 상태를 아는 순간 그 화면 전용이 되어 features 안에 두는 게 맞아진다.
  *
  * 규칙이 문서에만 있으면 반드시 새어 나간다. 실제로 이 프로젝트에서도
  * `shared/ui` 가 도메인 타입을 prop 으로 받으면서 shared ⇄ domain 순환이 한 번 생겼다.
@@ -24,6 +27,8 @@ const FORBIDDEN = {
   stores: ['app', 'layouts', 'features', 'api', 'mocks'],
   // features 끼리도 서로 참조 금지 — 같은 feature 안은 상대경로(`./`)를 쓴다
   features: ['app', 'layouts', 'mocks', 'features'],
+  // 도메인 타입을 받는 공용 UI. features 바로 아래라 화면·셸·전역 상태를 몰라야 한다
+  entities: ['app', 'layouts', 'features', 'stores', 'mocks'],
   layouts: ['app', 'features', 'api', 'mocks'],
 }
 
@@ -35,6 +40,7 @@ const WHY = {
   api: 'api 는 데이터 파사드입니다. 화면·상태에 의존하면 파사드의 의미가 없습니다.',
   stores: 'stores 는 상태 그릇입니다. 규칙은 domain 으로, 데이터는 api 로 보내세요.',
   features: 'features 는 화면 층입니다. 위쪽이나 옆을 참조할 수 없습니다.',
+  entities: 'entities 는 여러 화면이 함께 쓰는 도메인 UI 입니다. 특정 화면이나 전역 상태를 알면 그 화면 전용이 되어 버립니다 — 그러면 features 안에 두는 게 맞습니다.',
   layouts: 'layouts 는 모든 화면이 공유하는 셸입니다. 특정 화면이나 데이터 계층을 알면 안 됩니다.',
 }
 
@@ -43,6 +49,8 @@ const PAIR = {
   'features>features':
     'features 끼리는 서로 참조하지 않습니다. 공유가 필요하면 domain/shared/api 로 올리고, 같은 feature 안은 상대경로(./)를 쓰세요.',
   'features>mocks': '화면은 mocks 를 직접 보지 않습니다. api 파사드를 거치세요 — 서버로 갈아탈 때 화면을 손대지 않기 위한 경계입니다.',
+  'entities>mocks': '공용 도메인 UI 도 mocks 를 직접 보지 않습니다. api 파사드를 거치세요.',
+  'entities>features': 'entities 는 features 아래층입니다. 특정 화면의 조각이 필요하면 그건 아직 공용이 아니라는 뜻이라, 그 feature 안에 두세요.',
   'layouts>api': '셸은 데이터를 가져오지 않습니다. 데이터가 필요하면 그 화면(features)에서 부르세요.',
   'stores>api': '스토어에서 데이터를 부르지 마세요. 화면이 api 를 부르고 결과만 스토어에 넣습니다.',
 }
@@ -54,6 +62,13 @@ const PAIR = {
  * 그래서 별도 블록으로 두지 않고 해당 층의 패턴 목록에 끼워 넣는다.
  */
 const EXTRA = {
+  entities: [
+    {
+      group: ['@/api/core'],
+      message:
+        '공용 도메인 UI 도 HTTP 를 직접 부르지 않습니다. `api/<entity>` 파사드를 거치세요.',
+    },
+  ],
   features: [
     {
       // `@/api/core` 는 전송 계층(axios 인스턴스·쿼리 키). 하위 경로까지 전부 막힌다.
@@ -123,6 +138,7 @@ export default tseslint.config(
             { groupName: 'mocks', elementNamePattern: ['^@/mocks'] },
             { groupName: 'api', elementNamePattern: ['^@/api'] },
             { groupName: 'stores', elementNamePattern: ['^@/stores'] },
+            { groupName: 'entities', elementNamePattern: ['^@/entities'] },
             { groupName: 'layouts', elementNamePattern: ['^@/layouts'] },
             { groupName: 'features', elementNamePattern: ['^@/features'] },
             { groupName: 'app', elementNamePattern: ['^@/app'] },
@@ -137,6 +153,7 @@ export default tseslint.config(
             'mocks',
             'api',
             'stores',
+            'entities',
             'layouts',
             'features',
             'app',
@@ -186,7 +203,7 @@ export default tseslint.config(
               message: 'domain 은 스타일 시스템을 몰라야 합니다.',
             },
             {
-              group: ['@/app', '@/app/*', '@/layouts/*', '@/features/*', '@/stores/*', '@/api/*', '@/mocks/*'],
+              group: ['@/app', '@/app/*', '@/layouts/*', '@/features/*', '@/entities/*', '@/stores/*', '@/api/*', '@/mocks/*'],
               message: WHY.domain,
             },
             {

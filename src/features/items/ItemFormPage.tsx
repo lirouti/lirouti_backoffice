@@ -48,7 +48,7 @@ import { useItem, useSaveItem } from '@/api/items'
 
 import { useUnsavedGuard } from '@/stores/dirtyStore'
 
-import { AssetPicker } from './AssetPicker'
+import { AssetPicker } from '@/entities/asset'
 
 
 const SLOT_OPTIONS: { value: Slot; label: string }[] = SLOT_ORDER.map((s) => ({
