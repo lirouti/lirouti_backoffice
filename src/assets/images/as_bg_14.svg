@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 586 576">
+  <defs>
+    <clipPath id="rvScene"><rect x="80" y="40" width="430" height="520" rx="52"></rect></clipPath>
+  </defs>
+  <g clip-path="url(#rvScene)"><g transform="translate(80,40) scale(2.15,2.6)">
+      <rect x="0" y="0" width="200" height="200" fill="#F6E4FA"></rect>
+
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+        <rect x="26" y="26" width="9" height="14" rx="2" fill="#F0857A" transform="rotate(-20 30 33)"></rect>
+        <rect x="164" y="34" width="9" height="14" rx="2" fill="#2F7CEF" transform="rotate(25 168 41)"></rect>
+        <rect x="46" y="66" width="8" height="12" rx="2" fill="#7C5CE0" transform="rotate(40 50 72)"></rect>
+        <rect x="150" y="86" width="8" height="12" rx="2" fill="#F7C64E" transform="rotate(-30 154 92)"></rect>
+        <rect x="18" y="98" width="8" height="12" rx="2" fill="#2F9E86" transform="rotate(15 22 104)"></rect>
+        <rect x="180" y="120" width="8" height="12" rx="2" fill="#F0857A" transform="rotate(-45 184 126)"></rect>
+        <path d="M0,164 H200 V200 H0 Z" fill="#FDE9BE"></path>
+      
+      
+    </g></g>
+</svg>

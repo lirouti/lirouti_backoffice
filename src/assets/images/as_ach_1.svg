@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <g transform="rotate(12 100 100)" opacity="0.14">
+            <circle cx="104" cy="104" r="58" fill="none" stroke="#C4453A" stroke-width="10"></circle>
+            <text x="104" y="116" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="31" font-weight="800" fill="#C4453A">부화</text>
+          </g>
+          <g transform="rotate(-12 100 100)">
+            <circle cx="100" cy="100" r="72" fill="none" stroke="#C4453A" stroke-width="3" opacity="0.85"></circle>
+            <circle cx="100" cy="100" r="64" fill="none" stroke="#C4453A" stroke-width="11" opacity="0.92"></circle>
+            <circle cx="100" cy="100" r="50" fill="none" stroke="#C4453A" stroke-width="3" opacity="0.85"></circle>
+            <circle cx="100" cy="100" r="45" fill="none" stroke="#C4453A" stroke-width="1.5" stroke-dasharray="3 5" opacity="0.7"></circle>
+            <text x="100" y="92" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="32" font-weight="800" fill="#C4453A" opacity="0.92">부화</text>
+            <text x="100" y="122" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="14" font-weight="700" fill="#C4453A" opacity="0.85" letter-spacing="2">HATCHED</text>
+            <g fill="#C4453A" opacity="0.9">
+              <path d="M100,32 L104,41 L113,41 L106,47 L109,56 L100,50 L91,56 L94,47 L87,41 L96,41 Z"></path>
+              <path d="M100,168 L104,159 L113,159 L106,153 L109,144 L100,150 L91,144 L94,153 L87,159 L96,159 Z"></path>
+              <circle cx="36" cy="100" r="3.5"></circle><circle cx="164" cy="100" r="3.5"></circle>
+            </g>
+          </g>
+</svg>

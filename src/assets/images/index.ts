@@ -1,4 +1,32 @@
 // 자동 생성됨 — 편집하지 마세요. `bun run assets` 로 다시 만듭니다.
+import as_ach_0 from './as_ach_0.svg'
+import as_ach_1 from './as_ach_1.svg'
+import as_ach_10 from './as_ach_10.svg'
+import as_ach_11 from './as_ach_11.svg'
+import as_ach_2 from './as_ach_2.svg'
+import as_ach_3 from './as_ach_3.svg'
+import as_ach_4 from './as_ach_4.svg'
+import as_ach_5 from './as_ach_5.svg'
+import as_ach_6 from './as_ach_6.svg'
+import as_ach_7 from './as_ach_7.svg'
+import as_ach_8 from './as_ach_8.svg'
+import as_ach_9 from './as_ach_9.svg'
+import as_bg_0 from './as_bg_0.svg'
+import as_bg_1 from './as_bg_1.svg'
+import as_bg_10 from './as_bg_10.svg'
+import as_bg_11 from './as_bg_11.svg'
+import as_bg_12 from './as_bg_12.svg'
+import as_bg_13 from './as_bg_13.svg'
+import as_bg_14 from './as_bg_14.svg'
+import as_bg_15 from './as_bg_15.svg'
+import as_bg_2 from './as_bg_2.svg'
+import as_bg_3 from './as_bg_3.svg'
+import as_bg_4 from './as_bg_4.svg'
+import as_bg_5 from './as_bg_5.svg'
+import as_bg_6 from './as_bg_6.svg'
+import as_bg_7 from './as_bg_7.svg'
+import as_bg_8 from './as_bg_8.svg'
+import as_bg_9 from './as_bg_9.svg'
 import as_body_0 from './as_body_0.svg'
 import as_body_1 from './as_body_1.svg'
 import as_body_10 from './as_body_10.svg'
@@ -44,6 +72,9 @@ import as_head_6 from './as_head_6.svg'
 import as_head_7 from './as_head_7.svg'
 import as_head_8 from './as_head_8.svg'
 import as_head_9 from './as_head_9.svg'
+import as_nest_0 from './as_nest_0.svg'
+import as_nest_1 from './as_nest_1.svg'
+import as_nest_2 from './as_nest_2.svg'
 import nst3b from './nst3b.svg'
 import nst3f from './nst3f.svg'
 import rg from './rg.svg'
@@ -52,6 +83,34 @@ import rgE from './rgE.svg'
 
 /** 색이 박혀 있어 <img> 로 지연 로드한다. 값은 번들러가 준 URL. */
 export const IMAGES = {
+  as_ach_0,
+  as_ach_1,
+  as_ach_10,
+  as_ach_11,
+  as_ach_2,
+  as_ach_3,
+  as_ach_4,
+  as_ach_5,
+  as_ach_6,
+  as_ach_7,
+  as_ach_8,
+  as_ach_9,
+  as_bg_0,
+  as_bg_1,
+  as_bg_10,
+  as_bg_11,
+  as_bg_12,
+  as_bg_13,
+  as_bg_14,
+  as_bg_15,
+  as_bg_2,
+  as_bg_3,
+  as_bg_4,
+  as_bg_5,
+  as_bg_6,
+  as_bg_7,
+  as_bg_8,
+  as_bg_9,
   as_body_0,
   as_body_1,
   as_body_10,
@@ -97,6 +156,9 @@ export const IMAGES = {
   as_head_7,
   as_head_8,
   as_head_9,
+  as_nest_0,
+  as_nest_1,
+  as_nest_2,
   nst3b,
   nst3f,
   rg,
