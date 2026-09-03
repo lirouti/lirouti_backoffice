@@ -32,6 +32,10 @@ const WIDTHS = [
 const bar = css({
   borderRadius: '5px',
   bg: 'surf2',
+  // ⚠️ **고정 px 너비를 주는 자리가 있다**(`SkeletonPage` 의 제목 180 · 부제 320).
+  //    담는 칸이 그보다 좁으면 **페이지가 가로로 스크롤된다** — 실제로 200px 컨테이너에서
+  //    scrollWidth 320 > clientWidth 200 이 났다. 퍼센트 막대는 저절로 줄지만 px 은 안 준다.
+  maxWidth: '100%',
   animation: 'rvPulse 1.8s ease-in-out infinite',
   '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
 })
