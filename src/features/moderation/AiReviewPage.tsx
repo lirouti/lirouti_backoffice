@@ -17,7 +17,7 @@ import { Dialog } from '@/shared/ui/Dialog'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Segmented } from '@/shared/ui/Segmented'
-import { SkeletonRows, SkeletonStats } from '@/shared/ui/Skeleton'
+import { SkeletonBlock, SkeletonRows, SkeletonStats } from '@/shared/ui/Skeleton'
 import { StatTile } from '@/shared/ui/StatTile'
 import { Switch } from '@/shared/ui/Switch'
 import { Table, type Column } from '@/shared/ui/Table'
@@ -98,8 +98,20 @@ export default function AiReviewPage() {
       {/* ⚠️ **헤더는 로딩 중에도 그린다** — 제목·부제·버튼이 데이터를 안 쓴다 (§43.2) */}
       {isPending ? (
         <>
-          <SkeletonStats count={4} min={140} />
-          <SkeletonRows rows={8} silent className={css({ mt: '14px' })} />
+          {/* 지표가 한 줄로 펴지지 않는다 — 실제는 지표 격자 2 : 요약 카드 1 의 2단이다 */}
+          <div
+            className={css({
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '18px',
+              alignItems: 'stretch',
+              mb: '16px',
+            })}
+          >
+            <SkeletonStats count={4} min={140} className={css({ flex: '2 1 420px', minWidth: '0' })} />
+            <SkeletonBlock height={70} silent className={css({ flex: '1 1 300px', minWidth: '0' })} />
+          </div>
+          <SkeletonRows rows={8} silent />
         </>
       ) : error || !data ? (
         <ErrorBanner message={error?.message ?? 'AI 심사 현황을 불러오지 못했습니다.'} />

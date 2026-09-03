@@ -16,7 +16,7 @@ import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { PageHeader } from '@/shared/ui/PageHeader'
-import { SkeletonCards } from '@/shared/ui/Skeleton'
+import { SkeletonBlock } from '@/shared/ui/Skeleton'
 
 import { SLOT_LABEL, TIER_LABEL, type Item } from '@/domain/item'
 
@@ -83,7 +83,13 @@ export default function ShopDisplayPage() {
 
       {/* ⚠️ **헤더는 로딩 중에도 그린다** — 제목·부제·버튼이 데이터를 안 쓴다 (§43.2) */}
       {isPending ? (
-        <SkeletonCards count={8} min={96} />
+        <div
+          className={css({ display: 'flex', flexWrap: 'wrap', gap: '18px', alignItems: 'flex-start' })}
+        >
+          {/* 좌측 진열 목록 + 우측 미리보기 2단. 한 줄 격자로 그렸더니 326px 이 밀렸다 */}
+          <SkeletonBlock height={516} className={css({ flex: '2 1 420px', minWidth: '0' })} />
+          <SkeletonBlock height={314} silent className={css({ flex: '1 1 280px', minWidth: '0' })} />
+        </div>
       ) : error || !data ? (
         <ErrorBanner message={error?.message ?? '진열을 불러오지 못했습니다.'} />
       ) : (

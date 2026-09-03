@@ -41,7 +41,7 @@ export default function UserDetailPage() {
     return (
       <>
         <SkeletonHeader />
-        <SkeletonStats count={4} min={150} silent />
+        <SkeletonStats count={4} min={150} silent className={css({ mb: '18px' })} />
 
         <SkeletonRows rows={5} silent />
       </>

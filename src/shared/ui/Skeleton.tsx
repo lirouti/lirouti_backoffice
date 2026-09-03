@@ -87,49 +87,115 @@ export function SkeletonRows({ rows = 4, silent = false, className }: Common & {
  * ⚠️ **`min` 은 그 화면이 쓰는 `minmax` 값과 같아야 한다.** 배경 190 · 업적 200 · 둥지 280 ·
  *    성장 170 으로 **전부 다르다.** 다르게 주면 스켈레톤과 실제의 **열 수가 달라져** 데이터가
  *    도착하는 순간 격자가 다시 짜인다 — 막으려던 바로 그 일이다.
+ *
+ * ⚠️ **`thumb` 을 빠뜨리면 카드가 통째로 커진다.** 기본은 타일이 칸을 다 채우는 카드
+ *    (배경·둥지·아이템)인데, 업적 카드는 **74px 그림을 가운데** 놓는다. 그대로 쓰니
+ *    실측 273px 대 185px 로 **88px** 이 어긋났다 — 두 행이면 176px 이 밀린다.
  */
 export function SkeletonCards({
   count = 8,
   min = 200,
+  lines = 2,
+  thumb,
   silent = false,
   className,
-}: Common & { count?: number; min?: number }) {
+}: Common & {
+  count?: number
+  min?: number
+  /**
+   * 타일 아래 글줄 수. 배경·둥지·아이템은 둘(이름 + 한 줄)인데 **캐릭터 종류는 셋**이다
+   * (이름 · 코드 · 배지 줄) — 둘로 그리니 실측 250px 대 278px 로 28px 이 짧았다.
+   */
+  lines?: number
+  /** 주면 칸을 채우는 타일 대신 **이 폭의 정사각형을 가운데** 놓는다 (업적 74) */
+  thumb?: number
+}) {
   return (
     <div
       {...region(silent)}
       className={cx(css({ display: 'grid', gap: '13px' }), className)}
       style={{ gridTemplateColumns: `repeat(auto-fit, minmax(${min}px, 1fr))` }}
     >
-      {Array.from({ length: count }, (_, i) => (
-        <div
-          key={i}
-          aria-hidden="true"
-          className={css({ border: '1px solid token(colors.bd)', borderRadius: 'xl', overflow: 'hidden' })}
-        >
-          <div className={cx(bar, css({ width: 'full', aspectRatio: '1', borderRadius: '0' }))} />
-          <div className={css({ p: '10px 12px 12px', borderTop: '1px solid token(colors.ln)' })}>
-            <div className={bar} style={{ height: 10, width: WIDTHS[i % WIDTHS.length]![0] }} />
-            <div className={bar} style={{ height: 9, width: WIDTHS[i % WIDTHS.length]![1], marginTop: 6 }} />
+      {Array.from({ length: count }, (_, i) =>
+        thumb === undefined ? (
+          <div
+            key={i}
+            aria-hidden="true"
+            className={css({ border: '1px solid token(colors.bd)', borderRadius: 'xl', overflow: 'hidden' })}
+          >
+            <div className={cx(bar, css({ width: 'full', aspectRatio: '1', borderRadius: '0' }))} />
+            {/* 여백은 실제 카드와 같은 값이고, 막대만 글줄 높이에 맞췄다 — 실측 249px */}
+            <div className={css({ p: '10px 12px 12px', borderTop: '1px solid token(colors.ln)' })}>
+              {Array.from({ length: lines }, (_, j) => (
+                <div
+                  key={j}
+                  className={bar}
+                  style={{
+                    height: j === 0 ? 13 : 12,
+                    width: WIDTHS[(i + j) % WIDTHS.length]![j === 0 ? 0 : 1],
+                    marginTop: j === 0 ? 0 : 11,
+                  }}
+                />
+              ))}
+            </div>
           </div>
-        </div>
-      ))}
+        ) : (
+          <div
+            key={i}
+            aria-hidden="true"
+            className={css({
+              border: '1px solid token(colors.bd)',
+              borderRadius: 'xl',
+              bg: 'surf',
+              p: '15px 13px 14px',
+            })}
+          >
+            <div className={cx(bar, css({ aspectRatio: '1', m: '0 auto' }))} style={{ width: thumb }} />
+            {/*
+              ⚠️ **막대 높이 ≠ 글줄 높이.** 막대는 글자보다 얇게 그리는 게 보통이라 그대로
+                 쌓으면 카드가 짧아진다. 모자란 만큼을 여백으로 되돌려 실측 185px 를 맞췄다.
+            */}
+            <div className={cx(bar, css({ m: '13px auto 0' }))} style={{ height: 14, width: '58%' }} />
+            <div className={cx(bar, css({ m: '5px auto 0' }))} style={{ height: 11, width: '42%' }} />
+            {/* 카드에 구분선과 달성률 줄이 있다 — 빼면 높이가 25px 짧아진다 */}
+            <div className={css({ mt: '12px', pt: '12px', borderTop: '1px solid token(colors.ln)' })}>
+              <div className={cx(bar, css({ m: '0 auto' }))} style={{ height: 12, width: '34%' }} />
+            </div>
+          </div>
+        ),
+      )}
     </div>
   )
 }
 
 /**
- * 지표 타일 한 줄. 라벨 한 줄 + 큰 숫자 한 줄.
+ * 지표 타일 한 줄.
  *
  * ⚠️ **`min` 은 그 화면의 `minmax` 와 같아야 한다** — `SkeletonCards` 와 같은 이유다.
  *    지표 화면은 200, 결제·업적 목록은 150 으로 서로 다르다. 150 으로 고정해 두었더니
  *    지표 6개가 **5 + 1 로 줄바꿈**되어 데이터가 올 때 한 줄로 다시 접혔다.
+ *
+ * ⚠️ **아래 여백은 부르는 쪽이 준다.** 실제 지표 격자는 목록에서 `mb: 16px`, 상세에서
+ *    `mb: 18px` 이라 기본값을 정할 수 없다. 안 주면 아래 본문이 그만큼 밀린다.
  */
 export function SkeletonStats({
   count = 4,
   min = 150,
+  variant = 'tile',
   silent = false,
   className,
-}: Common & { count?: number; min?: number }) {
+}: Common & {
+  count?: number
+  min?: number
+  /**
+   * 어느 컴포넌트가 올 자리인가. `StatTile` 은 **두 줄 + 13px** 이고 `StatCard` 는
+   * **세 줄 + 15/16px** 이라 실측 67px 대 93px 로 다르다.
+   *
+   * 기본이 `tile` 인 것은 소비자가 19 대 1 이기 때문이다 — `card` 는 지표 화면뿐이다.
+   */
+  variant?: 'tile' | 'card'
+}) {
+  const tile = variant === 'tile'
   return (
     <div
       {...region(silent)}
@@ -142,18 +208,18 @@ export function SkeletonStats({
           aria-hidden="true"
           className={css({
             border: '1px solid token(colors.bd)',
-            borderRadius: 'xl',
+            borderRadius: tile ? 'lg' : 'xl',
             bg: 'surf',
-            px: '17px',
-            pt: '15px',
-            pb: '16px',
+            px: tile ? '15px' : '17px',
+            pt: tile ? '13px' : '15px',
+            pb: tile ? '13px' : '16px',
           })}
         >
-          {/* `StatCard` 와 같은 **세 줄**이다 — 라벨 · 큰 숫자 · 증감. 두 줄로 두었더니
-              타일 높이가 짧아 데이터가 올 때 아래가 통째로 밀렸다. */}
-          <div className={bar} style={{ height: 11, width: '42%' }} />
-          <div className={bar} style={{ height: 26, width: '60%', marginTop: 7 }} />
-          <div className={bar} style={{ height: 10, width: '52%', marginTop: 6 }} />
+          {/* 값은 실측으로 맞췄다 — `StatTile` 67px · `StatCard` 110px (§43.2.1) */}
+          <div className={bar} style={{ height: tile ? 11 : 14, width: '42%' }} />
+          <div className={bar} style={{ height: tile ? 23 : 30, width: '60%', marginTop: tile ? 5 : 10 }} />
+          {/* `StatCard` 만 세 줄이다 — 라벨 · 큰 숫자 · **증감**. `StatTile` 에는 증감이 없다 */}
+          {tile ? null : <div className={bar} style={{ height: 13, width: '52%', marginTop: 9 }} />}
         </div>
       ))}
     </div>

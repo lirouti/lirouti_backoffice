@@ -43,7 +43,7 @@ export default function PushDetailPage() {
     return (
       <>
         <SkeletonHeader />
-        <SkeletonStats count={4} min={140} silent />
+        <SkeletonStats count={4} min={140} silent className={css({ mb: '18px' })} />
 
         <SkeletonRows rows={5} silent />
       </>

@@ -58,8 +58,8 @@ export default function LevelsPage() {
       {/* ⚠️ **헤더는 로딩 중에도 그린다** — 제목·부제·버튼이 데이터를 안 쓴다 (§43.2) */}
       {isPending ? (
         <>
-          <SkeletonStats count={4} min={150} />
-          <SkeletonRows rows={8} silent className={css({ mt: '14px' })} />
+          <SkeletonStats count={4} min={150} className={css({ mb: '16px' })} />
+          <SkeletonRows rows={8} silent />
         </>
       ) : error || !data ? (
         <ErrorBanner message={error?.message ?? '레벨 테이블을 불러오지 못했습니다.'} />

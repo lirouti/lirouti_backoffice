@@ -92,7 +92,7 @@ export default function SpeciesPage() {
         view === 'list' ? (
           <SkeletonRows rows={6} />
         ) : (
-          <SkeletonCards count={8} min={178} />
+          <SkeletonCards count={8} min={178} lines={3} />
         )
       ) : error ? (
         <ErrorBanner message={error.message} />

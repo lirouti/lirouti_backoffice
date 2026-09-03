@@ -52,7 +52,7 @@ export default function CodeDetailPage() {
     return (
       <>
         <SkeletonHeader />
-        <SkeletonStats count={3} min={150} silent />
+        <SkeletonStats count={3} min={150} silent className={css({ mb: '16px' })} />
 
         <SkeletonRows rows={5} silent />
       </>

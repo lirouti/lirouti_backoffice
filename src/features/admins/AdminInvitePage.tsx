@@ -17,7 +17,7 @@ import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { Input } from '@/shared/ui/Input'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Segmented } from '@/shared/ui/Segmented'
-import { SkeletonCards } from '@/shared/ui/Skeleton'
+import { SkeletonBlock } from '@/shared/ui/Skeleton'
 
 import {
   ADMIN_EMAIL_DOMAIN,
@@ -88,7 +88,29 @@ export default function AdminInvitePage() {
 
       {/* ⚠️ **헤더는 로딩 중에도 그린다** — 제목·부제·버튼이 데이터를 안 쓴다 (§43.2) */}
       {isPending ? (
-        <SkeletonCards count={6} min={220} />
+        <div
+          className={css({ display: 'flex', flexWrap: 'wrap', gap: '18px', alignItems: 'flex-start' })}
+        >
+          {/*
+            카드 격자가 아니라 **2단 폼**이다 — 좌측 세 카드(계정 정보 · 담당 모듈 · 보안)와
+            우측 미리보기. 격자로 그렸더니 실측 273px 대 861px 로 588px 이 밀렸다.
+            안을 흉내 내지 않는 것은 원칙 ③ 이고, 높이는 실측값이다.
+          */}
+          <div
+            className={css({
+              flex: '3 1 480px',
+              minWidth: '0',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '14px',
+            })}
+          >
+            <SkeletonBlock height={253} />
+            <SkeletonBlock height={346} silent />
+            <SkeletonBlock height={183} silent />
+          </div>
+          <SkeletonBlock height={384} silent className={css({ flex: '1 1 300px', minWidth: '280px' })} />
+        </div>
       ) : error ? (
         <ErrorBanner message={error.message} />
       ) : (

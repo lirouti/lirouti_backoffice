@@ -47,7 +47,7 @@ export default function AchievementsPage() {
         <ErrorBanner message={error.message} />
       ) : isPending ? (
         <>
-          <SkeletonCards count={8} min={200} className={css({ mb: '18px' })} />
+          <SkeletonCards count={8} min={200} thumb={74} className={css({ mb: '18px' })} />
           <SkeletonRows rows={6} silent />
         </>
       ) : (
