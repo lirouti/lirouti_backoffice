@@ -155,7 +155,7 @@ function DisablePanel({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <form onSubmit={submit}>
+    <form onSubmit={submit} noValidate>
       <h3 className={css({ m: '0 0 6px', textStyle: 'h3', color: 'ink' })}>2단계 인증 끄기</h3>
       <p className={css({ m: '0 0 14px', textStyle: 'body', color: 'sub' })}>
         본인 확인을 위해 인증 앱에 표시된 코드를 입력하세요. 끄면 남은 백업 코드도 모두

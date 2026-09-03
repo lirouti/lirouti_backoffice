@@ -58,7 +58,7 @@ export function EnrollWizard({
 
   if (step === 'confirm') {
     return (
-      <form onSubmit={submit}>
+      <form onSubmit={submit} noValidate>
         <StepTitle n={2} title="인증 앱에 뜬 코드를 입력하세요" />
         <p className={css({ m: '0 0 16px', textStyle: 'body', color: 'sub' })}>
           코드는 {TOTP_CODE_LENGTH}자리이고 30초마다 바뀝니다. 곧 바뀔 것 같으면 다음 코드를

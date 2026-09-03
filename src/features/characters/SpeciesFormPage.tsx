@@ -108,7 +108,7 @@ export default function SpeciesFormPage() {
   }
 
   return (
-    <form onSubmit={submit}>
+    <form onSubmit={submit} noValidate>
       <PageHeader
         title="종 등록"
         sub="종은 대표 색으로 구분됩니다. 아트는 캐릭터팀이 따로 올립니다."

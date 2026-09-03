@@ -192,6 +192,7 @@ export default function LoginPage() {
 
                 <form
                   onSubmit={submit}
+                  noValidate
                   className={css({ display: 'flex', flexDirection: 'column', gap: '14px' })}
                 >
                   <TextField
