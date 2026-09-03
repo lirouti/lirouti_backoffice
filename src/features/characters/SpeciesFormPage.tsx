@@ -108,6 +108,10 @@ export default function SpeciesFormPage() {
       focusFirstError(formRef.current)
       return
     }
+    // ⚠️ **이미 돌고 있으면 두 번 보내지 않는다.** 버튼의 `disabled` 로는 못 막는다 —
+    //    한 줄 입력의 Enter 는 버튼을 거치지 않는다. 실제로 세 번 제출하니 **셋 다
+    //    만들어졌다**(`/challenges/18` 대 `/challenges/20`).
+    if (save.isPending) return
     save.mutate(
       { input },
       {

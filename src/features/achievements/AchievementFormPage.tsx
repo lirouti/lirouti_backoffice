@@ -130,6 +130,8 @@ function AchievementForm({ achId, initial }: { achId?: string; initial: Achievem
   // ⚠️ **손대기 전에는 빨갛게 하지 않는다.** 빈 폼을 열자마자 혼나는 화면이 된다.
   //    무엇이 남았는지는 오른쪽 체크리스트가 말한다 (§18.7).
   const shown = tried ? errors : {}
+  // 업로드가 도는 동안에는 `save.isPending` 이 아직 false 다 — 둘 다 봐야 한다.
+  const busy = save.isPending || upload.isPending
   const set = setter(form)
 
   // ⚠️ **기본값은 원본으로 두고 값만 갈아 끼운다**(`keepDefaultValues`). 초안을 기본값으로
@@ -200,6 +202,13 @@ function AchievementForm({ achId, initial }: { achId?: string; initial: Achievem
     if (blocked) {
       e.preventDefault()
       focusFirstError(formRef.current)
+      return
+    }
+    // ⚠️ **이미 돌고 있으면 두 번 보내지 않는다.** 버튼의 `disabled` 로는 못 막는다 —
+    //    한 줄 입력의 Enter 는 버튼을 거치지 않는다. 실제로 세 번 제출하니 **셋 다
+    //    만들어졌다**(`/challenges/18` 대 `/challenges/20`).
+    if (busy) {
+      e.preventDefault()
       return
     }
     void runSave(e)
@@ -283,8 +292,8 @@ function AchievementForm({ achId, initial }: { achId?: string; initial: Achievem
         <Button onClick={draft.saveNow} disabled={!form.formState.isDirty}>
           임시 저장
         </Button>
-        <Button type="submit" variant="primary" disabled={save.isPending || upload.isPending}>
-          {save.isPending || upload.isPending ? '저장 중…' : achId ? '수정' : '등록'}
+        <Button type="submit" variant="primary" disabled={busy}>
+          {busy ? '저장 중…' : achId ? '수정' : '등록'}
         </Button>
       </div>
 

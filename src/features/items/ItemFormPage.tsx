@@ -183,6 +183,7 @@ function ItemForm({ itemId, initial }: { itemId?: string; initial: ItemInput }) 
   //    붉게 뜨면 아직 아무것도 안 했는데 혼난 기분이 든다. 무엇이 남았는지는
   //    오른쪽 체크리스트가 말하고, 필드 오류는 고칠 대상이 생긴 뒤에 붙는다.
   const shown = tried ? errors : {}
+  const busy = save.isPending || upload.isPending
 
   // ⚠️ **기본값은 원본으로 두고 값만 갈아 끼운다**(`keepDefaultValues`). 초안을
   //    기본값으로 넣으면 폼이 "깨끗하다" 고 여겨 미저장 경고도 자동 저장도 안 돈다 —
@@ -256,6 +257,17 @@ function ItemForm({ itemId, initial }: { itemId?: string; initial: ItemInput }) 
       focusFirstError(formRef.current)
       return
     }
+    // ⚠️ **이미 돌고 있으면 두 번 보내지 않는다.** 버튼의 `disabled` 로는 못 막는다 —
+    //    한 줄 입력의 Enter 는 버튼을 거치지 않는다. 실제로 세 번 제출하니 **셋 다
+    //    만들어졌다**(`/challenges/18` 대 `/challenges/20`).
+    //
+    // ⚠️ **`upload.isPending` 도 본다.** `runSave` 는 업로드를 **기다린 뒤에야**
+    //    `save.mutate` 를 시작하므로, 업로드가 도는 동안에는 `save.isPending` 이 아직
+    //    false 다 — 그 사이에 다시 누르면 업로드와 저장이 통째로 두 번 나간다.
+    if (busy) {
+      e.preventDefault()
+      return
+    }
     void runSave(e)
   }
 
@@ -302,8 +314,8 @@ function ItemForm({ itemId, initial }: { itemId?: string; initial: ItemInput }) 
         <Button onClick={draft.saveNow} disabled={!form.formState.isDirty}>
           임시 저장
         </Button>
-        <Button type="submit" variant="primary" disabled={save.isPending}>
-          {save.isPending ? '저장 중…' : itemId ? '수정' : '등록'}
+        <Button type="submit" variant="primary" disabled={busy}>
+          {busy ? '저장 중…' : itemId ? '수정' : '등록'}
         </Button>
       </div>
 
