@@ -82,6 +82,8 @@ type TabsState = {
   open: (path: string) => void
   /** 서브 메뉴 단위로 닫는다 */
   close: (screen: ScreenId) => void
+  /** 세션이 끝날 때 전부 닫는다 (docs/ARCHITECTURE.md §16.6) */
+  reset: () => void
 }
 
 export const useTabsStore = create<TabsState>()(
@@ -118,6 +120,7 @@ export const useTabsStore = create<TabsState>()(
         }),
 
       close: (screen) => set((s) => ({ tabs: s.tabs.filter((t) => t.screen !== screen) })),
+      reset: () => set({ tabs: [] }),
     }),
     {
       // ⚠️ **키를 올리지 않는다.** 올리면 `merge` 에 새 키의 값만 들어와서 이미 열어 둔

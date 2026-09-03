@@ -12,6 +12,8 @@ type DirtyState = {
   /** 경로 → 저장 안 됨 여부 */
   dirty: Record<string, boolean>
   setDirty: (path: string, value: boolean) => void
+  /** 세션이 끝날 때 전부 지운다 (docs/ARCHITECTURE.md §16.6) */
+  reset: () => void
 }
 
 export const useDirtyStore = create<DirtyState>()((set) => ({
@@ -26,6 +28,7 @@ export const useDirtyStore = create<DirtyState>()((set) => ({
       }
       return { dirty: { ...s.dirty, [path]: true } }
     }),
+  reset: () => set({ dirty: {} }),
 }))
 
 /** 해당 경로에 저장 안 된 변경이 있는가 */
