@@ -17,7 +17,13 @@ styled-system-studio
 # `design/` 에 두고 `bun run assets` 를 돌린다. (docs/ARCHITECTURE.md §8)
 design/
 
-# Claude Code 프로젝트 메모 (커밋하지 않음)
+# 에이전트 규약 (커밋하지 않음)
+#
+# `AGENTS.md` 가 원본이고 `CLAUDE.md` 는 그것을 `@AGENTS.md` 로 불러오기만 한다 —
+# Claude Code 와 Codex 가 같은 것을 읽게 하려고 한 벌만 둔다.
+#
+# ⚠️ 둘 다 빠지므로 **새 머신의 클론에는 규약이 없다.** 손으로 옮겨 놓아야 한다.
+AGENTS.md
 CLAUDE.md
 
 .DS_Store

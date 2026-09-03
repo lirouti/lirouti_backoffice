@@ -6,7 +6,8 @@
  * 업적에 없는 것(등급·가격·노출 기간·진열 스위치)은 전부 뺐다. 남는 것은 **그림과 글 다섯 칸**이라
  * 카드 하나로 끝난다.
  */
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { flushSync } from 'react-dom'
 
 import { useForm, type FieldPath, type FieldPathValue, type UseFormReturn } from 'react-hook-form'
 import { useNavigate, useParams } from 'react-router'
@@ -15,6 +16,7 @@ import { css } from 'styled-system/css'
 
 import { useFormDraft } from '@/shared/hooks/useFormDraft'
 import { restoreDraft } from '@/shared/lib/draft'
+import { focusFirstError } from '@/shared/lib/focusFirstError'
 import { AssetThumb } from '@/shared/ui/AssetThumb'
 import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
@@ -114,6 +116,19 @@ function AchievementForm({ achId, initial }: { achId?: string; initial: Achievem
   const [noticeOpen, setNoticeOpen] = useState(restored != null)
   // 고르기만 하고 **아직 올리지 않은** 파일. 「등록」 을 눌러야 올라간다 (§8.5).
   const [pending, setPending] = useState<PendingAsset | null>(null)
+  // 제출을 눌러 보기 전에는 빨갛게 하지 않는다 (`ItemFormPage` 와 같은 규칙)
+  const [tried, setTried] = useState(false)
+  const formRef = useRef<HTMLFormElement>(null)
+  /**
+   * ⚠️ **동기 재진입 잠금.** `busy` 는 React 가 렌더를 커밋한 **뒤에야** 참이라, 같은
+   *    태스크에서 연달아 제출하면 두 번째가 아직 거짓을 본다 — 실측으로 3회 중 2개가
+   *    만들어졌다. `ref` 는 즉시 반영되므로 그 틈이 없다.
+   *
+   * ⚠️ **푸는 자리를 빠뜨리면 폼이 영영 잠긴다.** 막으려던 것보다 나쁜 고장이라, 끝나는
+   *    길마다 하나씩 있어야 한다 — **업로드 실패의 조기 반환**과 `onSettled`(성공·실패 모두).
+   */
+  const sending = useRef(false)
+
   const form = useForm<AchievementInput>({ defaultValues: initial })
   const draft = useFormDraft(draftScope(achId), form.watch(), form.formState.isDirty)
   const markSaved = useUnsavedGuard(form.formState.isDirty)
@@ -124,7 +139,9 @@ function AchievementForm({ achId, initial }: { achId?: string; initial: Achievem
   const blocked = Object.keys(errors).length > 0
   // ⚠️ **손대기 전에는 빨갛게 하지 않는다.** 빈 폼을 열자마자 혼나는 화면이 된다.
   //    무엇이 남았는지는 오른쪽 체크리스트가 말한다 (§18.7).
-  const shown = form.formState.isDirty ? errors : {}
+  const shown = tried ? errors : {}
+  // 업로드가 도는 동안에는 `save.isPending` 이 아직 false 다 — 둘 다 봐야 한다.
+  const busy = save.isPending || upload.isPending
   const set = setter(form)
 
   // ⚠️ **기본값은 원본으로 두고 값만 갈아 끼운다**(`keepDefaultValues`). 초안을 기본값으로
@@ -151,11 +168,7 @@ function AchievementForm({ achId, initial }: { achId?: string; initial: Achievem
     set('assetId', '')
   }
 
-  const submit = form.handleSubmit(async (input) => {
-    // ⚠️ **여기서도 막는다.** 「등록」 버튼은 `blocked` 로 잠겨 있지만, 한 줄 입력에서
-    //    Enter 를 치면 폼이 그대로 제출된다(implicit submission). 지금까지는 브라우저의
-    //    네이티브 검증이 대신 막아 주고 있었는데 `noValidate` 로 껐으므로 우리가 막는다.
-    if (blocked) return
+  const runSave = form.handleSubmit(async (input) => {
     // ⚠️ **업로드는 여기서 한다.** 파일을 고르는 순간 올리면 등록을 그만둔 사람의 그림이
     //    서버에 남는다. 실패하면 저장까지 가지 않으므로 폼은 그대로 있다 (§8.5).
     let assetId = input.assetId
@@ -165,6 +178,8 @@ function AchievementForm({ achId, initial }: { achId?: string; initial: Achievem
         assetId = asset.assetId
       } catch {
         // 오류는 `upload.error` 로 화면에 나온다.
+        // ⚠️ 여기서 풀지 않으면 업로드가 한 번 실패한 폼은 다시 보낼 수 없다.
+        sending.current = false
         return
       }
     }
@@ -181,12 +196,43 @@ function AchievementForm({ achId, initial }: { achId?: string; initial: Achievem
           markSaved()
           navigate(SCREENS.ach.path)
         },
+        // ⚠️ **성공·실패 모두 여기로 온다.** `onSuccess` 에만 두면 실패한 뒤 다시 못 보낸다.
+        onSettled: () => {
+          sending.current = false
+        },
       },
     )
   })
 
+  /**
+   * ⚠️ **제출을 막는 곳은 여기 하나다.** 버튼은 잠그지 않는다 — 잠긴 버튼은 왜 잠겼는지
+   *    말하지 못한다(§22.2.3). 누르면 무엇이 왜 남았는지 그 자리에서 보인다.
+   *    한 줄 입력의 Enter(implicit submission)도 이 길을 지난다.
+   *
+   * ⚠️ **`flushSync` 가 필요하다.** 오류 표시는 `tried` 를 켠 **렌더에서야** DOM 에 붙는데,
+   *    그냥 `setTried(true)` 하면 그 다음 줄에서 아직 안 붙어 있어 포커스를 옮길 대상을
+   *    못 찾는다. 여기서 한 번 확정시키면 뒤 두 줄이 같은 프레임에서 성립한다.
+   */
+  const submit = (e: FormEvent) => {
+    flushSync(() => setTried(true))
+    if (blocked) {
+      e.preventDefault()
+      focusFirstError(formRef.current)
+      return
+    }
+    // ⚠️ **이미 돌고 있으면 두 번 보내지 않는다.** 버튼의 `disabled` 로는 못 막는다 —
+    //    한 줄 입력의 Enter 는 버튼을 거치지 않는다. 실제로 세 번 제출하니 **셋 다
+    //    만들어졌다**(`/challenges/18` 대 `/challenges/20`).
+    if (busy || sending.current) {
+      e.preventDefault()
+      return
+    }
+    sending.current = true
+    void runSave(e)
+  }
+
   return (
-    <form onSubmit={submit} noValidate>
+    <form ref={formRef} onSubmit={submit} noValidate>
       <PageHeader title={achId ? '업적 수정' : '업적 등록'} sub={FORM_SUB} />
 
       {save.error && <ErrorBanner message={save.error.message} />}
@@ -263,8 +309,8 @@ function AchievementForm({ achId, initial }: { achId?: string; initial: Achievem
         <Button onClick={draft.saveNow} disabled={!form.formState.isDirty}>
           임시 저장
         </Button>
-        <Button type="submit" variant="primary" disabled={blocked || save.isPending || upload.isPending}>
-          {save.isPending || upload.isPending ? '저장 중…' : achId ? '수정' : '등록'}
+        <Button type="submit" variant="primary" disabled={busy}>
+          {busy ? '저장 중…' : achId ? '수정' : '등록'}
         </Button>
       </div>
 

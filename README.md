@@ -23,16 +23,27 @@ bun run dev       # http://localhost:5173
 
 ## 검사
 
-`bun run lint` 는 넷을 돌린다. 규칙을 문서에만 두면 새어 나가므로 전부 강제한다.
+`bun run lint` 는 여섯을 돌린다. 규칙을 문서에만 두면 새어 나가므로 전부 강제한다.
 
 | | 무엇을 |
 |---|---|
 | ESLint | 레이어 의존 방향(의존은 아래로만) · import 정렬 · `type` 강제 |
 | `scripts/check-order.ts` | 파일·컴포넌트 안 선언 순서 |
 | `scripts/check-contrast.ts` | 디자인 토큰 명암비 (WCAG AA, 라이트·다크) |
+| `scripts/check-tokens.ts` | 스타일 prop이 쓰는 토큰 이름의 실재 여부 |
 | `scripts/check-comments.ts` | 주석의 자리와 형식 (§17) |
+| `scripts/check-docs.ts` | 문서 규약 (코드 펜스 언어 · 문서 상호참조) |
 
 **"왜를 쓴다" 같은 판단은 강제하지 않는다.** 오탐이 생기면 규칙 자체가 죽는다.
+
+## 에이전트 규약 — `AGENTS.md`
+
+코딩 에이전트(Claude Code · Codex)가 읽는 작업 규약은 **`AGENTS.md`** 에 있다.
+`CLAUDE.md` 는 `@AGENTS.md` 로 그것을 불러오기만 한다 — 한 벌만 둬서 어긋나지 않게 한다.
+
+⚠️ **둘 다 gitignore 라 이 저장소에는 없다.** 새로 클론했다면 팀에서 받아 루트에 둔다.
+없어도 빌드는 되지만, 에이전트가 이 저장소의 규약(레이어 경계 · 선언 순서 · 주석 형식 ·
+검사 여섯 개)을 모르는 채로 코드를 쓴다.
 
 ## 생성물
 

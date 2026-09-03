@@ -3,7 +3,8 @@
  *
  * 아이템 폼(docs/ARCHITECTURE.md §18.7)과 같은 골격이다: 검증은 도메인 한 곳, 체크리스트도 그 결과로 그린다.
  */
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
 
 import { useNavigate, useParams } from 'react-router'
 
@@ -11,6 +12,7 @@ import { css } from 'styled-system/css'
 
 import { useFormDraft } from '@/shared/hooks/useFormDraft'
 import { restoreDraft } from '@/shared/lib/draft'
+import { focusFirstError } from '@/shared/lib/focusFirstError'
 import { AssetThumb } from '@/shared/ui/AssetThumb'
 import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
@@ -98,13 +100,27 @@ function ChallengeForm({ chalId, initial }: { chalId?: string; initial: Challeng
   // ⚠️ **알림 표시 여부는 따로 둔다.** `restored` 는 마운트 시점에 고정이라
   //    「새로 시작」 으로 버려도 계속 참이고 알림이 안 지워진다.
   const [noticeOpen, setNoticeOpen] = useState(restored != null)
+  // ⚠️ **`touched` 와 다른 것을 센다.** 저건 미저장 경고·자동 저장용이라 되살린 초안이면
+  //    참으로 시작하는데, 그걸로 오류를 그리면 **되살리자마자 빨개진다.**
+  const [tried, setTried] = useState(false)
+  const formRef = useRef<HTMLFormElement>(null)
+  /**
+   * ⚠️ **동기 재진입 잠금.** `save.isPending` 은 React 가 렌더를 커밋한 **뒤에야** 참이라,
+   *    같은 태스크에서 연달아 제출하면 두 번째가 아직 거짓을 본다 — 실측으로 3회 중 2개가
+   *    만들어졌다. `ref` 는 즉시 반영되므로 그 틈이 없다.
+   *
+   * ⚠️ **푸는 자리를 빠뜨리면 폼이 영영 잠긴다.** 막으려던 것보다 나쁜 고장이라, 끝나는
+   *    길마다 하나씩 있어야 한다 — `onSettled`(성공·실패 모두) 와 업로드 실패의 조기 반환.
+   */
+  const sending = useRef(false)
+
   const markSaved = useUnsavedGuard(touched)
   const draft = useFormDraft(draftScope(chalId), input, touched)
 
   const errors = validateChallenge(input)
   const blocked = Object.keys(errors).length > 0
-  // 손대기 전에는 빨갛게 하지 않는다 — 무엇이 남았는지는 오른쪽 체크리스트가 말한다.
-  const shown = touched ? errors : {}
+  // 제출을 눌러 보기 전에는 빨갛게 하지 않는다 — 무엇이 남았는지는 오른쪽 체크리스트가 말한다.
+  const shown = tried ? errors : {}
 
   const set = <K extends keyof ChallengeInput>(k: K, v: ChallengeInput[K]) => {
     setTouched(true)
@@ -113,7 +129,21 @@ function ChallengeForm({ chalId, initial }: { chalId?: string; initial: Challeng
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (blocked) return
+    // ⚠️ **제출을 막는 곳은 여기 하나다.** 버튼은 잠그지 않는다 — 잠긴 버튼은 왜 잠겼는지
+    //    말하지 못한다(§22.2.3). 누르면 무엇이 왜 남았는지 그 자리에서 보인다.
+    //
+    // ⚠️ **`flushSync` 가 필요하다.** 오류 표시는 `tried` 를 켠 렌더에서야 DOM 에 붙어서,
+    //    그냥 `setTried(true)` 하면 아래 `focusFirstError` 가 대상을 못 찾는다.
+    flushSync(() => setTried(true))
+    if (blocked) {
+      focusFirstError(formRef.current)
+      return
+    }
+    // ⚠️ **이미 돌고 있으면 두 번 보내지 않는다.** 버튼의 `disabled` 로는 못 막는다 —
+    //    한 줄 입력의 Enter 는 버튼을 거치지 않는다. 실제로 세 번 제출하니 **셋 다
+    //    만들어졌다**(`/challenges/18` 대 `/challenges/20`).
+    if (save.isPending || sending.current) return
+    sending.current = true
     save.mutate(
       { chalId, input },
       {
@@ -123,12 +153,16 @@ function ChallengeForm({ chalId, initial }: { chalId?: string; initial: Challeng
           markSaved()
           navigate(SCREENS.chaldet.path.replace(':chalId', String(c.key)))
         },
+        // ⚠️ **성공·실패 모두 여기로 온다.** `onSuccess` 에만 두면 실패한 뒤 다시 못 보낸다.
+        onSettled: () => {
+          sending.current = false
+        },
       },
     )
   }
 
   return (
-    <form onSubmit={submit} noValidate>
+    <form ref={formRef} onSubmit={submit} noValidate>
       <PageHeader title={chalId ? '챌린지 수정' : '챌린지 등록'} sub={FORM_SUB} />
 
       {noticeOpen && (
@@ -241,7 +275,7 @@ function ChallengeForm({ chalId, initial }: { chalId?: string; initial: Challeng
         <Button type="button" onClick={draft.saveNow} disabled={!touched}>
           임시 저장
         </Button>
-        <Button type="submit" variant="primary" disabled={blocked || save.isPending}>
+        <Button type="submit" variant="primary" disabled={save.isPending}>
           {save.isPending ? '저장 중…' : chalId ? '수정' : '등록'}
         </Button>
       </div>
