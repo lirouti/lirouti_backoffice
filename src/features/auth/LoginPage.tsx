@@ -13,7 +13,7 @@ import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import type { Viewer } from '@/domain/access'
 import { SCREENS } from '@/domain/screens'
 
-import { useLogin } from '@/api/auth'
+import { IS_MOCK_LOGIN, useLogin } from '@/api/auth'
 
 import { useThemeStore } from '@/stores/themeStore'
 import { useViewerStore } from '@/stores/viewerStore'
@@ -158,6 +158,8 @@ export default function LoginPage() {
                   운영팀 계정으로 접속하세요.
                 </p>
 
+                {IS_MOCK_LOGIN && <DemoNotice />}
+
                 {error && <ErrorBanner message={error.message} />}
 
                 <form
@@ -273,5 +275,42 @@ function ThemeToggle() {
         </svg>
       )}
     </Button>
+  )
+}
+
+/**
+ * 데모 안내.
+ *
+ * **잠금이 아니라 안내다.** 목 로그인은 아무나 통과시키므로 막는 역할을 할 수 없다.
+ * 대신 두 가지를 막는다 — 우연히 들어온 사람이 **진짜 운영 어드민으로 오해하는 것**과,
+ * 데모를 보는 사람이 **로그인 정보를 물어보는 것**.
+ *
+ * ⚠️ **목일 때만 뜬다**(`IS_MOCK_LOGIN`). 실서버에서는 이 문구가 거짓말이 된다.
+ *
+ * 규칙은 `domain/access.ts` 의 `validateCredentials` 와 `api/auth.ts` 의 목 분기에서 온다 —
+ * 그쪽이 바뀌면 이 문구도 함께 고쳐야 한다.
+ */
+function DemoNotice() {
+  return (
+    <div
+      className={css({
+        p: '11px 14px',
+        mb: '16px',
+        borderRadius: 'lg',
+        bg: 'aBg',
+        border: '1px solid token(colors.warnBd)',
+        textStyle: 'caption',
+        color: 'warnFg',
+        lineHeight: '19px',
+      })}
+    >
+      <strong className={css({ fontWeight: '700' })}>데모 환경입니다.</strong> 실제 데이터가 아니며
+      아무 계정으로 들어옵니다 — <strong className={css({ fontWeight: '700' })}>이메일 형식 아이디</strong>와{' '}
+      <strong className={css({ fontWeight: '700' })}>8자 이상 비밀번호</strong>, 인증 코드는{' '}
+      <code className={css({ fontFamily: 'mono' })}>000000</code> 이 아닌 아무 6자리.
+      <br />
+      아이디를 <code className={css({ fontFamily: 'mono' })}>op@</code> 로 시작하면 권한이 제한된
+      운영자 화면을 볼 수 있습니다.
+    </div>
   )
 }

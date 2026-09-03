@@ -1,0 +1,11 @@
+# 로그인 뒤 운영 어드민이라 색인 대상이 아니다 (docs/ARCHITECTURE.md §9.4).
+#
+# ⚠️ **`Disallow` 를 쓰지 않는다.** robots.txt 는 「크롤링하지 마라」이고 색인을 막는 것은
+#    `noindex` 다. Disallow 를 걸면 크롤러가 페이지를 **아예 안 받아가서 그 안의 noindex 를
+#    못 보고**, 외부 링크로 URL 을 알게 되면 내용 없이 URL 만 검색 결과에 남을 수 있다.
+#    색인을 막으려면 **크롤링을 허용해서 noindex 를 읽게** 해야 한다.
+#
+# 실제로 막는 것은 셋이다 — `vercel.json` 의 `X-Robots-Tag` 헤더,
+# `index.html` 의 `<meta name="robots">`, 그리고 이 파일이 그 둘을 가리지 않는 것.
+User-agent: *
+Allow: /
