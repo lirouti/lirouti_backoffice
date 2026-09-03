@@ -13,6 +13,7 @@ import type {
   GrantLog,
   Notice,
   NoticeCategory,
+  NoticeInput,
   OpsEvent,
 } from '@/domain/ops'
 
@@ -20,6 +21,7 @@ import { allItems } from './items'
 
 type NoticeRow = [
   title: string,
+  body: string,
   category: NoticeCategory,
   /** 시작이 며칠 전인가. 음수면 앞으로 */
   from: number,
@@ -30,25 +32,53 @@ type NoticeRow = [
 ]
 
 const NOTICES: NoticeRow[] = [
-  ['시즌 3 오픈 안내', '시즌', 12, -1, 24180, true],
-  ['8월 정기 점검 안내', '점검', 1, 0, 8420, true],
-  ['이모티콘 12종 추가', '업데이트', 16, -2, 15330, false],
-  ['보금자리 해금 조건 변경', '밸런스', 24, 10, 9180, false],
+  ['시즌 3 오픈 안내', '새 시즌의 주요 변경 내용을 안내합니다.', '시즌', 12, -1, 24180, true],
+  ['8월 정기 점검 안내', '안정적인 서비스를 위해 정기 점검을 진행합니다.', '점검', 1, 0, 8420, true],
+  ['이모티콘 12종 추가', '새로운 이모티콘을 만나 보세요.', '업데이트', 16, -2, 15330, false],
+  ['보금자리 해금 조건 변경', '해금 조건이 조정되었습니다.', '밸런스', 24, 10, 9180, false],
   // 아직 게시 전이라 조회수가 0 이다 — 화면은 이것을 「—」 로 그린다.
-  ['젬 상품 가격 조정', '재화', -2, -16, 0, false],
-  ['친구 초대 보상 개편', '업데이트', 34, 20, 11240, false],
+  ['젬 상품 가격 조정', '상품 구성과 가격이 변경됩니다.', '재화', -2, -16, 0, false],
+  ['친구 초대 보상 개편', '초대 단계별 보상을 개편했습니다.', '업데이트', 34, 20, 11240, false],
 ]
 
-export const allNotices = (): Notice[] =>
-  NOTICES.map(([title, category, from, to, views, pinned], key) => ({
+const ADDED_NOTICES: Notice[] = []
+let nextNoticeKey = NOTICES.length
+
+type ValidNoticeInput = Omit<NoticeInput, 'category'> & { category: NoticeCategory }
+
+export const allNotices = (): Notice[] => [
+  ...ADDED_NOTICES,
+  ...NOTICES.map(([title, body, category, from, to, views, pinned], key) => ({
     key,
     title,
+    body,
     category,
     startAt: daysAgo(from),
     endAt: daysAgo(to),
     views,
     pinned,
-  }))
+  })),
+]
+
+/** 작성한 공지를 목록 앞에 쌓는다 */
+export function addNotice(input: ValidNoticeInput): Notice {
+  const notice: Notice = {
+    ...input,
+    key: nextNoticeKey,
+    title: input.title.trim(),
+    body: input.body.trim(),
+    views: 0,
+  }
+  nextNoticeKey += 1
+  ADDED_NOTICES.unshift(notice)
+  return notice
+}
+
+/** 테스트 사이에 목 저장소가 새지 않게 초기화한다 */
+export function resetNotices(): void {
+  ADDED_NOTICES.splice(0)
+  nextNoticeKey = NOTICES.length
+}
 
 type EventRow = [
   title: string,

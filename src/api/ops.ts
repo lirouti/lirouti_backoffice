@@ -11,15 +11,18 @@ import {
   activeUserCount,
   checkGrantItem,
   checkTargets,
+  isNoticeCategory,
   periodStatusOf,
   sortEvents,
   summarizeGrants,
   summarizeNotices,
   validateGrant,
+  validateNotice,
   type GrantInput,
   type GrantLog,
   type GrantSummary,
   type Notice,
+  type NoticeInput,
   type NoticeSummary,
   type OpsEvent,
   type PeriodStatus,
@@ -27,7 +30,7 @@ import {
 import { parseUserIds } from '@/domain/user'
 
 import { allItems } from '@/mocks/items'
-import { addGrantLog, allEvents, allGrantLogs, allNotices } from '@/mocks/ops'
+import { addGrantLog, addNotice, allEvents, allGrantLogs, allNotices } from '@/mocks/ops'
 import { allUsers } from '@/mocks/users'
 
 import { mockDelay, qk, queryClient, today, USE_MOCK } from './core'
@@ -66,6 +69,28 @@ export async function getNotices(): Promise<NoticesResult> {
 
 export function useNotices() {
   return useQuery({ queryKey: qk.ops.notices(), queryFn: getNotices })
+}
+
+/** 공지 작성. `key`·조회수는 서버가 정한다 */
+export async function saveNotice(input: NoticeInput): Promise<Notice> {
+  if (USE_MOCK) {
+    await mockDelay()
+    const errors = validateNotice(input)
+    const first = Object.values(errors)[0]
+    if (first) throw apiError('http', first, 400)
+    if (!isNoticeCategory(input.category)) throw apiError('http', '분류를 고르세요.', 400)
+    return addNotice({ ...input, category: input.category })
+  }
+
+  // TODO(백엔드 스펙 확정 후): http.post<NoticeDto>('/admin/ops/notices', input)
+  throw new Error('운영 API 가 아직 연결되지 않았습니다. VITE_USE_MOCK=1 로 두세요.')
+}
+
+export function useSaveNotice() {
+  return useMutation({
+    mutationFn: saveNotice,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.ops.notices() }),
+  })
 }
 
 /** 이벤트 + 보상 아이템 + 그 시점의 상태. **아이템은 화면이 아니라 여기서 붙인다** */

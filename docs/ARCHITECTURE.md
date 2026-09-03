@@ -4811,3 +4811,139 @@ if (busy) {
 
 zod 의 값은 **API 응답 파싱**이고 그건 실서버를 붙일 때의 별개 결정이다. 도입하기로 하면
 이 절의 배선이 **선행 조건**이다.
+
+---
+
+## 45. 공지 작성 — 목록의 「준비 중」을 실제 흐름으로 잇는다
+
+### 45.1 첫 단위는 작성만 닫는다
+
+`/ops/notices` 의 비활성 버튼을 `/ops/notices/new` 작성 화면으로 잇는다. 이벤트 생성까지
+한 PR에 넣지 않는다 — 둘은 기간을 공유하지만 공지는 본문·분류·상단 고정을, 이벤트는 보상
+아이템·강조색을 가져 검증 계약과 저장 API가 다르다. 공지에서 기간제 운영 콘텐츠의 작성
+패턴을 먼저 고정한 뒤 이벤트에 재사용한다.
+
+이번 범위:
+
+- 공지 작성 화면과 라우트
+- 제목 · 본문 · 분류 · 시작일 · 선택 종료일 · 상단 고정 입력
+- 작성 중 초안 복원과 미저장 이탈 경고
+- 제출 뒤 필드 오류 표시와 첫 오류 포커스
+- 목 저장 후 목록 갱신과 목록 복귀
+- 게시 중 고정 공지가 권장치인 2건을 넘는 경우의 경고
+
+이번에 하지 않는 것:
+
+- 공지 상세 · 수정 · 삭제
+- 실제 서버 DTO와 HTTP 연결
+- 앱에서의 본문 렌더링
+- 이벤트 생성
+
+### 45.2 화면과 탭
+
+기존 화면 id가 모두 소문자(`pushnew`·`couponnew`)이므로 `noticenew` 를 `SCREENS` 에
+추가한다. camelCase를 섞으면 검색과 정렬에서 같은 종류의 화면이 갈린다.
+
+```ts
+noticenew: {
+  path: '/ops/notices/new',
+  label: '공지 작성',
+  scope: 'ops',
+  section: 'notice',
+}
+```
+
+작성 화면은 「공지」 탭 안에서 열린다. 저장 후 `/ops/notices` 로 돌아가며 탭이 늘어나지
+않는다. 목록의 버튼은 `useNavigate` 로 작성 경로를 연다.
+
+### 45.3 저장 타입과 조회 타입을 나눈다
+
+운영자가 채우는 `NoticeInput` 은 서버가 정하는 `key`·`views` 를 갖지 않는다.
+
+```ts
+type NoticeInput = {
+  title: string
+  body: string
+  category: NoticeCategory | ''
+  startAt: string
+  endAt: string
+  pinned: boolean
+}
+```
+
+`Notice` 에는 `body` 를 추가한다. 목 목록 데이터도 본문을 가져야 저장 직후와 새로 조회한
+결과의 모양이 같다. `views` 는 새 공지에서 0, `key` 는 목 저장소가 발급한다.
+
+`category: ''` 는 폼의 「아직 안 골랐음」일 뿐 저장 타입이 아니다. `isNoticeCategory` 로
+런타임 값을 좁힌 뒤에만 `Notice` 로 만든다. 검증이 통과했다는 이유로 `as NoticeCategory`
+단언을 쓰면 검증과 변환이 나중에 갈라져도 컴파일러가 잡지 못한다.
+
+### 45.4 기간은 문자열 형식과 순서를 함께 검사한다
+
+날짜는 Spring `LocalDate` 계약과 같은 `YYYY-MM-DD` 다. 시작일은 필수이고 종료일은 비워서
+상시 공지를 만들 수 있다. 값이 있으면 종료일은 시작일보다 빠를 수 없다.
+
+오류는 `validateNotice` 한 곳에서 낸다.
+
+| 필드 | 규칙 |
+|---|---|
+| 제목 | 공백 제거 후 1자 이상 |
+| 본문 | 공백 제거 후 1자 이상 |
+| 분류 | `NoticeCategory` 중 하나 |
+| 시작일 | `YYYY-MM-DD` 형식의 실제 날짜 |
+| 종료일 | 빈 값 또는 실제 날짜, 시작일 이상 |
+
+목 파사드의 `saveNotice` 도 같은 검증을 다시 실행한다. 버튼 잠금만으로 입력을 신뢰하지
+않는다.
+
+### 45.5 고정 2건은 상한이 아니라 권장치다
+
+`PIN_LIMIT` 은 차단 규칙이 아니다. 작성하려는 공지가 **오늘 게시 중**이고 `pinned` 이며,
+기존 게시 중 고정 공지가 이미 2건이면 폼에 경고를 보이되 저장은 허용한다. 미래 예약이나
+종료된 공지는 지금 앱 상단을 밀지 않으므로 경고 대상이 아니다.
+
+이 판단은 화면에서 목록을 다시 세지 않고 `useNotices` 가 주는 현재 `pinned` 요약과
+`periodStatusOf(input.startAt, input.endAt, today)` 를 조합한다. 현황을 불러오는 동안에는
+입력 폼 대신 `PageHeader` + `SkeletonForm` 을 그리고, 실패하면 `ErrorBanner` 를 보여 준다.
+고정 현황을 모르는 채 경고 없이 저장시키지 않는다. 다만 이 값은 권장 경고일 뿐 동시 작업의
+정합성 경계는 아니다 — 실서버는 저장 시점의 고정 개수를 다시 계산해야 한다.
+
+### 45.6 기존 폼 규약을 그대로 쓴다
+
+`NoticeFormPage` 는 다른 등록 폼과 같은 순서를 따른다.
+
+1. `useFormDraft('notice:new', values, dirty)` 로 초안을 남기고 `restoreDraft` 로 복원한다.
+2. `useUnsavedGuard` 로 새로고침·탭 닫기의 손실을 막는다.
+3. 오류는 `tried` 뒤에만 보인다.
+4. 제출 시 `flushSync` 뒤 `focusFirstError` 로 첫 오류에 포커스한다.
+5. `useRef` 동기 잠금과 `save.isPending` 을 함께 써 중복 제출을 막는다.
+6. 성공하면 초안과 더러움 표시를 지우고 공지 목록으로 돌아간다.
+7. 실패하면 잠금을 `onSettled` 에서 풀고 `ErrorBanner` 로 이유를 보인다.
+
+### 45.7 목 저장소는 새 공지가 다시 조회돼야 한다
+
+현재 `allNotices()` 는 날짜 오프셋 튜플을 호출할 때마다 오늘 날짜로 바꾼다. 이 초기 목록을
+모듈 수명의 `Notice[]` 로 얼리면 자정을 넘긴 개발 서버에서 날짜 기준이 낡는다. 초기 튜플은
+그대로 두고, 새로 만든 공지만 `ADDED_NOTICES` 에 쌓아 `allNotices()` 가
+`[...ADDED_NOTICES, ...초기 목록]` 을 돌려준다.
+
+`addNotice(input)` 은 새 공지를 앞에 쌓는다. 테스트끼리 모듈 상태가 새지 않도록
+`resetNotices()` 를 테스트 전후에 호출한다. `useSaveNotice` 의 성공 콜백은
+`qk.ops.notices()` 를 invalidate해 목록이 새 데이터를 다시 읽게 한다.
+
+실서버 연결 시 화면 계약은 유지하고 `saveNotice` 안만 `POST /admin/ops/notices` 로 바꾼다.
+서버가 `key`·`views` 를 정하며 날짜와 분류를 다시 검증해야 한다.
+
+### 45.8 검증
+
+- `validateNotice`: 빈 값, 잘못된 실제 날짜, 종료일 역전, 상시 공지
+- `addNotice`: key 발급, views 0, 앞쪽 삽입, 입력 문자열 정리
+- `saveNotice`: 잘못된 입력 거부, 성공 뒤 query 무효화
+- 브라우저: 빈 폼 제출 시 첫 오류 포커스, 동기 연속 제출 1건, 실패 뒤 재시도,
+  초안 복원, 미저장 탭 닫기, 저장 후 목록 반영
+- 화면을 추가하므로 `bun run a11y` 포함 전체 검증
+
+### 45.9 이제 등록된 화면은 53개다
+
+`noticenew` 가 더해져 `domain/screens.ts` 와 `app/router.tsx` 는 각각 53개다. 모두
+`IMPLEMENTED` 에 있으므로 새 라우트도 `PlaceholderPage` 로 떨어지지 않는다.

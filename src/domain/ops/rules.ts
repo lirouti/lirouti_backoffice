@@ -6,9 +6,22 @@ import type {
   GrantInput,
   GrantLog,
   Notice,
+  NoticeCategory,
+  NoticeInput,
   OpsEvent,
   PeriodStatus,
 } from './types'
+
+const NOTICE_CATEGORY_SET = new Set<NoticeCategory>(['시즌', '점검', '업데이트', '밸런스', '재화'])
+
+/** 날짜 문자열이 실제 달력에 있는 `YYYY-MM-DD` 인가 */
+function isDateValue(value: string): boolean {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
+  if (!m) return false
+  const [year, month, day] = m.slice(1).map(Number) as [number, number, number]
+  const date = new Date(Date.UTC(year, month - 1, day))
+  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
+}
 
 /**
  * 기간에서 상태를 낸다. **저장하지 않는다** — 손으로 들고 있으면 기간이 지나도
@@ -58,6 +71,28 @@ export function summarizeNotices(list: Notice[], today: string): NoticeSummary {
     list.filter((n) => periodStatusOf(n.startAt, n.endAt, today) === s).length
   const pinned = pinnedCount(list, today)
   return { active: count('ACTIVE'), scheduled: count('SCHEDULED'), pinned, overPinned: pinned > PIN_LIMIT }
+}
+
+/** 목록에서 온 값이 저장할 수 있는 공지 분류인가 */
+export const isNoticeCategory = (value: string): value is NoticeCategory =>
+  NOTICE_CATEGORY_SET.has(value as NoticeCategory)
+
+/** 공지 작성 오류 */
+export type NoticeErrors = Partial<Record<'title' | 'body' | 'category' | 'startAt' | 'endAt', string>>
+
+/** 공지 작성 폼 검증. 종료일을 비우면 상시다 */
+export function validateNotice(input: NoticeInput): NoticeErrors {
+  const errors: NoticeErrors = {}
+
+  if (!input.title.trim()) errors.title = '제목을 입력하세요.'
+  if (!input.body.trim()) errors.body = '본문을 입력하세요.'
+  if (!isNoticeCategory(input.category)) errors.category = '분류를 고르세요.'
+  if (!isDateValue(input.startAt)) errors.startAt = '시작일을 고르세요.'
+  if (input.endAt && !isDateValue(input.endAt)) errors.endAt = '올바른 종료일을 고르세요.'
+  else if (input.endAt && isDateValue(input.startAt) && input.endAt < input.startAt) {
+    errors.endAt = '종료일은 시작일보다 빠를 수 없습니다.'
+  }
+  return errors
 }
 
 /** 진행 중인 이벤트가 먼저, 그다음 예약, 끝난 것이 뒤 */

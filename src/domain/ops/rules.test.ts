@@ -11,6 +11,7 @@ import {
   activeUserCount,
   checkGrantItem,
   checkTargets,
+  isNoticeCategory,
   periodLabel,
   periodStatusOf,
   pinnedCount,
@@ -19,18 +20,30 @@ import {
   summarizeGrants,
   summarizeNotices,
   validateGrant,
+  validateNotice,
 } from './rules'
-import type { GrantInput, GrantLog, Notice, OpsEvent } from './types'
+import type { GrantInput, GrantLog, Notice, NoticeInput, OpsEvent } from './types'
 
 const TODAY = '2026-08-13'
 
 const notice = (over: Partial<Notice> = {}): Notice => ({
   key: 0,
   title: '시즌 3 오픈 안내',
+  body: '새 시즌의 주요 변경 내용을 안내합니다.',
   category: '시즌',
   startAt: '2026-08-01',
   endAt: '2026-08-14',
   views: 24180,
+  pinned: false,
+  ...over,
+})
+
+const noticeInput = (over: Partial<NoticeInput> = {}): NoticeInput => ({
+  title: '시즌 3 오픈 안내',
+  body: '새 시즌의 주요 변경 내용을 안내합니다.',
+  category: '시즌',
+  startAt: '2026-08-01',
+  endAt: '2026-08-14',
   pinned: false,
   ...over,
 })
@@ -137,6 +150,33 @@ describe('pinnedCount · summarizeNotices', () => {
   it('고정이 셋이면 권장치를 넘는다', () => {
     const over = [...list, notice({ key: 4, pinned: true })]
     expect(summarizeNotices(over, TODAY).overPinned).toBe(true)
+  })
+})
+
+describe('validateNotice', () => {
+  it('제대로 채우거나 종료일을 비운 상시 공지는 통과', () => {
+    expect(validateNotice(noticeInput())).toEqual({})
+    expect(validateNotice(noticeInput({ endAt: '' }))).toEqual({})
+  })
+
+  it('필수 내용과 분류가 비면 막는다', () => {
+    const errors = validateNotice(noticeInput({ title: ' ', body: '', category: '' }))
+    expect([errors.title, errors.body, errors.category].every(Boolean)).toBe(true)
+  })
+
+  // 정규식만 보면 2월 30일도 통과한다. 예약해도 오지 않을 날짜다.
+  it('⚠️ 달력에 없는 날짜는 막는다', () => {
+    expect(validateNotice(noticeInput({ startAt: '2026-02-30' })).startAt).toBeTruthy()
+    expect(validateNotice(noticeInput({ endAt: '2026-13-01' })).endAt).toBeTruthy()
+  })
+
+  it('종료일이 시작일보다 빠르면 막는다', () => {
+    expect(validateNotice(noticeInput({ endAt: '2026-07-31' })).endAt).toBeTruthy()
+  })
+
+  it('저장 가능한 분류만 좁힌다', () => {
+    expect(isNoticeCategory('점검')).toBe(true)
+    expect(isNoticeCategory('기타')).toBe(false)
   })
 })
 
