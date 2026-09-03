@@ -27,6 +27,17 @@ import { validateTotpCode } from '@/domain/totp'
 import { http, mockDelay, queryClient, USE_MOCK } from './core'
 import { apiError, isApiError } from './error'
 
+/**
+ * 로그인이 목인가. **화면이 「데모 안내」를 띄울지 정하는 값이다.**
+ *
+ * ⚠️ **실서버가 붙으면 그 안내는 거짓말이 된다** — 아무 이메일과 8자로는 못 들어온다.
+ *    그래서 화면이 직접 `import.meta.env` 를 읽지 않고 여기서 받는다. 판단이 두 곳에
+ *    있으면 한쪽만 바뀌어 안내가 남는다.
+ *
+ * `features` 는 `api/core` 를 못 보므로(§7.1) 파사드가 대신 내놓는다.
+ */
+export const IS_MOCK_LOGIN = USE_MOCK
+
 /** 목 계정의 역할 — `op@` 로 시작하면 운영자, 그 외 최고 관리자. */
 function mockViewer(email: string): Viewer {
   const id = email.trim()
