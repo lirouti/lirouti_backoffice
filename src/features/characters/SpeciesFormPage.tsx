@@ -3,7 +3,8 @@
  *
  * 종에는 올릴 이미지가 없어서(docs/ARCHITECTURE.md §19.1) 색 고르기 + 설정으로 끝난다.
  */
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
 
 import { useNavigate } from 'react-router'
 
@@ -11,6 +12,7 @@ import { css } from 'styled-system/css'
 
 import { useFormDraft } from '@/shared/hooks/useFormDraft'
 import { restoreDraft } from '@/shared/lib/draft'
+import { focusFirstError } from '@/shared/lib/focusFirstError'
 import { AssetThumb } from '@/shared/ui/AssetThumb'
 import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
@@ -71,6 +73,9 @@ export default function SpeciesFormPage() {
   // ⚠️ **알림 표시 여부는 따로 둔다.** `restored` 는 마운트 시점에 고정이라
   //    「새로 시작」 으로 버려도 계속 참이고 알림이 안 지워진다.
   const [noticeOpen, setNoticeOpen] = useState(restored != null)
+  // ⚠️ **`touched` 와 다른 것을 센다** (`ChallengeFormPage` 와 같은 이유)
+  const [tried, setTried] = useState(false)
+  const formRef = useRef<HTMLFormElement>(null)
 
   const markSaved = useUnsavedGuard(touched)
   const draft = useFormDraft(draftScope(), input, touched)
@@ -82,9 +87,9 @@ export default function SpeciesFormPage() {
   const taken = (list.data ?? []).map((s) => s.code)
   const errors = validateSpecies(input, taken)
   const blocked = Object.keys(errors).length > 0 || codesUnknown
-  // 손대기 전에는 빨갛게 하지 않는다 — 빈 폼을 열자마자 혼나는 기분이 든다.
+  // 제출을 눌러 보기 전에는 빨갛게 하지 않는다 — 빈 폼을 열자마자 혼나는 기분이 든다.
   // 무엇이 남았는지는 오른쪽 체크리스트가 말한다 (`ItemFormPage` 와 같은 규칙).
-  const shown = touched ? errors : {}
+  const shown = tried ? errors : {}
 
   const set = <K extends keyof SpeciesInput>(k: K, v: SpeciesInput[K]) => {
     setTouched(true)
@@ -93,7 +98,16 @@ export default function SpeciesFormPage() {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (blocked) return
+    // ⚠️ **제출을 막는 곳은 여기 하나다.** 버튼은 잠그지 않는다 — 잠긴 버튼은 왜 잠겼는지
+    //    말하지 못한다(§22.2.3). 누르면 무엇이 왜 남았는지 그 자리에서 보인다.
+    //
+    // ⚠️ **`flushSync` 가 필요하다.** 오류 표시는 `tried` 를 켠 렌더에서야 DOM 에 붙어서,
+    //    그냥 `setTried(true)` 하면 아래 `focusFirstError` 가 대상을 못 찾는다.
+    flushSync(() => setTried(true))
+    if (blocked) {
+      focusFirstError(formRef.current)
+      return
+    }
     save.mutate(
       { input },
       {
@@ -108,7 +122,7 @@ export default function SpeciesFormPage() {
   }
 
   return (
-    <form onSubmit={submit} noValidate>
+    <form ref={formRef} onSubmit={submit} noValidate>
       <PageHeader
         title="종 등록"
         sub="종은 대표 색으로 구분됩니다. 아트는 캐릭터팀이 따로 올립니다."
@@ -247,7 +261,7 @@ export default function SpeciesFormPage() {
         <Button
           type="submit"
           variant="primary"
-          disabled={blocked || save.isPending}
+          disabled={save.isPending || codesUnknown}
           title={codesUnknown ? '종 목록을 확인하는 중입니다' : undefined}
         >
           {save.isPending ? '등록 중…' : '등록'}

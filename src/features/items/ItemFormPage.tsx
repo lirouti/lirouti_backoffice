@@ -3,7 +3,8 @@
  *
  * 선택지 목록과 필드가 길어 파일 머리말을 따로 둔다 — 컴포넌트 주석이 30줄 밖이다.
  */
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { flushSync } from 'react-dom'
 
 import { useForm, type FieldPath, type FieldPathValue, type UseFormReturn } from 'react-hook-form'
 import { useNavigate, useParams } from 'react-router'
@@ -12,6 +13,7 @@ import { css } from 'styled-system/css'
 
 import { useFormDraft } from '@/shared/hooks/useFormDraft'
 import { restoreDraft } from '@/shared/lib/draft'
+import { focusFirstError } from '@/shared/lib/focusFirstError'
 import { AssetThumb } from '@/shared/ui/AssetThumb'
 import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
@@ -165,6 +167,9 @@ function ItemForm({ itemId, initial }: { itemId?: string; initial: ItemInput }) 
   const [noticeOpen, setNoticeOpen] = useState(restored != null)
   // 고르기만 하고 **아직 올리지 않은** 파일. 「등록」 을 눌러야 올라간다 (§4.5).
   const [pending, setPending] = useState<PendingAsset | null>(null)
+  // 제출을 눌러 보기 전에는 빨갛게 하지 않는다 — 채우는 중인 사람에게 「틀렸다」고 말하는 셈이다.
+  const [tried, setTried] = useState(false)
+  const formRef = useRef<HTMLFormElement>(null)
   const form = useForm<ItemInput>({ defaultValues: initial })
   const draft = useFormDraft(draftScope(itemId), form.watch(), form.formState.isDirty)
   // 임시 저장은 등록이 아니다 — 초안이 있어도 폼이 더러우면 경고를 켠다.
@@ -177,7 +182,7 @@ function ItemForm({ itemId, initial }: { itemId?: string; initial: ItemInput }) 
   // ⚠️ **손대기 전에는 빨갛게 하지 않는다.** 빈 폼을 열자마자 "아이템명을 입력하세요" 가
   //    붉게 뜨면 아직 아무것도 안 했는데 혼난 기분이 든다. 무엇이 남았는지는
   //    오른쪽 체크리스트가 말하고, 필드 오류는 고칠 대상이 생긴 뒤에 붙는다.
-  const shown = form.formState.isDirty ? errors : {}
+  const shown = tried ? errors : {}
 
   // ⚠️ **기본값은 원본으로 두고 값만 갈아 끼운다**(`keepDefaultValues`). 초안을
   //    기본값으로 넣으면 폼이 "깨끗하다" 고 여겨 미저장 경고도 자동 저장도 안 돈다 —
@@ -204,11 +209,7 @@ function ItemForm({ itemId, initial }: { itemId?: string; initial: ItemInput }) 
     form.setValue('assetId', '', { shouldDirty: true })
   }
 
-  const submit = form.handleSubmit(async (input) => {
-    // ⚠️ **여기서도 막는다.** 「등록」 버튼은 `blocked` 로 잠겨 있지만, 한 줄 입력에서
-    //    Enter 를 치면 폼이 그대로 제출된다(implicit submission). 지금까지는 브라우저의
-    //    네이티브 검증이 대신 막아 주고 있었는데 `noValidate` 로 껐으므로 우리가 막는다.
-    if (blocked) return
+  const runSave = form.handleSubmit(async (input) => {
     // ⚠️ **업로드는 여기서 한다.** 파일을 고르는 순간 올리면 등록을 그만둔 사람의
     //    그림이 남는다. 실패하면 저장까지 가지 않으므로 폼은 그대로 있다.
     let assetId = input.assetId
@@ -239,8 +240,27 @@ function ItemForm({ itemId, initial }: { itemId?: string; initial: ItemInput }) 
     )
   })
 
+  /**
+   * ⚠️ **제출을 막는 곳은 여기 하나다.** 버튼은 잠그지 않는다 — 잠긴 버튼은 왜 잠겼는지
+   *    말하지 못한다(§22.2.3). 누르면 무엇이 왜 남았는지 그 자리에서 보인다.
+   *    한 줄 입력의 Enter(implicit submission)도 이 길을 지난다.
+   *
+   * ⚠️ **`flushSync` 가 필요하다.** 오류 표시는 `tried` 를 켠 **렌더에서야** DOM 에 붙는데,
+   *    그냥 `setTried(true)` 하면 그 다음 줄에서 아직 안 붙어 있어 포커스를 옮길 대상을
+   *    못 찾는다. 여기서 한 번 확정시키면 뒤 두 줄이 같은 프레임에서 성립한다.
+   */
+  const submit = (e: FormEvent) => {
+    flushSync(() => setTried(true))
+    if (blocked) {
+      e.preventDefault()
+      focusFirstError(formRef.current)
+      return
+    }
+    void runSave(e)
+  }
+
   return (
-    <form onSubmit={submit} noValidate>
+    <form ref={formRef} onSubmit={submit} noValidate>
       <PageHeader title={itemId ? '아이템 수정' : '아이템 등록'} sub={FORM_SUB} />
 
       {save.error && <ErrorBanner message={save.error.message} />}
@@ -282,7 +302,7 @@ function ItemForm({ itemId, initial }: { itemId?: string; initial: ItemInput }) 
         <Button onClick={draft.saveNow} disabled={!form.formState.isDirty}>
           임시 저장
         </Button>
-        <Button type="submit" variant="primary" disabled={blocked || save.isPending}>
+        <Button type="submit" variant="primary" disabled={save.isPending}>
           {save.isPending ? '저장 중…' : itemId ? '수정' : '등록'}
         </Button>
       </div>
