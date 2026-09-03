@@ -64,7 +64,13 @@ export default function LoginPage() {
   const [challenge, setChallenge] = useState<string | null>(null)
 
   /** 가드가 붙잡아 온 원래 목적지. 화면을 가리키지 않으면 지표로 (§16.4). */
-  const from = landingPath((location.state as { from?: string } | null)?.from)
+  // ⚠️ **`as` 는 단언일 뿐 런타임 검증이 아니다.** `location.state` 는 히스토리에서 오므로
+  //    우리가 넣은 모양이라는 보장이 없다 — 뒤로 가기가 이전 배포의 항목을 되살리거나
+  //    누가 `history.replaceState` 로 넣으면 문자열이 아닌 값이 온다. 그때 `landingPath` 의
+  //    `from.split` 이 `TypeError` 로 터져 **로그인 화면이 흰 화면**이 된다.
+  //    `api/auth.ts` 의 `asViewer` 와 같은 이유다 — 인증 경계에서만은 값을 믿지 않는다.
+  const state = location.state as { from?: unknown } | null
+  const from = landingPath(typeof state?.from === 'string' ? state.from : undefined)
 
   const finish = (viewer: Viewer) => {
     signIn(viewer)
