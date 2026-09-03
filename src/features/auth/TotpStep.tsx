@@ -54,7 +54,10 @@ export function TotpStep({
 
   const change = (v: string) => {
     setCode(v)
-    reset()
+    // ⚠️ **검증이 도는 중에는 `reset()` 하지 않는다.** react-query 의 `reset()` 은 진행 중인
+    //    mutation 에서 observer 를 떼어내서, 그 요청이 성공해도 `onSuccess` 가 오지 않는다.
+    //    지울 오류도 그때는 없다 — 오류는 요청이 끝난 뒤에 생긴다.
+    if (!isPending) reset()
   }
 
   const toggleBackup = () => {

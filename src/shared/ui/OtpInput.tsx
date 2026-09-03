@@ -84,10 +84,15 @@ export function OtpInput({
   const change = (raw: string) => {
     // 숫자만, 자릿수까지. 붙여넣기도 이 한 곳을 지난다.
     const next = raw.replace(/\D/g, '').slice(0, length)
+    // ⚠️ **값이 그대로면 부모를 아예 부르지 않는다.** 다 찬 뒤의 7번째 숫자나 문자는
+    //    잘려서 같은 값이 되는데, 그래도 `onChange` 를 부르면 호출부의 `reset()` 이 돌고
+    //    **react-query 의 `reset()` 은 진행 중인 mutation 에서 observer 를 떼어낸다**
+    //    (`mutationObserver.reset()` → `removeObserver(this)`). 그러면 검증이 성공해도
+    //    `onSuccess` 가 오지 않아 **로그인이 조용히 안 된다** — 실제로 재현했다.
+    //    DOM 에 남은 잘린 글자는 React 가 되돌린다(controlled input 의 상태 복원).
+    if (next === value) return
     onChange(next)
-    // **바뀌었을 때만** 알린다. 다 찬 뒤에 숫자를 더 눌러도 잘려서 같은 값이 되는데,
-    // 그걸로도 부르면 누를 때마다 같은 코드를 다시 검증한다.
-    if (next.length === length && next !== value) onComplete?.(next)
+    if (next.length === length) onComplete?.(next)
   }
 
   return (

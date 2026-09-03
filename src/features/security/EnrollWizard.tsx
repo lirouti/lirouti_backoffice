@@ -52,7 +52,8 @@ export function EnrollWizard({
 
   const changeCode = (v: string) => {
     setCode(v)
-    reset()
+    // 검증이 도는 중에는 `reset()` 하지 않는다 (`TotpStep` 과 같은 이유)
+    if (!isPending) reset()
   }
 
   if (step === 'confirm') {

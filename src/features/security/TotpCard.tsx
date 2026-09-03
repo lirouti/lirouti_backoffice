@@ -174,7 +174,8 @@ function DisablePanel({ onClose }: { onClose: () => void }) {
           value={code}
           onChange={(v) => {
             setCode(v)
-            reset()
+            // 해제가 도는 중에는 `reset()` 하지 않는다 (§16.3.1)
+            if (!isPending) reset()
           }}
           length={TOTP_CODE_LENGTH}
           invalid={!!error}
