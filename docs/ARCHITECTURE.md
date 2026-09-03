@@ -91,7 +91,7 @@ Vite 8  +  React 19  +  TypeScript 6  +  Panda CSS 1  +  react-router 8
 | 패키지 | 버전 | 도입 시점 |
 |---|---|---|
 | `@tanstack/react-table` | `^9.1.2` | 아이템/챌린지/결제/감사로그 등 **정렬·페이지네이션 있는 목록** 착수 시. 목록 화면이 10개 이상이라 결국 필요 |
-| `zod` | `^4.4.3` | 위 폼의 검증 + API 응답 파싱 |
+| `zod` | `^4.5.4` | 위 폼의 검증 + API 응답 파싱. ⚠️ **메시지 커스터마이즈와는 무관하다**(§44.4) |
 | `date-fns` | `^4.4.0` | 기간 설정 / 예약 발행 등 날짜 연산이 실제로 생길 때. 단순 포맷만이면 `Intl.DateTimeFormat`으로 충분하니 넣지 않는다 |
 | `@testing-library/react` `^16.3.2` + `@testing-library/dom` `^10.0.0` + `jsdom` `^30.0.1` | 위 버전 | **컴포넌트** 테스트를 시작할 때. `vitest` 는 이미 들어와 `domain/` 순수 함수를 덮고 있다. 켤 때는 `vite.config.ts` 의 `test.include` 에 `'src/**/*.test.tsx'` 를 더하고 `test.environment` 를 `'jsdom'` 으로 바꾼다 — 지금 `.test.ts` 만 잡는 건 실수가 아니라 **그 결정을 하기 전까지 순수 함수 테스트만 존재하게 하는 경계**다. `@testing-library/dom` 은 v16 부터 peer 로 빠져서 **직접 설치해야 한다** |
 
@@ -4639,3 +4639,78 @@ ESLint 로 강제하고 위반 넷을 주입해 실제로 잡히는지 확인했
 「저장 중…」·「보내는 중…」·「확인 중…」 등 **17곳**은 **버튼 상태**다. 누른 버튼이 응답을
 기다리는 중임을 그 자리에서 말하는 것이라, 스켈레톤으로 바꾸면 **누른 것이 어디로 갔는지 알 수
 없어진다.** 바꾸지 않는다.
+
+---
+
+## 44. 유효성 메시지 — 브라우저의 것을 쓰지 않는다
+
+### 44.1 브라우저가 우리 앞을 가로채고 있었다
+
+검증 로직은 처음부터 우리 것이었다 — `domain/*/rules.ts` 의 `validate*` 16개가 필드별
+한국어 메시지를 돌려준다. 그런데 **화면에 뜨는 것은 브라우저의 기본 풍선**이었다.
+
+원인은 두 줄이다.
+
+| | |
+|---|---|
+| `shared/ui/Input.tsx` · `Textarea.tsx` | `required` 를 **실제 DOM 에 넘긴다** |
+| `noValidate` 를 쓰는 `<form>` 이 하나도 없었다 | 그래서 제출을 브라우저가 먼저 막는다 |
+
+```js
+// 고치기 전 · /items/new 에서 이름을 비우고
+form.requestSubmit()                 // submit 이벤트가 아예 안 뜬다
+nameInput.validationMessage          // "이 입력란을 작성하세요."
+```
+
+⚠️ **이 풍선은 스크린샷에 안 잡힌다.** 브라우저 크롬이 그리는 것이라 페이지 캡처에 나오지
+않는다 — 눈으로는 보이는데 증거가 안 남는 종류다. `checkValidity()` 와 `validationMessage`
+로 재는 것이 유일한 방법이고, **리뷰에서 스크린샷으로 확인할 수 없다**는 것 자체가 이걸
+쓰지 않을 이유다.
+
+⚠️ **`setCustomValidity` 로 문구만 바꾸지 않는다.** 문구를 바꿔도 테마·폰트·위치가 여전히
+브라우저의 것이고, 화면의 다른 오류 표시와 모양이 다르다.
+
+### 44.2 `noValidate` 를 켜되 `required` 는 남긴다
+
+`<form onSubmit={submit} noValidate>` 는 **제출 시 브라우저의 개입만** 끈다.
+`required` 속성은 그대로 두는데, 지우면 잃는 것이 둘이다.
+
+- `aria-required="true"` 가 거기서 나온다 — 스크린리더가 「필수」를 읽는 근거
+- 라벨의 빨간 `*` 도 같은 prop 이다
+
+측정으로 확인한다.
+
+```js
+form.noValidate                                    // true
+form.querySelector('input[required]').required     // true      ← 유지
+form.querySelector('input[required]').getAttribute('aria-required')  // 'true'
+```
+
+> `shared/ui/Select.tsx` 는 원래부터 `aria-required` 만 붙이고 DOM `required` 는 안 넘긴다.
+> 커스텀 리스트박스라 네이티브 검증 대상이 아니었다 — 여기는 처음부터 우리 메시지만 떴다.
+
+### 44.3 ⚠️ 네이티브를 끄면 **Enter 제출**이 뚫린다
+
+한 줄 입력에서 Enter 를 치면 버튼을 거치지 않고 폼이 제출된다(implicit submission).
+그동안은 **네이티브 검증이 그걸 대신 막고 있었다.** 끄면 우리가 막아야 한다.
+
+`ChallengeFormPage` · `SpeciesFormPage` 는 `if (blocked) return` 이 이미 있었지만,
+`ItemFormPage` · `AchievementFormPage` · `BackgroundFormPage` 는 **버튼의 `disabled` 에만
+기대고 있었다.** `handleSubmit` 안에 같은 가드를 넣었다 — react-hook-form 의 `handleSubmit`
+은 등록된 룰이 없으면 **그냥 통과시킨다.** 우리 검증은 `validate*` 로 따로 계산하므로
+`handleSubmit` 이 그것을 알지 못한다.
+
+```text
+회귀 주입 (이름을 비우고 `form.requestSubmit()`)
+  noValidate 없음 → submit 이벤트 false   브라우저가 막는다(풍선)
+  noValidate 있음 → submit 이벤트 true    우리 핸들러가 돌고 `blocked` 가 막는다
+```
+
+### 44.4 zod 와는 무관하다
+
+「기본 제공 알림」을 보고 zod 탓이라 여기기 쉬운데, **zod 는 설치돼 있지 않다**(§2.4 의
+「나중에 추가」 목록). 그리고 넣더라도 `noValidate` 가 없으면 똑같이 풍선이 뜬다 —
+막고 있는 것은 라이브러리가 아니라 네이티브 검증이다.
+
+zod 의 값은 **API 응답 파싱**이고 그건 실서버를 붙일 때의 별개 결정이다. 도입하기로 하면
+이 절의 배선이 **선행 조건**이다.

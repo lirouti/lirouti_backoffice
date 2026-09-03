@@ -128,7 +128,7 @@ function ChallengeForm({ chalId, initial }: { chalId?: string; initial: Challeng
   }
 
   return (
-    <form onSubmit={submit}>
+    <form onSubmit={submit} noValidate>
       <PageHeader title={chalId ? '챌린지 수정' : '챌린지 등록'} sub={FORM_SUB} />
 
       {noticeOpen && (

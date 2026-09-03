@@ -67,7 +67,7 @@ export function TotpStep({
   }
 
   return (
-    <form onSubmit={submit}>
+    <form onSubmit={submit} noValidate>
       <button
         type="button"
         onClick={onBack}

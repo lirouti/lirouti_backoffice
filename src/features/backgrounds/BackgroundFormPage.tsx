@@ -151,6 +151,10 @@ function BackgroundForm({ bgId, initial }: { bgId?: string; initial: BackgroundI
   }
 
   const submit = form.handleSubmit(async (input) => {
+    // ⚠️ **여기서도 막는다.** 「등록」 버튼은 `blocked` 로 잠겨 있지만, 한 줄 입력에서
+    //    Enter 를 치면 폼이 그대로 제출된다(implicit submission). 지금까지는 브라우저의
+    //    네이티브 검증이 대신 막아 주고 있었는데 `noValidate` 로 껐으므로 우리가 막는다.
+    if (blocked) return
     // ⚠️ **업로드는 여기서 한다.** 파일을 고르는 순간 올리면 등록을 그만둔 사람의 그림이
     //    서버에 남는다. 실패하면 저장까지 가지 않으므로 폼은 그대로 있다 (§8.5).
     let assetId = input.assetId
@@ -181,7 +185,7 @@ function BackgroundForm({ bgId, initial }: { bgId?: string; initial: BackgroundI
   })
 
   return (
-    <form onSubmit={submit}>
+    <form onSubmit={submit} noValidate>
       <PageHeader title={bgId ? '배경 수정' : '배경 등록'} sub={FORM_SUB} />
 
       {save.error && <ErrorBanner message={save.error.message} />}
