@@ -119,6 +119,16 @@ function BackgroundForm({ bgId, initial }: { bgId?: string; initial: BackgroundI
   // 제출을 눌러 보기 전에는 빨갛게 하지 않는다 (`ItemFormPage` 와 같은 규칙)
   const [tried, setTried] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
+  /**
+   * ⚠️ **동기 재진입 잠금.** `busy` 는 React 가 렌더를 커밋한 **뒤에야** 참이라, 같은
+   *    태스크에서 연달아 제출하면 두 번째가 아직 거짓을 본다 — 실측으로 3회 중 2개가
+   *    만들어졌다. `ref` 는 즉시 반영되므로 그 틈이 없다.
+   *
+   * ⚠️ **푸는 자리를 빠뜨리면 폼이 영영 잠긴다.** 막으려던 것보다 나쁜 고장이라, 끝나는
+   *    길마다 하나씩 있어야 한다 — **업로드 실패의 조기 반환**과 `onSettled`(성공·실패 모두).
+   */
+  const sending = useRef(false)
+
   const form = useForm<BackgroundInput>({ defaultValues: initial })
   const draft = useFormDraft(draftScope(bgId), form.watch(), form.formState.isDirty)
   const markSaved = useUnsavedGuard(form.formState.isDirty)
@@ -167,6 +177,8 @@ function BackgroundForm({ bgId, initial }: { bgId?: string; initial: BackgroundI
         assetId = asset.assetId
       } catch {
         // 오류는 `upload.error` 로 화면에 나온다.
+        // ⚠️ 여기서 풀지 않으면 업로드가 한 번 실패한 폼은 다시 보낼 수 없다.
+        sending.current = false
         return
       }
     }
@@ -182,6 +194,10 @@ function BackgroundForm({ bgId, initial }: { bgId?: string; initial: BackgroundI
           //    바로 아래 `navigate` 를 이동 가드가 막는다.
           markSaved()
           navigate(SCREENS.bg.path)
+        },
+        // ⚠️ **성공·실패 모두 여기로 온다.** `onSuccess` 에만 두면 실패한 뒤 다시 못 보낸다.
+        onSettled: () => {
+          sending.current = false
         },
       },
     )
@@ -206,10 +222,11 @@ function BackgroundForm({ bgId, initial }: { bgId?: string; initial: BackgroundI
     // ⚠️ **이미 돌고 있으면 두 번 보내지 않는다.** 버튼의 `disabled` 로는 못 막는다 —
     //    한 줄 입력의 Enter 는 버튼을 거치지 않는다. 실제로 세 번 제출하니 **셋 다
     //    만들어졌다**(`/challenges/18` 대 `/challenges/20`).
-    if (busy) {
+    if (busy || sending.current) {
       e.preventDefault()
       return
     }
+    sending.current = true
     void runSave(e)
   }
 

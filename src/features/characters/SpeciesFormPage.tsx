@@ -76,6 +76,16 @@ export default function SpeciesFormPage() {
   // ⚠️ **`touched` 와 다른 것을 센다** (`ChallengeFormPage` 와 같은 이유)
   const [tried, setTried] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
+  /**
+   * ⚠️ **동기 재진입 잠금.** `save.isPending` 은 React 가 렌더를 커밋한 **뒤에야** 참이라,
+   *    같은 태스크에서 연달아 제출하면 두 번째가 아직 거짓을 본다 — 실측으로 3회 중 2개가
+   *    만들어졌다. `ref` 는 즉시 반영되므로 그 틈이 없다.
+   *
+   * ⚠️ **푸는 자리를 빠뜨리면 폼이 영영 잠긴다.** 막으려던 것보다 나쁜 고장이라, 끝나는
+   *    길마다 하나씩 있어야 한다 — `onSettled`(성공·실패 모두) 와 업로드 실패의 조기 반환.
+   */
+  const sending = useRef(false)
+
 
   const markSaved = useUnsavedGuard(touched)
   const draft = useFormDraft(draftScope(), input, touched)
@@ -111,7 +121,8 @@ export default function SpeciesFormPage() {
     // ⚠️ **이미 돌고 있으면 두 번 보내지 않는다.** 버튼의 `disabled` 로는 못 막는다 —
     //    한 줄 입력의 Enter 는 버튼을 거치지 않는다. 실제로 세 번 제출하니 **셋 다
     //    만들어졌다**(`/challenges/18` 대 `/challenges/20`).
-    if (save.isPending) return
+    if (save.isPending || sending.current) return
+    sending.current = true
     save.mutate(
       { input },
       {
@@ -120,6 +131,10 @@ export default function SpeciesFormPage() {
           // ⚠️ 표시를 지금 지운다 — 아래 `navigate` 를 이동 가드가 막지 않게.
           markSaved()
           navigate(SCREENS.speciesdet.path.replace(':speciesId', String(sp.key)))
+        },
+        // ⚠️ **성공·실패 모두 여기로 온다.** `onSuccess` 에만 두면 실패한 뒤 다시 못 보낸다.
+        onSettled: () => {
+          sending.current = false
         },
       },
     )

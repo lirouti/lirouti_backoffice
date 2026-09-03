@@ -170,6 +170,16 @@ function ItemForm({ itemId, initial }: { itemId?: string; initial: ItemInput }) 
   // 제출을 눌러 보기 전에는 빨갛게 하지 않는다 — 채우는 중인 사람에게 「틀렸다」고 말하는 셈이다.
   const [tried, setTried] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
+  /**
+   * ⚠️ **동기 재진입 잠금.** `busy` 는 React 가 렌더를 커밋한 **뒤에야** 참이라, 같은
+   *    태스크에서 연달아 제출하면 두 번째가 아직 거짓을 본다 — 실측으로 3회 중 2개가
+   *    만들어졌다. `ref` 는 즉시 반영되므로 그 틈이 없다.
+   *
+   * ⚠️ **푸는 자리를 빠뜨리면 폼이 영영 잠긴다.** 막으려던 것보다 나쁜 고장이라, 끝나는
+   *    길마다 하나씩 있어야 한다 — **업로드 실패의 조기 반환**과 `onSettled`(성공·실패 모두).
+   */
+  const sending = useRef(false)
+
   const form = useForm<ItemInput>({ defaultValues: initial })
   const draft = useFormDraft(draftScope(itemId), form.watch(), form.formState.isDirty)
   // 임시 저장은 등록이 아니다 — 초안이 있어도 폼이 더러우면 경고를 켠다.
@@ -220,6 +230,8 @@ function ItemForm({ itemId, initial }: { itemId?: string; initial: ItemInput }) 
         assetId = asset.assetId
       } catch {
         // 오류는 `upload.error` 로 화면에 나온다.
+        // ⚠️ 여기서 풀지 않으면 업로드가 한 번 실패한 폼은 다시 보낼 수 없다.
+        sending.current = false
         return
       }
     }
@@ -236,6 +248,10 @@ function ItemForm({ itemId, initial }: { itemId?: string; initial: ItemInput }) 
           //    "저장하지 않고 이동할까요?" 를 묻는다.
           markSaved()
           navigate(SCREENS.item.path.replace(':itemId', String(item.key)))
+        },
+        // ⚠️ **성공·실패 모두 여기로 온다.** `onSuccess` 에만 두면 실패한 뒤 다시 못 보낸다.
+        onSettled: () => {
+          sending.current = false
         },
       },
     )
@@ -264,10 +280,11 @@ function ItemForm({ itemId, initial }: { itemId?: string; initial: ItemInput }) 
     // ⚠️ **`upload.isPending` 도 본다.** `runSave` 는 업로드를 **기다린 뒤에야**
     //    `save.mutate` 를 시작하므로, 업로드가 도는 동안에는 `save.isPending` 이 아직
     //    false 다 — 그 사이에 다시 누르면 업로드와 저장이 통째로 두 번 나간다.
-    if (busy) {
+    if (busy || sending.current) {
       e.preventDefault()
       return
     }
+    sending.current = true
     void runSave(e)
   }
 
@@ -276,6 +293,10 @@ function ItemForm({ itemId, initial }: { itemId?: string; initial: ItemInput }) 
       <PageHeader title={itemId ? '아이템 수정' : '아이템 등록'} sub={FORM_SUB} />
 
       {save.error && <ErrorBanner message={save.error.message} />}
+      {/* ⚠️ **이게 없으면 업로드 실패가 조용하다.** 주석은 「`upload.error` 로 나온다」 고
+          하는데 정작 그리지 않고 있었다 — 누른 사람에게는 아무 일도 안 일어난 것으로 보인다.
+          업적·배경은 원래 그리고 있었다. */}
+      {upload.error && <ErrorBanner message={upload.error.message} />}
       {noticeOpen && (
         <DraftNotice
           onDiscard={() => {
