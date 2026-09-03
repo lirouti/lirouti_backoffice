@@ -35,14 +35,29 @@ export function TotpStep({
   const [code, setCode] = useState('')
   const [useBackup, setUseBackup] = useState(false)
 
+  /**
+   * 검증을 실제로 부르는 한 자리. 「확인」 과 자동 검증이 같은 길을 지난다.
+   *
+   * ⚠️ **인자로 받은 코드를 쓴다.** 자동 검증은 마지막 글자를 입력한 그 이벤트에서
+   *    불리는데, 그때 `code` 는 아직 한 글자 전이다.
+   */
+  const verify = (v: string) => {
+    // 앞선 요청이 아직 돌고 있으면 겹쳐 보내지 않는다 — 코드는 일회용이다.
+    if (isPending) return
+    mutate({ challenge, code: v, isBackup: useBackup }, { onSuccess })
+  }
+
   const submit = (e: FormEvent) => {
     e.preventDefault()
-    mutate({ challenge, code, isBackup: useBackup }, { onSuccess })
+    verify(code)
   }
 
   const change = (v: string) => {
     setCode(v)
-    reset()
+    // ⚠️ **검증이 도는 중에는 `reset()` 하지 않는다.** react-query 의 `reset()` 은 진행 중인
+    //    mutation 에서 observer 를 떼어내서, 그 요청이 성공해도 `onSuccess` 가 오지 않는다.
+    //    지울 오류도 그때는 없다 — 오류는 요청이 끝난 뒤에 생긴다.
+    if (!isPending) reset()
   }
 
   const toggleBackup = () => {
@@ -121,6 +136,7 @@ export function TotpStep({
         <OtpInput
           value={code}
           onChange={change}
+          onComplete={verify}
           length={TOTP_CODE_LENGTH}
           invalid={!!error}
           autoFocus

@@ -164,12 +164,18 @@ function DisablePanel({ onClose }: { onClose: () => void }) {
 
       {error && <ErrorBanner message={error.message} />}
 
+      {/*
+        ⚠️ **여기는 `onComplete` 를 달지 않는다.** 로그인과 등록은 코드를 다 넣으면 바로
+           검증하지만(§16.3.1), 해제는 **끄는 동작**이다 — 자리를 채우는 것으로 2단계 인증이
+           걷히면 「끄기」 를 누르게 한 이유가 사라진다. 마지막 한 번의 누름이 안전장치다.
+      */}
       <div className={css({ maxWidth: '340px' })}>
         <OtpInput
           value={code}
           onChange={(v) => {
             setCode(v)
-            reset()
+            // 해제가 도는 중에는 `reset()` 하지 않는다 (§16.3.1)
+            if (!isPending) reset()
           }}
           length={TOTP_CODE_LENGTH}
           invalid={!!error}
