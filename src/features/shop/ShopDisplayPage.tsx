@@ -62,7 +62,10 @@ export default function ShopDisplayPage() {
       },
     })
 
-  const busy = save.isPending || reset.isPending
+  // ⚠️ **데이터가 오기 전에는 아무 버튼도 눌리면 안 된다.** 「순서 초기화」 가 `busy` 만
+  //    보고 있어서 로딩 중에도 눌렸는데, 그때 실패해도 `reset.error` 는 성공 분기 안에서만
+  //    그려져 **실패를 알 수 없었다.** 없는 순서를 되돌릴 수도 없으니 잠그는 쪽이 맞다.
+  const busy = save.isPending || reset.isPending || !data
 
   return (
     <>
@@ -81,7 +84,10 @@ export default function ShopDisplayPage() {
         }
       />
 
-      {/* ⚠️ **헤더는 로딩 중에도 그린다** — 제목·부제·버튼이 데이터를 안 쓴다 (§43.2) */}
+      {/*
+        ⚠️ **헤더는 로딩 중에도 그린다** — 제목·부제는 데이터를 안 쓴다 (§43.2).
+           버튼은 그리되 **잠근다** — 지울 수 없는 자리(헤더 우측)라 빼면 헤더가 튄다.
+      */}
       {isPending ? (
         <div
           className={css({ display: 'flex', flexWrap: 'wrap', gap: '18px', alignItems: 'flex-start' })}
