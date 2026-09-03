@@ -15,8 +15,8 @@ import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
 import { LineChart } from '@/shared/ui/chart/LineChart'
-import { Skeleton } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
+import { SkeletonRows } from '@/shared/ui/Skeleton'
 import { Table, type Column } from '@/shared/ui/Table'
 
 import {
@@ -68,7 +68,7 @@ export default function ItemDetailPage() {
   const { itemId = '' } = useParams()
   const { data, isPending, error } = useItem(itemId)
 
-  if (isPending) return <Skeleton rows={6} />
+  if (isPending) return <SkeletonRows rows={6} />
   // 못 불러왔으면 배너만 남긴다 — 빈 상태를 겹치면 "없는 것" 과 "못 받은 것" 이 섞인다 (§18.5)
   if (error || !data) return <ErrorBanner message={error?.message ?? '아이템을 불러오지 못했습니다.'} />
 

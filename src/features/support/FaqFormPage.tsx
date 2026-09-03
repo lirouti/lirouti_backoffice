@@ -15,11 +15,11 @@ import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
 import { Dialog } from '@/shared/ui/Dialog'
 import { DraftNotice, DraftSavedAt } from '@/shared/ui/DraftNotice'
-import { Skeleton } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { Input } from '@/shared/ui/Input'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Segmented } from '@/shared/ui/Segmented'
+import { SkeletonRows } from '@/shared/ui/Skeleton'
 import { Switch } from '@/shared/ui/Switch'
 import { Textarea } from '@/shared/ui/Textarea'
 
@@ -68,7 +68,7 @@ export default function FaqFormPage() {
   const faqId = idOf(params)
   const editing = faqId !== ''
 
-  if (editing && isPending) return <Skeleton rows={8} />
+  if (editing && isPending) return <SkeletonRows rows={8} />
   if (editing && (error || !data)) {
     return <ErrorBanner message={error?.message ?? 'FAQ 를 불러오지 못했습니다.'} />
   }

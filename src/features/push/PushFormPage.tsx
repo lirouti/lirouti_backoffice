@@ -18,13 +18,13 @@ import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
 import { Dialog } from '@/shared/ui/Dialog'
 import { DraftNotice, DraftSavedAt } from '@/shared/ui/DraftNotice'
-import { Skeleton } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { Icon } from '@/shared/ui/Icon'
 import { Input } from '@/shared/ui/Input'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Segmented } from '@/shared/ui/Segmented'
 import { Select } from '@/shared/ui/Select'
+import { SkeletonRows } from '@/shared/ui/Skeleton'
 import { Textarea } from '@/shared/ui/Textarea'
 
 import {
@@ -90,7 +90,7 @@ export default function PushFormPage() {
   const markSaved = useUnsavedGuard(changed(form, EMPTY))
   const draft = useFormDraft(DRAFT, form, changed(form, EMPTY))
 
-  if (isPending) return <Skeleton rows={8} />
+  if (isPending) return <SkeletonRows rows={8} />
   if (error || !consent) return <ErrorBanner message={error?.message ?? '수신 동의 정보를 불러오지 못했습니다.'} />
 
   const set = <K extends keyof PushInput>(k: K, v: PushInput[K]) => setForm((f) => ({ ...f, [k]: v }))

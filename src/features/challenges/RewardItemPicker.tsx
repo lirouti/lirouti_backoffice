@@ -4,9 +4,9 @@ import { css } from 'styled-system/css'
 
 import { AssetThumb } from '@/shared/ui/AssetThumb'
 import { Dialog } from '@/shared/ui/Dialog'
-import { Skeleton } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { Input } from '@/shared/ui/Input'
+import { SkeletonRows } from '@/shared/ui/Skeleton'
 
 import type { ChallengeReward } from '@/domain/challenge'
 import { SLOT_LABEL, type Item } from '@/domain/item'
@@ -71,7 +71,7 @@ export function RewardItemPicker({ open, value, onClose, onPick }: RewardItemPic
       />
 
       {isPending ? (
-        <Skeleton rows={3} />
+        <SkeletonRows rows={3} />
       ) : error ? (
         <ErrorBanner message={error.message} />
       ) : items.length === 0 ? (

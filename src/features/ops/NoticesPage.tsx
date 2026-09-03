@@ -8,9 +8,9 @@ import { css } from 'styled-system/css'
 import { num } from '@/shared/lib/format'
 import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
-import { Skeleton } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { PageHeader } from '@/shared/ui/PageHeader'
+import { SkeletonRows } from '@/shared/ui/Skeleton'
 import { StatTile } from '@/shared/ui/StatTile'
 import { Table, type Column } from '@/shared/ui/Table'
 
@@ -26,7 +26,7 @@ import { useNotices, type NoticeEntry } from '@/api/ops'
 export default function NoticesPage() {
   const { data, isPending, error } = useNotices()
 
-  if (isPending) return <Skeleton rows={6} />
+  if (isPending) return <SkeletonRows rows={6} />
   if (error || !data) return <ErrorBanner message={error?.message ?? '공지를 불러오지 못했습니다.'} />
 
   const columns: Column<NoticeEntry>[] = [

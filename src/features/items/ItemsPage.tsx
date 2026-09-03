@@ -13,7 +13,7 @@ import { AssetThumb } from '@/shared/ui/AssetThumb'
 import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
 import { Card } from '@/shared/ui/Card'
-import { EmptyState, Skeleton } from '@/shared/ui/EmptyState'
+import { EmptyState } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { Icon } from '@/shared/ui/Icon'
 import { Input } from '@/shared/ui/Input'
@@ -21,6 +21,7 @@ import { PageHeader } from '@/shared/ui/PageHeader'
 import { Pagination } from '@/shared/ui/Pagination'
 import { ProgressBar } from '@/shared/ui/ProgressBar'
 import { Segmented } from '@/shared/ui/Segmented'
+import { SkeletonRows } from '@/shared/ui/Skeleton'
 import { Table, type Column } from '@/shared/ui/Table'
 
 import {
@@ -217,7 +218,7 @@ export default function ItemsPage() {
            그대로 두는 게 맞다(배너가 따로 알린다).
       */}
       {isPending ? (
-        <Skeleton rows={6} />
+        <SkeletonRows rows={6} />
       ) : !data ? null : items.length === 0 ? (
         <EmptyState
           icon={<Icon name="ic_shirt" size={22} />}

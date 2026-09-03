@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 
 import { css } from 'styled-system/css'
 
@@ -6,13 +6,21 @@ import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
 import { Dialog } from '@/shared/ui/Dialog'
-import { EmptyState, Skeleton } from '@/shared/ui/EmptyState'
+import { EmptyState } from '@/shared/ui/EmptyState'
 import { Icon } from '@/shared/ui/Icon'
 import { Input } from '@/shared/ui/Input'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Pagination } from '@/shared/ui/Pagination'
 import { Segmented } from '@/shared/ui/Segmented'
 import { Select } from '@/shared/ui/Select'
+import {
+  SkeletonBlock,
+  SkeletonCards,
+  SkeletonForm,
+  SkeletonPage,
+  SkeletonRows,
+  SkeletonStats,
+} from '@/shared/ui/Skeleton'
 import { Switch } from '@/shared/ui/Switch'
 import { Table, type Column } from '@/shared/ui/Table'
 
@@ -222,10 +230,36 @@ export default function UiKitPage() {
           />
         </Card>
         <Card className={css({ flex: '1 1 320px', p: '17px 19px' })}>
-          <CardTitle title="불러오는 중" sub="Skeleton" />
-          <Skeleton rows={3} className={css({ mt: '18px' })} />
+          <CardTitle title="불러오는 중" sub="SkeletonRows" />
+          <SkeletonRows rows={3} className={css({ mt: '18px' })} />
         </Card>
       </div>
+
+      {/*
+        모양이 여럿인 이유는 **들어올 것의 자리를 잡기** 위해서다 — 카드가 올 자리에 목록
+        행을 그리면 자리를 잡아 주기는커녕 더 크게 튄다 (docs/ARCHITECTURE.md §43).
+        고를 수 있게 한자리에 늘어놓는다.
+      */}
+      <Card className={css({ p: '17px 19px' })}>
+        <CardTitle title="로딩 자리" sub="Skeleton — 모양은 들어올 것을 따른다" />
+        <div className={css({ display: 'flex', flexDirection: 'column', gap: '22px', mt: '18px' })}>
+          <Demo name="SkeletonStats" note="지표 타일. min 은 그 화면의 minmax 와 같게">
+            <SkeletonStats count={4} min={200} />
+          </Demo>
+          <Demo name="SkeletonCards" note="카드 격자. min 이 다르면 열 수가 달라져 튄다">
+            <SkeletonCards count={4} min={190} />
+          </Demo>
+          <Demo name="SkeletonForm" note="좌 입력 카드 + 우 사이드 카드">
+            <SkeletonForm fields={2} />
+          </Demo>
+          <Demo name="SkeletonBlock" note="차트처럼 흉내 낼 수 없는 것의 자리">
+            <SkeletonBlock height={120} />
+          </Demo>
+          <Demo name="SkeletonPage" note="라우트 폴백 전용 — 어떤 화면이 올지 모른다">
+            <SkeletonPage />
+          </Demo>
+        </div>
+      </Card>
 
       <Card className={css({ p: '17px 19px' })}>
         <CardTitle title="배지 · 버튼" sub="Badge · Button" />
@@ -262,6 +296,19 @@ export default function UiKitPage() {
         confirmLabel="삭제"
       />
       </div>
+    </div>
+  )
+}
+
+/** UI 킷 안에서만 쓰는 라벨 + 예시 묶음 */
+function Demo({ name, note, children }: { name: string; note: string; children: ReactNode }) {
+  return (
+    <div>
+      <div className={css({ display: 'flex', alignItems: 'baseline', gap: '8px', mb: '10px' })}>
+        <code className={css({ fontFamily: 'mono', textStyle: 'caption', color: 'ink' })}>{name}</code>
+        <span className={css({ textStyle: 'micro', color: 'faint' })}>{note}</span>
+      </div>
+      {children}
     </div>
   )
 }

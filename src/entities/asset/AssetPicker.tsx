@@ -4,9 +4,9 @@ import { css } from 'styled-system/css'
 
 import { AssetThumb } from '@/shared/ui/AssetThumb'
 import { Dialog } from '@/shared/ui/Dialog'
-import { Skeleton } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { FilePicker } from '@/shared/ui/FilePicker'
+import { SkeletonRows } from '@/shared/ui/Skeleton'
 
 import { acceptAttr, assetHint, validateAssetFile, ASSET_SPECS, type AssetKind } from '@/domain/asset'
 
@@ -84,7 +84,7 @@ export function AssetPicker({ open, kind, value, onClose, onPick, onPickFile }: 
       />
 
       {isPending ? (
-        <Skeleton rows={2} />
+        <SkeletonRows rows={2} />
       ) : error ? (
         <ErrorBanner message={error.message} />
       ) : (

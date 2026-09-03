@@ -13,11 +13,11 @@ import { css } from 'styled-system/css'
 
 import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
-import { Skeleton } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { Input } from '@/shared/ui/Input'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Segmented } from '@/shared/ui/Segmented'
+import { SkeletonRows } from '@/shared/ui/Skeleton'
 
 import {
   ADMIN_EMAIL_DOMAIN,
@@ -65,7 +65,7 @@ export default function AdminInvitePage() {
   const top = form.role === 'top'
   const allPicked = form.scopes.length === ASSIGNABLE_SCOPES.length
 
-  if (isPending) return <Skeleton rows={8} />
+  if (isPending) return <SkeletonRows rows={8} />
   if (error) return <ErrorBanner message={error.message} />
 
   const patch = (v: Partial<AdminInput>) => setForm((f) => ({ ...f, ...v }))

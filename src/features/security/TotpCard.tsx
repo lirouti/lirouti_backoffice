@@ -9,6 +9,7 @@ import { Card } from '@/shared/ui/Card'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { Icon } from '@/shared/ui/Icon'
 import { OtpInput } from '@/shared/ui/OtpInput'
+import { SkeletonRows } from '@/shared/ui/Skeleton'
 
 import { TOTP_CODE_LENGTH, type TotpEnrollment } from '@/domain/totp'
 
@@ -46,7 +47,14 @@ export function TotpCard() {
 
   const busy = start.isPending || regenerate.isPending
 
-  if (isPending) return <Shell>상태를 불러오는 중…</Shell>
+  // ⚠️ `Shell` 은 오류에만 쓴다 — 「오는 중」은 글자가 아니라 자리로 말한다 (docs/ARCHITECTURE.md §43).
+  if (isPending) {
+    return (
+      <Card className={css({ p: '18px 20px' })}>
+        <SkeletonRows rows={3} />
+      </Card>
+    )
+  }
   if (error) return <Shell tone="danger">{error.message}</Shell>
 
   const beginEnroll = () =>

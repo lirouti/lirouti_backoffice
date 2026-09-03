@@ -15,9 +15,10 @@ import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
 import { Dialog } from '@/shared/ui/Dialog'
-import { EmptyState, Skeleton } from '@/shared/ui/EmptyState'
+import { EmptyState } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { PageHeader } from '@/shared/ui/PageHeader'
+import { SkeletonRows } from '@/shared/ui/Skeleton'
 import { Table, type Column } from '@/shared/ui/Table'
 
 import { firstScreen } from '@/domain/access'
@@ -44,7 +45,7 @@ export default function AdminDetailPage() {
   const me = useViewer()
   const { data, isPending, error } = useAdmin(adminId, me.email)
 
-  if (isPending) return <Skeleton rows={8} />
+  if (isPending) return <SkeletonRows rows={8} />
   if (error || !data) return <ErrorBanner message={error?.message ?? '관리자를 불러오지 못했습니다.'} />
 
   // ⚠️ **`key` 가 있어야 다른 관리자로 옮길 때 아래의 초안이 딸려가지 않는다.**

@@ -18,11 +18,12 @@ import { AssetThumb } from '@/shared/ui/AssetThumb'
 import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
 import { DraftNotice, DraftSavedAt } from '@/shared/ui/DraftNotice'
-import { EmptyState, Skeleton } from '@/shared/ui/EmptyState'
+import { EmptyState } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { Input } from '@/shared/ui/Input'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Segmented } from '@/shared/ui/Segmented'
+import { SkeletonRows } from '@/shared/ui/Skeleton'
 
 import {
   emptyBackgroundInput,
@@ -76,7 +77,7 @@ export default function BackgroundFormPage() {
   //    `defaultValues` 로 한 번만 읽으므로, 같은 자리에서 `bgId` 만 바뀌면
   //    **A 의 입력으로 B 를 저장한다** (§18.8 과 같은 불변식).
   if (!bgId) return <BackgroundForm key="new" initial={emptyBackgroundInput()} />
-  if (existing.isPending) return <Skeleton rows={5} />
+  if (existing.isPending) return <SkeletonRows rows={5} />
   if (existing.error || !existing.data) {
     return <ErrorBanner message={existing.error?.message ?? '배경을 불러오지 못했습니다.'} />
   }

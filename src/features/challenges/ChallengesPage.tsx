@@ -11,11 +11,11 @@ import { num, pct } from '@/shared/lib/format'
 import { AssetThumb } from '@/shared/ui/AssetThumb'
 import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
-import { Skeleton } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { ProgressBar } from '@/shared/ui/ProgressBar'
 import { Segmented } from '@/shared/ui/Segmented'
+import { SkeletonRows } from '@/shared/ui/Skeleton'
 import { Table, type Column } from '@/shared/ui/Table'
 
 import {
@@ -98,7 +98,7 @@ export default function ChallengesPage() {
       </div>
 
       {isPending ? (
-        <Skeleton rows={6} />
+        <SkeletonRows rows={6} />
       ) : error ? (
         <ErrorBanner message={error.message} />
       ) : (

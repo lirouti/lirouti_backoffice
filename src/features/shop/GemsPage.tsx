@@ -9,10 +9,10 @@ import { css } from 'styled-system/css'
 import { num } from '@/shared/lib/format'
 import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
-import { Skeleton } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { ProgressBar } from '@/shared/ui/ProgressBar'
+import { SkeletonRows } from '@/shared/ui/Skeleton'
 import { StatTile } from '@/shared/ui/StatTile'
 import { Table, type Column } from '@/shared/ui/Table'
 
@@ -33,7 +33,7 @@ const mil = (n: number): string => `${(n / 1_000_000).toFixed(1)}백만원`
 export default function GemsPage() {
   const { data, isPending, error } = useGems()
 
-  if (isPending) return <Skeleton rows={6} />
+  if (isPending) return <SkeletonRows rows={6} />
   if (error || !data) return <ErrorBanner message={error?.message ?? '젬 상품을 불러오지 못했습니다.'} />
 
   // 배분이라 행마다 따로 낼 수 없다 — 목록 전체로 한 번 낸다(§24.2).
