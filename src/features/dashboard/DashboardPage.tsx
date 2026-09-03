@@ -96,7 +96,7 @@ function DashboardSkeleton() {
   return (
     <>
       {/* `min` 은 아래 실제 격자와 **같은 200** 이어야 한다 — 다르면 열 수가 바뀌어 튄다 */}
-      <SkeletonStats count={6} min={200} />
+      <SkeletonStats count={6} min={200} variant="card" />
       <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '14px', mt: '14px' })}>
         <SkeletonBlock height={196} silent className={css({ flex: '1 1 520px' })} />
         <SkeletonBlock height={196} silent className={css({ flex: '1 1 340px' })} />

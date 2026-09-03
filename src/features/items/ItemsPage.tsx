@@ -21,7 +21,7 @@ import { PageHeader } from '@/shared/ui/PageHeader'
 import { Pagination } from '@/shared/ui/Pagination'
 import { ProgressBar } from '@/shared/ui/ProgressBar'
 import { Segmented } from '@/shared/ui/Segmented'
-import { SkeletonRows } from '@/shared/ui/Skeleton'
+import { SkeletonCards, SkeletonRows } from '@/shared/ui/Skeleton'
 import { Table, type Column } from '@/shared/ui/Table'
 
 import {
@@ -218,7 +218,12 @@ export default function ItemsPage() {
            그대로 두는 게 맞다(배너가 따로 알린다).
       */}
       {isPending ? (
-        <SkeletonRows rows={6} />
+        // 어느 모양이 올지는 안다 — `view` 는 데이터가 아니라 URL 이 정한다
+        query.view === 'grid' ? (
+          <SkeletonCards count={PER_PAGE} min={148} />
+        ) : (
+          <SkeletonRows rows={6} />
+        )
       ) : !data ? null : items.length === 0 ? (
         <EmptyState
           icon={<Icon name="ic_shirt" size={22} />}

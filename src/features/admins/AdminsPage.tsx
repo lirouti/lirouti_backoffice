@@ -15,7 +15,7 @@ import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { Input } from '@/shared/ui/Input'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Segmented } from '@/shared/ui/Segmented'
-import { SkeletonRows } from '@/shared/ui/Skeleton'
+import { SkeletonRows, SkeletonStats } from '@/shared/ui/Skeleton'
 import { StatTile } from '@/shared/ui/StatTile'
 import { Table, type Column } from '@/shared/ui/Table'
 
@@ -68,7 +68,7 @@ export default function AdminsPage() {
         }
       />
 
-      {data && (
+      {data ? (
         <div
           className={css({
             display: 'grid',
@@ -82,7 +82,9 @@ export default function AdminsPage() {
           <StatTile label="생체 등록" value={`${data.summary.passkey} / ${data.summary.total}`} />
           <StatTile label="대기 · 정지" value={num(data.summary.pending)} alert={data.summary.pending > 0} />
         </div>
-      )}
+      ) : isPending ? (
+        <SkeletonStats count={4} min={150} silent className={css({ mb: '16px' })} />
+      ) : null}
 
       <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center', mb: '14px' })}>
         <Segmented

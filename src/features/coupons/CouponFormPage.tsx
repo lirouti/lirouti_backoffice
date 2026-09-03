@@ -22,7 +22,7 @@ import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { Input } from '@/shared/ui/Input'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Select } from '@/shared/ui/Select'
-import { SkeletonRows } from '@/shared/ui/Skeleton'
+import { SkeletonForm } from '@/shared/ui/Skeleton'
 import { Switch } from '@/shared/ui/Switch'
 
 import {
@@ -69,6 +69,9 @@ const EMPTY: CouponInput = {
   limits: { perUser: true, firstCome: false, firstComeQty: 0, dated: false },
 }
 
+/** 로딩 중에도 그리므로 두 곳이 같은 문장을 쓰게 상수로 둔다 (§43.2) */
+const FORM_SUB = '한 쿠폰으로 여러 보상을 한 번에 지급합니다.'
+
 export default function CouponFormPage() {
   const navigate = useNavigate()
   const viewer = useViewer()
@@ -88,8 +91,19 @@ export default function CouponFormPage() {
   const errors = validateCoupon(form, data?.takenCodes ?? [])
   const single = isSingleCode(form.kind)
 
-  if (isPending) return <SkeletonRows rows={8} />
-  if (error || !data) return <ErrorBanner message={error?.message ?? '쿠폰 목록을 불러오지 못했습니다.'} />
+  if (isPending) {
+    // ⚠️ **헤더는 로딩 중에도 그린다** — 제목·부제가 데이터를 안 쓰므로 아는 값이다.
+    //    지웠다 다시 그리면 아는 것까지 튄다 (docs/ARCHITECTURE.md §43.2).
+    //    다만 **버튼은 빼둔다** — 아직 없는 데이터를 대상으로 하는 동작이다.
+    return (
+      <>
+        <PageHeader title="쿠폰 발급" sub={FORM_SUB} />
+        <SkeletonForm fields={6} />
+      </>
+    )
+  }
+  if (error || !data)
+    return <ErrorBanner message={error?.message ?? '쿠폰 목록을 불러오지 못했습니다.'} />
 
   const set = <K extends keyof CouponInput>(k: K, v: CouponInput[K]) => setForm((f) => ({ ...f, [k]: v }))
   const setLimit = <K extends keyof CouponInput['limits']>(k: K, v: CouponInput['limits'][K]) =>
@@ -114,7 +128,7 @@ export default function CouponFormPage() {
     <>
       <PageHeader
         title="쿠폰 발급"
-        sub="한 쿠폰으로 여러 보상을 한 번에 지급합니다."
+        sub={FORM_SUB}
         actions={
           <>
             <Button onClick={back}>취소</Button>

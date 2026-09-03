@@ -15,7 +15,7 @@ import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { Input } from '@/shared/ui/Input'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Segmented } from '@/shared/ui/Segmented'
-import { SkeletonRows } from '@/shared/ui/Skeleton'
+import { SkeletonRows, SkeletonStats } from '@/shared/ui/Skeleton'
 import { StatTile } from '@/shared/ui/StatTile'
 import { Table, type Column } from '@/shared/ui/Table'
 
@@ -116,7 +116,7 @@ export default function CodesPage() {
         }
       />
 
-      {data && (
+      {data ? (
         <div
           className={css({
             display: 'grid',
@@ -131,7 +131,9 @@ export default function CodesPage() {
           {/* 감춘 값은 새로 못 고르지만 기존 데이터에는 남아 있다 (§29.1) */}
           <StatTile label="감춘 값" value={num(data.summary.hidden)} />
         </div>
-      )}
+      ) : isPending ? (
+        <SkeletonStats count={4} min={150} silent className={css({ mb: '16px' })} />
+      ) : null}
 
       <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center', mb: '14px' })}>
         <Input

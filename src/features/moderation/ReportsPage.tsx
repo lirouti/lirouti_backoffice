@@ -17,7 +17,7 @@ import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { Icon } from '@/shared/ui/Icon'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Segmented } from '@/shared/ui/Segmented'
-import { SkeletonRows } from '@/shared/ui/Skeleton'
+import { SkeletonRows, SkeletonStats } from '@/shared/ui/Skeleton'
 import { StatTile } from '@/shared/ui/StatTile'
 
 import {
@@ -76,9 +76,6 @@ export default function ReportsPage() {
   // URL 의 id 가 이 탭에 없을 수 있다 — 처리해서 빠졌거나 남이 보낸 링크다. 첫 행으로 떨어진다.
   const selected = rows.find((r) => String(r.key) === params.get('id')) ?? rows[0]
 
-  if (isPending) return <SkeletonRows rows={8} />
-  if (error || !data) return <ErrorBanner message={error?.message ?? '신고를 불러오지 못했습니다.'} />
-
   const patch = (next: Partial<Record<'tab' | 'id', string>>) =>
     setParams(withParams(liveParams(), next), { replace: true })
 
@@ -111,47 +108,92 @@ export default function ReportsPage() {
         }
       />
 
-      <div
-        className={css({
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-          gap: '12px',
-          mb: '16px',
-        })}
-      >
-        <StatTile label="검토 대기" value={num(data.summary.waiting)} alert={data.summary.waiting > 0} />
-        <StatTile label="오늘 접수" value={num(data.summary.today)} />
-        <StatTile label="숨김 유지" value={num(data.summary.kept)} />
-        <StatTile label="숨김 해제" value={num(data.summary.freed)} />
-      </div>
-
-      {decide.error && <ErrorBanner message={decide.error.message} />}
-
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '18px', alignItems: 'flex-start' })}>
-        <Card className={css({ flex: '1 1 320px', maxWidth: '400px', p: '0', overflow: 'hidden' })}>
-          <div className={css({ p: '13px 15px', borderBottom: '1px solid token(colors.ln)' })}>
-            <Segmented
-              value={tab}
-              onChange={(v) => patch({ tab: v, id: '' })}
-              options={[...REPORT_TABS]}
-              aria-label="신고 상태"
+      {/* ⚠️ **헤더는 로딩 중에도 그린다** — 제목·부제·버튼이 데이터를 안 쓴다 (§43.2) */}
+      {isPending ? (
+        <>
+          <SkeletonStats count={4} min={150} className={css({ mb: '16px' })} />
+          <SkeletonRows rows={8} silent />
+        </>
+      ) : error || !data ? (
+        <ErrorBanner message={error?.message ?? '신고를 불러오지 못했습니다.'} />
+      ) : (
+        <>
+          <div
+            className={css({
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+              gap: '12px',
+              mb: '16px',
+            })}
+          >
+            <StatTile
+              label="검토 대기"
+              value={num(data.summary.waiting)}
+              alert={data.summary.waiting > 0}
             />
+            <StatTile label="오늘 접수" value={num(data.summary.today)} />
+            <StatTile label="숨김 유지" value={num(data.summary.kept)} />
+            <StatTile label="숨김 해제" value={num(data.summary.freed)} />
           </div>
-          {rows.length === 0 ? (
-            <p className={css({ m: '0', p: '28px 15px', textAlign: 'center', textStyle: 'body', color: 'faint' })}>
-              처리할 신고가 없습니다.
-            </p>
-          ) : (
-            <ul className={css({ listStyle: 'none', m: '0', p: '0' })}>
-              {rows.map((r) => (
-                <QueueRow key={r.key} report={r} on={r.key === selected?.key} pick={() => patch({ id: String(r.key) })} />
-              ))}
-            </ul>
-          )}
-        </Card>
 
-        {selected && <Detail report={selected} onDecide={run} busy={decide.isPending} />}
-      </div>
+          {decide.error && <ErrorBanner message={decide.error.message} />}
+
+          <div
+            className={css({
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '18px',
+              alignItems: 'flex-start',
+            })}
+          >
+            <Card
+              className={css({
+                flex: '1 1 320px',
+                maxWidth: '400px',
+                p: '0',
+                overflow: 'hidden',
+              })}
+            >
+              <div
+                className={css({ p: '13px 15px', borderBottom: '1px solid token(colors.ln)' })}
+              >
+                <Segmented
+                  value={tab}
+                  onChange={(v) => patch({ tab: v, id: '' })}
+                  options={[...REPORT_TABS]}
+                  aria-label="신고 상태"
+                />
+              </div>
+              {rows.length === 0 ? (
+                <p
+                  className={css({
+                    m: '0',
+                    p: '28px 15px',
+                    textAlign: 'center',
+                    textStyle: 'body',
+                    color: 'faint',
+                  })}
+                >
+                  처리할 신고가 없습니다.
+                </p>
+              ) : (
+                <ul className={css({ listStyle: 'none', m: '0', p: '0' })}>
+                  {rows.map((r) => (
+                    <QueueRow
+                      key={r.key}
+                      report={r}
+                      on={r.key === selected?.key}
+                      pick={() => patch({ id: String(r.key) })}
+                    />
+                  ))}
+                </ul>
+              )}
+            </Card>
+
+            {selected && <Detail report={selected} onDecide={run} busy={decide.isPending} />}
+          </div>
+        </>
+      )}
     </>
   )
 }

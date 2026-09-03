@@ -12,7 +12,7 @@ import { Card } from '@/shared/ui/Card'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { ProgressBar } from '@/shared/ui/ProgressBar'
-import { SkeletonRows } from '@/shared/ui/Skeleton'
+import { SkeletonCards, SkeletonRows } from '@/shared/ui/Skeleton'
 import { Table, type Column } from '@/shared/ui/Table'
 
 import type { Nest } from '@/domain/nest'
@@ -29,7 +29,11 @@ export default function NestsPage() {
       {error ? (
         <ErrorBanner message={error.message} />
       ) : isPending ? (
-        <SkeletonRows rows={5} />
+        <>
+          {/* 셋인 것을 안다 — 둥지는 기획이 고정한 3단계다 (§41.3) */}
+          <SkeletonCards count={3} min={280} className={css({ mb: '18px' })} />
+          <SkeletonRows rows={3} silent />
+        </>
       ) : (
         <>
           <div

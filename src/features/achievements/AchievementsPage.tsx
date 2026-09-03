@@ -17,7 +17,7 @@ import { Card } from '@/shared/ui/Card'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { ProgressBar } from '@/shared/ui/ProgressBar'
-import { SkeletonRows } from '@/shared/ui/Skeleton'
+import { SkeletonCards, SkeletonRows } from '@/shared/ui/Skeleton'
 import { Table, type Column } from '@/shared/ui/Table'
 
 import type { Achievement } from '@/domain/achievement'
@@ -46,7 +46,10 @@ export default function AchievementsPage() {
       {error ? (
         <ErrorBanner message={error.message} />
       ) : isPending ? (
-        <SkeletonRows rows={6} />
+        <>
+          <SkeletonCards count={8} min={200} thumb={74} className={css({ mb: '18px' })} />
+          <SkeletonRows rows={6} silent />
+        </>
       ) : (
         <>
           <div

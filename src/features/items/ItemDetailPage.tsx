@@ -16,7 +16,7 @@ import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
 import { LineChart } from '@/shared/ui/chart/LineChart'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
-import { SkeletonRows } from '@/shared/ui/Skeleton'
+import { SkeletonHeader, SkeletonRows } from '@/shared/ui/Skeleton'
 import { Table, type Column } from '@/shared/ui/Table'
 
 import {
@@ -68,7 +68,18 @@ export default function ItemDetailPage() {
   const { itemId = '' } = useParams()
   const { data, isPending, error } = useItem(itemId)
 
-  if (isPending) return <SkeletonRows rows={6} />
+  if (isPending) {
+    // ⚠️ **제목을 그릴 수 없다** — 상세 화면의 제목은 불러온 값이다(「소이」 · 「첫 알」).
+    //    그래서 헤더도 자리만 잡는다. 아는 것과 모르는 것을 섞지 않는다 (docs/ARCHITECTURE.md §43.2).
+
+    return (
+      <>
+        <SkeletonHeader />
+
+        <SkeletonRows rows={6} silent />
+      </>
+    )
+  }
   // 못 불러왔으면 배너만 남긴다 — 빈 상태를 겹치면 "없는 것" 과 "못 받은 것" 이 섞인다 (§18.5)
   if (error || !data) return <ErrorBanner message={error?.message ?? '아이템을 불러오지 못했습니다.'} />
 

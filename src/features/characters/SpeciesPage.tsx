@@ -9,7 +9,7 @@ import { Button } from '@/shared/ui/Button'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Segmented } from '@/shared/ui/Segmented'
-import { SkeletonRows } from '@/shared/ui/Skeleton'
+import { SkeletonCards, SkeletonRows } from '@/shared/ui/Skeleton'
 import { Table, type Column } from '@/shared/ui/Table'
 
 import { SCREENS } from '@/domain/screens'
@@ -88,7 +88,12 @@ export default function SpeciesPage() {
       </div>
 
       {isPending ? (
-        <SkeletonRows rows={6} />
+        // 어느 모양이 올지는 안다 — `view` 는 데이터가 아니라 URL 이 정한다
+        view === 'list' ? (
+          <SkeletonRows rows={6} />
+        ) : (
+          <SkeletonCards count={8} min={178} lines={3} />
+        )
       ) : error ? (
         <ErrorBanner message={error.message} />
       ) : view === 'list' ? (

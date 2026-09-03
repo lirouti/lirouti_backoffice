@@ -13,7 +13,7 @@ import { Button } from '@/shared/ui/Button'
 import { Card } from '@/shared/ui/Card'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { PageHeader } from '@/shared/ui/PageHeader'
-import { SkeletonRows } from '@/shared/ui/Skeleton'
+import { SkeletonBlock } from '@/shared/ui/Skeleton'
 
 import { EVENT_STATUS_LABEL, PERIOD_STATUS_TONE, periodLabel } from '@/domain/ops'
 
@@ -21,9 +21,6 @@ import { useEvents, type EventEntry } from '@/api/ops'
 
 export default function EventsPage() {
   const { data, isPending, error } = useEvents()
-
-  if (isPending) return <SkeletonRows rows={6} />
-  if (error || !data) return <ErrorBanner message={error?.message ?? '이벤트를 불러오지 못했습니다.'} />
 
   return (
     <>
@@ -38,11 +35,23 @@ export default function EventsPage() {
         }
       />
 
-      <div className={css({ display: 'flex', flexDirection: 'column', gap: '12px' })}>
-        {data.map((entry) => (
-          <EventCard key={entry.event.key} entry={entry} />
-        ))}
-      </div>
+      {/* ⚠️ **헤더는 로딩 중에도 그린다** — 제목·부제·버튼이 데이터를 안 쓴다 (§43.2) */}
+      {isPending ? (
+        <div className={css({ display: 'flex', flexDirection: 'column', gap: '12px' })}>
+          {/* 목록 행이 아니라 **카드 높이**로 자리를 잡는다 — 실측 152px (§43.1) */}
+          {[0, 1, 2].map((i) => (
+            <SkeletonBlock key={i} height={152} silent={i > 0} />
+          ))}
+        </div>
+      ) : error || !data ? (
+        <ErrorBanner message={error?.message ?? '이벤트를 불러오지 못했습니다.'} />
+      ) : (
+        <div className={css({ display: 'flex', flexDirection: 'column', gap: '12px' })}>
+          {data.map((entry) => (
+            <EventCard key={entry.event.key} entry={entry} />
+          ))}
+        </div>
+      )}
     </>
   )
 }
