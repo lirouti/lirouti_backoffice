@@ -14,10 +14,10 @@ import { num } from '@/shared/lib/format'
 import { AssetThumb } from '@/shared/ui/AssetThumb'
 import { Button } from '@/shared/ui/Button'
 import { Card } from '@/shared/ui/Card'
-import { Skeleton } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { ProgressBar } from '@/shared/ui/ProgressBar'
+import { SkeletonRows } from '@/shared/ui/Skeleton'
 import { Table, type Column } from '@/shared/ui/Table'
 
 import type { Achievement } from '@/domain/achievement'
@@ -46,7 +46,7 @@ export default function AchievementsPage() {
       {error ? (
         <ErrorBanner message={error.message} />
       ) : isPending ? (
-        <Skeleton rows={6} />
+        <SkeletonRows rows={6} />
       ) : (
         <>
           <div

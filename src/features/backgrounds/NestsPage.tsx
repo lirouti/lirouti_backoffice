@@ -9,10 +9,10 @@ import { css } from 'styled-system/css'
 
 import { AssetThumb } from '@/shared/ui/AssetThumb'
 import { Card } from '@/shared/ui/Card'
-import { Skeleton } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { ProgressBar } from '@/shared/ui/ProgressBar'
+import { SkeletonRows } from '@/shared/ui/Skeleton'
 import { Table, type Column } from '@/shared/ui/Table'
 
 import type { Nest } from '@/domain/nest'
@@ -29,7 +29,7 @@ export default function NestsPage() {
       {error ? (
         <ErrorBanner message={error.message} />
       ) : isPending ? (
-        <Skeleton rows={5} />
+        <SkeletonRows rows={5} />
       ) : (
         <>
           <div

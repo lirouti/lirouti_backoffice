@@ -14,10 +14,10 @@ import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
 import { StackedBarLineChart, type StackedDatum } from '@/shared/ui/chart/StackedBarLineChart'
 import { Dialog } from '@/shared/ui/Dialog'
-import { Skeleton } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Segmented } from '@/shared/ui/Segmented'
+import { SkeletonRows } from '@/shared/ui/Skeleton'
 import { StatTile } from '@/shared/ui/StatTile'
 import { Switch } from '@/shared/ui/Switch'
 import { Table, type Column } from '@/shared/ui/Table'
@@ -88,7 +88,7 @@ export default function AiReviewPage() {
   const groups = (data?.days ?? []).map(toDatum)
   const max = Math.max(1, ...groups.map((g) => g.a + g.b))
 
-  if (isPending) return <Skeleton rows={8} />
+  if (isPending) return <SkeletonRows rows={8} />
   if (error || !data) return <ErrorBanner message={error?.message ?? 'AI 심사 현황을 불러오지 못했습니다.'} />
 
   // 켜는 것은 안전하니 바로 보낸다. 끄는 것만 확인을 받는다.

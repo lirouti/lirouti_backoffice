@@ -11,9 +11,9 @@ import { AssetThumb } from '@/shared/ui/AssetThumb'
 import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
 import { Card } from '@/shared/ui/Card'
-import { Skeleton } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { PageHeader } from '@/shared/ui/PageHeader'
+import { SkeletonRows } from '@/shared/ui/Skeleton'
 
 import { EVENT_STATUS_LABEL, PERIOD_STATUS_TONE, periodLabel } from '@/domain/ops'
 
@@ -22,7 +22,7 @@ import { useEvents, type EventEntry } from '@/api/ops'
 export default function EventsPage() {
   const { data, isPending, error } = useEvents()
 
-  if (isPending) return <Skeleton rows={6} />
+  if (isPending) return <SkeletonRows rows={6} />
   if (error || !data) return <ErrorBanner message={error?.message ?? '이벤트를 불러오지 못했습니다.'} />
 
   return (

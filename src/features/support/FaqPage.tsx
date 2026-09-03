@@ -15,11 +15,11 @@ import { num } from '@/shared/lib/format'
 import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
 import { Card } from '@/shared/ui/Card'
-import { Skeleton } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { ProgressBar } from '@/shared/ui/ProgressBar'
 import { Segmented } from '@/shared/ui/Segmented'
+import { SkeletonRows } from '@/shared/ui/Skeleton'
 import { StatTile } from '@/shared/ui/StatTile'
 import { Switch } from '@/shared/ui/Switch'
 
@@ -49,7 +49,7 @@ export default function FaqPage() {
   // 거른 상태에서 위아래로 옮기면 안 보이는 항목과의 상대 순서를 알 수 없다.
   const canMove = tab === '전체'
 
-  if (isPending) return <Skeleton rows={8} />
+  if (isPending) return <SkeletonRows rows={8} />
   if (error || !data) return <ErrorBanner message={error?.message ?? 'FAQ 를 불러오지 못했습니다.'} />
 
   const move = (key: number, delta: number) => {

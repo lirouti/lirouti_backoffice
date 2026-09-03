@@ -13,11 +13,11 @@ import { num } from '@/shared/lib/format'
 import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
-import { Skeleton } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { Icon } from '@/shared/ui/Icon'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Segmented } from '@/shared/ui/Segmented'
+import { SkeletonRows } from '@/shared/ui/Skeleton'
 import { StatTile } from '@/shared/ui/StatTile'
 
 import {
@@ -76,7 +76,7 @@ export default function ReportsPage() {
   // URL 의 id 가 이 탭에 없을 수 있다 — 처리해서 빠졌거나 남이 보낸 링크다. 첫 행으로 떨어진다.
   const selected = rows.find((r) => String(r.key) === params.get('id')) ?? rows[0]
 
-  if (isPending) return <Skeleton rows={8} />
+  if (isPending) return <SkeletonRows rows={8} />
   if (error || !data) return <ErrorBanner message={error?.message ?? '신고를 불러오지 못했습니다.'} />
 
   const patch = (next: Partial<Record<'tab' | 'id', string>>) =>

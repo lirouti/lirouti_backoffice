@@ -11,6 +11,7 @@ import { Card, CardTitle } from '@/shared/ui/Card'
 import { BarChart } from '@/shared/ui/chart/BarChart'
 import { LineChart } from '@/shared/ui/chart/LineChart'
 import { PageHeader } from '@/shared/ui/PageHeader'
+import { SkeletonBlock, SkeletonRows, SkeletonStats } from '@/shared/ui/Skeleton'
 import { StatCard } from '@/shared/ui/StatCard'
 
 import { CURRENT_SEASON, seasonLabel } from '@/domain/season'
@@ -22,9 +23,6 @@ import { TopItemsCard } from './TopItemsCard'
 
 export default function DashboardPage() {
   const { data, isPending, error } = useDashboard()
-
-  if (isPending) return <ScreenState>지표를 불러오는 중…</ScreenState>
-  if (error) return <ScreenState tone="danger">{error.message}</ScreenState>
 
   return (
     <>
@@ -50,6 +48,16 @@ export default function DashboardPage() {
         }
       />
 
+      {/*
+        ⚠️ **헤더는 로딩 중에도 그린다.** 제목·부제·버튼은 데이터가 없어도 아는 값이라,
+        지웠다 다시 그리면 **아는 것까지 튄다** (docs/ARCHITECTURE.md §43).
+      */}
+      {isPending ? (
+        <DashboardSkeleton />
+      ) : error ? (
+        <ScreenState tone="danger">{error.message}</ScreenState>
+      ) : (
+        <>
       <div
         className={css({
           display: 'grid',
@@ -76,6 +84,26 @@ export default function DashboardPage() {
       <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '14px', mt: '14px' })}>
         <TopItemsCard items={data.topItems} />
         <LiveChallengesCard challenges={data.liveChallenges} />
+      </div>
+        </>
+      )}
+    </>
+  )
+}
+
+/** 지표 6 + 차트 2 + 목록 카드 2. 실제 화면과 같은 자리를 잡는다 */
+function DashboardSkeleton() {
+  return (
+    <>
+      {/* `min` 은 아래 실제 격자와 **같은 200** 이어야 한다 — 다르면 열 수가 바뀌어 튄다 */}
+      <SkeletonStats count={6} min={200} />
+      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '14px', mt: '14px' })}>
+        <SkeletonBlock height={196} silent className={css({ flex: '1 1 520px' })} />
+        <SkeletonBlock height={196} silent className={css({ flex: '1 1 340px' })} />
+      </div>
+      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '14px', mt: '14px' })}>
+        <SkeletonRows rows={5} silent className={css({ flex: '1 1 420px' })} />
+        <SkeletonRows rows={5} silent className={css({ flex: '1 1 420px' })} />
       </div>
     </>
   )

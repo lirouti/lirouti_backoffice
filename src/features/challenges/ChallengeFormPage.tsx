@@ -15,12 +15,12 @@ import { AssetThumb } from '@/shared/ui/AssetThumb'
 import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
 import { DraftNotice, DraftSavedAt } from '@/shared/ui/DraftNotice'
-import { Skeleton } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { Input } from '@/shared/ui/Input'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Segmented } from '@/shared/ui/Segmented'
 import { Select } from '@/shared/ui/Select'
+import { SkeletonRows } from '@/shared/ui/Skeleton'
 import { Textarea } from '@/shared/ui/Textarea'
 
 import {
@@ -62,7 +62,7 @@ export default function ChallengeFormPage() {
   const existing = useChallenge(chalId ?? '')
 
   if (!chalId) return <ChallengeForm key="new" initial={emptyChallengeInput()} />
-  if (existing.isPending) return <Skeleton rows={6} />
+  if (existing.isPending) return <SkeletonRows rows={6} />
   if (existing.error || !existing.data) {
     return <ErrorBanner message={existing.error?.message ?? '챌린지를 불러오지 못했습니다.'} />
   }

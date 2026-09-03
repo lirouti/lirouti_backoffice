@@ -12,9 +12,9 @@ import { num } from '@/shared/lib/format'
 import { AssetThumb } from '@/shared/ui/AssetThumb'
 import { Button } from '@/shared/ui/Button'
 import { Card } from '@/shared/ui/Card'
-import { Skeleton } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { PageHeader } from '@/shared/ui/PageHeader'
+import { SkeletonRows } from '@/shared/ui/Skeleton'
 
 import { backgroundMeta, type Background } from '@/domain/background'
 import { TIER_LABEL } from '@/domain/item'
@@ -41,7 +41,7 @@ export default function BackgroundsPage() {
       {error ? (
         <ErrorBanner message={error.message} />
       ) : isPending ? (
-        <Skeleton rows={6} />
+        <SkeletonRows rows={6} />
       ) : (
         <div
           className={css({

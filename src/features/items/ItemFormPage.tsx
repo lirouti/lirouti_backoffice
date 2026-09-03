@@ -16,12 +16,13 @@ import { AssetThumb } from '@/shared/ui/AssetThumb'
 import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
 import { DraftNotice, DraftSavedAt } from '@/shared/ui/DraftNotice'
-import { EmptyState, Skeleton } from '@/shared/ui/EmptyState'
+import { EmptyState } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { Input } from '@/shared/ui/Input'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Segmented } from '@/shared/ui/Segmented'
 import { Select } from '@/shared/ui/Select'
+import { SkeletonRows } from '@/shared/ui/Skeleton'
 import { Switch } from '@/shared/ui/Switch'
 import { Textarea } from '@/shared/ui/Textarea'
 
@@ -126,7 +127,7 @@ export default function ItemFormPage() {
   //    **먼 파일의 설정 한 줄에 달려 있고**, 깨졌을 때 화면은 멀쩡해 보이면서 다른
   //    아이템에 값이 덮인다. 불변식을 여기에 두어 그 의존을 끊는다.
   if (!itemId) return <ItemForm key="new" initial={emptyItemInput()} />
-  if (existing.isPending) return <Skeleton rows={6} />
+  if (existing.isPending) return <SkeletonRows rows={6} />
   if (existing.error || !existing.data) {
     return <ErrorBanner message={existing.error?.message ?? '아이템을 불러오지 못했습니다.'} />
   }

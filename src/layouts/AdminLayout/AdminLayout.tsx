@@ -12,6 +12,7 @@ import { Navigate, useLocation, useOutlet } from 'react-router'
 import { css } from 'styled-system/css'
 
 import { Dialog } from '@/shared/ui/Dialog'
+import { SkeletonPage } from '@/shared/ui/Skeleton'
 
 import { canAccess } from '@/domain/access'
 import { SCREENS } from '@/domain/screens'
@@ -151,7 +152,7 @@ export function AdminLayout() {
               activeCacheKey={pathname}
               max={Math.max(MAX_TABS, tabs.length) * 2}
             >
-              <Suspense fallback={<ScreenSkeleton />}>{outlet}</Suspense>
+              <Suspense fallback={<SkeletonPage />}>{outlet}</Suspense>
             </KeepAlive>
           </div>
         </main>
@@ -170,11 +171,5 @@ export function AdminLayout() {
         cancelLabel="계속 편집"
       />
     </div>
-  )
-}
-
-function ScreenSkeleton() {
-  return (
-    <div className={css({ textStyle: 'body', color: 'faint', p: '40px 4px' })}>불러오는 중…</div>
   )
 }

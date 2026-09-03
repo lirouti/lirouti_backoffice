@@ -11,11 +11,11 @@ import { css } from 'styled-system/css'
 import { num } from '@/shared/lib/format'
 import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
-import { Skeleton } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { Input } from '@/shared/ui/Input'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Segmented } from '@/shared/ui/Segmented'
+import { SkeletonRows } from '@/shared/ui/Skeleton'
 import { StatTile } from '@/shared/ui/StatTile'
 import { Table, type Column } from '@/shared/ui/Table'
 
@@ -150,7 +150,7 @@ export default function CodesPage() {
       </div>
 
       {isPending ? (
-        <Skeleton rows={8} />
+        <SkeletonRows rows={8} />
       ) : error ? (
         <ErrorBanner message={error.message} />
       ) : (

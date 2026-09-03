@@ -14,11 +14,11 @@ import { AssetThumb } from '@/shared/ui/AssetThumb'
 import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
-import { Skeleton } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { Input } from '@/shared/ui/Input'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Select } from '@/shared/ui/Select'
+import { SkeletonRows } from '@/shared/ui/Skeleton'
 import { Table, type Column } from '@/shared/ui/Table'
 
 import { CURRENT_SEASON, seasonOptions } from '@/domain/season'
@@ -74,7 +74,7 @@ export default function SpeciesDetailPage() {
   const { speciesId = '' } = useParams()
   const { data, isPending, error } = useSpecies(speciesId)
 
-  if (isPending) return <Skeleton rows={8} />
+  if (isPending) return <SkeletonRows rows={8} />
   if (error || !data) {
     return <ErrorBanner message={error?.message ?? '종을 불러오지 못했습니다.'} />
   }

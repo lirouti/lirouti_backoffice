@@ -16,9 +16,9 @@ import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
 import { BarChart } from '@/shared/ui/chart/BarChart'
 import { Dialog } from '@/shared/ui/Dialog'
-import { Skeleton } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { PageHeader } from '@/shared/ui/PageHeader'
+import { SkeletonRows } from '@/shared/ui/Skeleton'
 import { StatTile } from '@/shared/ui/StatTile'
 
 import {
@@ -36,7 +36,7 @@ export default function PushDetailPage() {
   const { pushId = '' } = useParams()
   const { data, isPending, error } = usePush(pushId)
 
-  if (isPending) return <Skeleton rows={8} />
+  if (isPending) return <SkeletonRows rows={8} />
   if (error || !data) return <ErrorBanner message={error?.message ?? '알림을 불러오지 못했습니다.'} />
 
   return <Detail detail={data} pushId={pushId} />

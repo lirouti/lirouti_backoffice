@@ -14,9 +14,9 @@ import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
 import { BarChart } from '@/shared/ui/chart/BarChart'
-import { Skeleton } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { PageHeader } from '@/shared/ui/PageHeader'
+import { SkeletonRows } from '@/shared/ui/Skeleton'
 import { StatTile } from '@/shared/ui/StatTile'
 
 import {
@@ -37,7 +37,7 @@ export default function ChallengeDetailPage() {
   const { chalId = '' } = useParams()
   const { data, isPending, error } = useChallenge(chalId)
 
-  if (isPending) return <Skeleton rows={8} />
+  if (isPending) return <SkeletonRows rows={8} />
   if (error || !data) return <ErrorBanner message={error?.message ?? '챌린지를 불러오지 못했습니다.'} />
 
   return <Detail detail={data} chalId={chalId} />

@@ -12,12 +12,13 @@ import { num } from '@/shared/lib/format'
 import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
-import { EmptyState, Skeleton } from '@/shared/ui/EmptyState'
+import { EmptyState } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { Input } from '@/shared/ui/Input'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Segmented } from '@/shared/ui/Segmented'
 import { Select } from '@/shared/ui/Select'
+import { SkeletonRows } from '@/shared/ui/Skeleton'
 import { StatTile } from '@/shared/ui/StatTile'
 import { Switch } from '@/shared/ui/Switch'
 import { Table, type Column } from '@/shared/ui/Table'
@@ -165,7 +166,7 @@ export default function AuditPage() {
       </Card>
 
       {isPending ? (
-        <Skeleton rows={8} />
+        <SkeletonRows rows={8} />
       ) : error ? (
         <ErrorBanner message={error.message} />
       ) : (
