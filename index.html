@@ -8,8 +8,11 @@
     <!--
       ⚠️ **색인 금지.** 로그인 뒤 운영 어드민이라 검색에 뜰 이유가 없고, 목 로그인이
       아무나 통과시키는 데모 배포에서는 위험만 남는다 (docs/ARCHITECTURE.md §9.4).
-      `vercel.json` 의 `X-Robots-Tag` 와 `public/robots.txt` 가 같은 말을 한다 —
-      크롤러마다 보는 것이 달라 셋을 함께 둔다.
+      `vercel.json` 의 `X-Robots-Tag` 헤더가 같은 말을 한다 — 크롤러마다 보는 것이 달라
+      둘을 함께 둔다.
+
+      ⚠️ **`robots.txt` 로 막지 않는다.** 크롤링을 막으면 이 태그를 못 읽어서 오히려
+      URL 만 색인될 수 있다. 자세한 것은 `public/robots.txt` 의 주석.
     -->
     <meta name="robots" content="noindex, nofollow" />
 
