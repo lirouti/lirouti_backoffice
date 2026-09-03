@@ -10,7 +10,7 @@ import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { PageHeader } from '@/shared/ui/PageHeader'
-import { SkeletonRows } from '@/shared/ui/Skeleton'
+import { SkeletonRows, SkeletonStats } from '@/shared/ui/Skeleton'
 import { StatTile } from '@/shared/ui/StatTile'
 import { Table, type Column } from '@/shared/ui/Table'
 
@@ -42,9 +42,6 @@ const COLUMNS: Column<Level>[] = [
 export default function LevelsPage() {
   const { data, isPending, error } = useLevels()
 
-  if (isPending) return <SkeletonRows rows={8} />
-  if (error || !data) return <ErrorBanner message={error?.message ?? '레벨 테이블을 불러오지 못했습니다.'} />
-
   return (
     <>
       <PageHeader
@@ -58,29 +55,47 @@ export default function LevelsPage() {
         }
       />
 
-      <div
-        className={css({
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-          gap: '12px',
-          mb: '16px',
-        })}
-      >
-        <StatTile label="만렙" value={`Lv ${num(data.summary.maxLv)}`} />
-        <StatTile label="만렙까지 경험치" value={num(data.summary.totalExp)} />
-        <StatTile label="만렙까지 젬" value={num(data.summary.totalGem)} />
-        <StatTile
-          label="검수 중"
-          value={num(data.summary.reviewing)}
-          alert={data.summary.reviewing > 0}
-        />
-      </div>
+      {/* ⚠️ **헤더는 로딩 중에도 그린다** — 제목·부제·버튼이 데이터를 안 쓴다 (§43.2) */}
+      {isPending ? (
+        <>
+          <SkeletonStats count={4} min={150} />
+          <SkeletonRows rows={8} silent className={css({ mt: '14px' })} />
+        </>
+      ) : error || !data ? (
+        <ErrorBanner message={error?.message ?? '레벨 테이블을 불러오지 못했습니다.'} />
+      ) : (
+        <>
+          <div
+            className={css({
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+              gap: '12px',
+              mb: '16px',
+            })}
+          >
+            <StatTile label="만렙" value={`Lv ${num(data.summary.maxLv)}`} />
+            <StatTile label="만렙까지 경험치" value={num(data.summary.totalExp)} />
+            <StatTile label="만렙까지 젬" value={num(data.summary.totalGem)} />
+            <StatTile
+              label="검수 중"
+              value={num(data.summary.reviewing)}
+              alert={data.summary.reviewing > 0}
+            />
+          </div>
 
-      <Table columns={COLUMNS} rows={data.levels} minWidth={720} rowKey={(l) => String(l.lv)} />
+          <Table
+            columns={COLUMNS}
+            rows={data.levels}
+            minWidth={720}
+            rowKey={(l) => String(l.lv)}
+          />
 
-      <p className={css({ m: '14px 0 0', textStyle: 'caption', color: 'faint' })}>
-        「누적」 은 Lv 1 부터 그 레벨을 마치기까지 쌓인 합입니다 — 「필요 경험치」 를 더한 값입니다.
-      </p>
+          <p className={css({ m: '14px 0 0', textStyle: 'caption', color: 'faint' })}>
+            「누적」 은 Lv 1 부터 그 레벨을 마치기까지 쌓인 합입니다 — 「필요 경험치」 를 더한
+            값입니다.
+          </p>
+        </>
+      )}
     </>
   )
 }

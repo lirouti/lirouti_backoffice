@@ -10,7 +10,7 @@ import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { PageHeader } from '@/shared/ui/PageHeader'
-import { SkeletonRows } from '@/shared/ui/Skeleton'
+import { SkeletonRows, SkeletonStats } from '@/shared/ui/Skeleton'
 import { StatTile } from '@/shared/ui/StatTile'
 import { Table, type Column } from '@/shared/ui/Table'
 
@@ -25,9 +25,6 @@ import { useNotices, type NoticeEntry } from '@/api/ops'
 
 export default function NoticesPage() {
   const { data, isPending, error } = useNotices()
-
-  if (isPending) return <SkeletonRows rows={6} />
-  if (error || !data) return <ErrorBanner message={error?.message ?? '공지를 불러오지 못했습니다.'} />
 
   const columns: Column<NoticeEntry>[] = [
     { key: 'title', label: '제목', truncate: true, strong: true, render: (r) => r.notice.title },
@@ -76,31 +73,48 @@ export default function NoticesPage() {
         }
       />
 
-      <div
-        className={css({
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-          gap: '12px',
-          mb: '16px',
-        })}
-      >
-        <StatTile label="게시중" value={num(data.summary.active)} />
-        <StatTile label="예약" value={num(data.summary.scheduled)} />
-        {/* 권장치를 넘었을 때만 붉다 — 2건은 정상이라 늘 빨가면 아무 뜻이 없다 */}
-        <StatTile
-          label={`상단 고정 (권장 ${PIN_LIMIT})`}
-          value={num(data.summary.pinned)}
-          alert={data.summary.overPinned}
-        />
-      </div>
+      {/* ⚠️ **헤더는 로딩 중에도 그린다** — 제목·부제·버튼이 데이터를 안 쓴다 (§43.2) */}
+      {isPending ? (
+        <>
+          <SkeletonStats count={3} min={150} />
+          <SkeletonRows rows={8} silent className={css({ mt: '14px' })} />
+        </>
+      ) : error || !data ? (
+        <ErrorBanner message={error?.message ?? '공지를 불러오지 못했습니다.'} />
+      ) : (
+        <>
+          <div
+            className={css({
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+              gap: '12px',
+              mb: '16px',
+            })}
+          >
+            <StatTile label="게시중" value={num(data.summary.active)} />
+            <StatTile label="예약" value={num(data.summary.scheduled)} />
+            {/* 권장치를 넘었을 때만 붉다 — 2건은 정상이라 늘 빨가면 아무 뜻이 없다 */}
+            <StatTile
+              label={`상단 고정 (권장 ${PIN_LIMIT})`}
+              value={num(data.summary.pinned)}
+              alert={data.summary.overPinned}
+            />
+          </div>
 
-      {data.summary.overPinned && (
-        <ErrorBanner
-          message={`상단 고정이 ${data.summary.pinned}건입니다. ${PIN_LIMIT}건을 넘으면 앱 공지 목록에서 실제 새 글이 밀립니다.`}
-        />
+          {data.summary.overPinned && (
+            <ErrorBanner
+              message={`상단 고정이 ${data.summary.pinned}건입니다. ${PIN_LIMIT}건을 넘으면 앱 공지 목록에서 실제 새 글이 밀립니다.`}
+            />
+          )}
+
+          <Table
+            columns={columns}
+            rows={data.notices}
+            minWidth={820}
+            rowKey={(r) => String(r.notice.key)}
+          />
+        </>
       )}
-
-      <Table columns={columns} rows={data.notices} minWidth={820} rowKey={(r) => String(r.notice.key)} />
     </>
   )
 }

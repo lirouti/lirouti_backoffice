@@ -18,7 +18,7 @@ import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { Input } from '@/shared/ui/Input'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Select } from '@/shared/ui/Select'
-import { SkeletonRows } from '@/shared/ui/Skeleton'
+import { SkeletonHeader, SkeletonRows } from '@/shared/ui/Skeleton'
 import { Table, type Column } from '@/shared/ui/Table'
 
 import { CURRENT_SEASON, seasonOptions } from '@/domain/season'
@@ -74,7 +74,18 @@ export default function SpeciesDetailPage() {
   const { speciesId = '' } = useParams()
   const { data, isPending, error } = useSpecies(speciesId)
 
-  if (isPending) return <SkeletonRows rows={8} />
+  if (isPending) {
+    // ⚠️ **제목을 그릴 수 없다** — 상세 화면의 제목은 불러온 값이다(「소이」 · 「첫 알」).
+    //    그래서 헤더도 자리만 잡는다. 아는 것과 모르는 것을 섞지 않는다 (docs/ARCHITECTURE.md §43.2).
+
+    return (
+      <>
+        <SkeletonHeader />
+
+        <SkeletonRows rows={6} silent />
+      </>
+    )
+  }
   if (error || !data) {
     return <ErrorBanner message={error?.message ?? '종을 불러오지 못했습니다.'} />
   }

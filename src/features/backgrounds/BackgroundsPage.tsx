@@ -14,7 +14,7 @@ import { Button } from '@/shared/ui/Button'
 import { Card } from '@/shared/ui/Card'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { PageHeader } from '@/shared/ui/PageHeader'
-import { SkeletonRows } from '@/shared/ui/Skeleton'
+import { SkeletonCards } from '@/shared/ui/Skeleton'
 
 import { backgroundMeta, type Background } from '@/domain/background'
 import { TIER_LABEL } from '@/domain/item'
@@ -41,7 +41,7 @@ export default function BackgroundsPage() {
       {error ? (
         <ErrorBanner message={error.message} />
       ) : isPending ? (
-        <SkeletonRows rows={6} />
+        <SkeletonCards count={8} min={190} />
       ) : (
         <div
           className={css({

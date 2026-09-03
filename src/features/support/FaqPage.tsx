@@ -19,7 +19,7 @@ import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { ProgressBar } from '@/shared/ui/ProgressBar'
 import { Segmented } from '@/shared/ui/Segmented'
-import { SkeletonRows } from '@/shared/ui/Skeleton'
+import { SkeletonRows, SkeletonStats } from '@/shared/ui/Skeleton'
 import { StatTile } from '@/shared/ui/StatTile'
 import { Switch } from '@/shared/ui/Switch'
 
@@ -48,9 +48,6 @@ export default function FaqPage() {
   const dirty = draft !== null
   // 거른 상태에서 위아래로 옮기면 안 보이는 항목과의 상대 순서를 알 수 없다.
   const canMove = tab === '전체'
-
-  if (isPending) return <SkeletonRows rows={8} />
-  if (error || !data) return <ErrorBanner message={error?.message ?? 'FAQ 를 불러오지 못했습니다.'} />
 
   const move = (key: number, delta: number) => {
     const at = all.findIndex((f) => f.key === key)
@@ -93,64 +90,84 @@ export default function FaqPage() {
         }
       />
 
-      {(reorder.error || toggle.error) && (
-        <ErrorBanner message={(reorder.error ?? toggle.error)!.message} />
-      )}
+      {/* ⚠️ **헤더는 로딩 중에도 그린다** — 제목·부제·버튼이 데이터를 안 쓴다 (§43.2) */}
+      {isPending ? (
+        <>
+          <SkeletonStats count={3} min={150} />
+          <SkeletonRows rows={8} silent className={css({ mt: '14px' })} />
+        </>
+      ) : error || !data ? (
+        <ErrorBanner message={error?.message ?? 'FAQ 를 불러오지 못했습니다.'} />
+      ) : (
+        <>
+          {(reorder.error || toggle.error) && (
+            <ErrorBanner message={(reorder.error ?? toggle.error)!.message} />
+          )}
 
-      <div
-        className={css({
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-          gap: '12px',
-          mb: '16px',
-        })}
-      >
-        <StatTile label="앱에 노출" value={num(data.summary.live)} />
-        <StatTile label="전체" value={num(data.summary.total)} />
-        {/* 도움됨이 낮은 것은 답이 문제를 못 풀어 주고 있다는 신호다 */}
-        <StatTile
-          label={`손봐야 함 (도움됨 ${POOR_HELPFUL}% 미만)`}
-          value={num(data.summary.poor)}
-          alert={data.summary.poor > 0}
-        />
-      </div>
-
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center', mb: '14px' })}>
-        <Segmented
-          value={tab}
-          onChange={(v) => {
-            const p = new URLSearchParams(params)
-            if (v === '전체') p.delete('tab')
-            else p.set('tab', v)
-            setParams(p, { replace: true })
-          }}
-          options={[...FAQ_TABS]}
-          aria-label="FAQ 분류"
-        />
-        {!canMove && (
-          <span className={css({ textStyle: 'caption', color: 'faint' })}>
-            순서는 「전체」 에서만 바꿀 수 있습니다.
-          </span>
-        )}
-      </div>
-
-      <Card className={css({ p: '0', overflow: 'hidden' })}>
-        <ol className={css({ listStyle: 'none', m: '0', p: '0' })}>
-          {rows.map((f) => (
-            <FaqRow
-              key={f.key}
-              faq={f}
-              n={all.indexOf(f) + 1}
-              canMove={canMove}
-              onUp={all.indexOf(f) === 0 ? undefined : () => move(f.key, -1)}
-              onDown={all.indexOf(f) === all.length - 1 ? undefined : () => move(f.key, 1)}
-              onToggle={(visible) => toggleVisible(f.key, visible)}
-              onEdit={() => navigate(`${SCREENS.faqnew.path}?id=${f.key}`)}
-              busy={reorder.isPending || toggle.isPending}
+          <div
+            className={css({
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+              gap: '12px',
+              mb: '16px',
+            })}
+          >
+            <StatTile label="앱에 노출" value={num(data.summary.live)} />
+            <StatTile label="전체" value={num(data.summary.total)} />
+            {/* 도움됨이 낮은 것은 답이 문제를 못 풀어 주고 있다는 신호다 */}
+            <StatTile
+              label={`손봐야 함 (도움됨 ${POOR_HELPFUL}% 미만)`}
+              value={num(data.summary.poor)}
+              alert={data.summary.poor > 0}
             />
-          ))}
-        </ol>
-      </Card>
+          </div>
+
+          <div
+            className={css({
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '10px',
+              alignItems: 'center',
+              mb: '14px',
+            })}
+          >
+            <Segmented
+              value={tab}
+              onChange={(v) => {
+                const p = new URLSearchParams(params)
+                if (v === '전체') p.delete('tab')
+                else p.set('tab', v)
+                setParams(p, { replace: true })
+              }}
+              options={[...FAQ_TABS]}
+              aria-label="FAQ 분류"
+            />
+            {!canMove && (
+              <span className={css({ textStyle: 'caption', color: 'faint' })}>
+                순서는 「전체」 에서만 바꿀 수 있습니다.
+              </span>
+            )}
+          </div>
+
+          <Card className={css({ p: '0', overflow: 'hidden' })}>
+            <ol className={css({ listStyle: 'none', m: '0', p: '0' })}>
+              {rows.map((f) => (
+                <FaqRow
+                  key={f.key}
+                  faq={f}
+                  n={all.indexOf(f) + 1}
+                  canMove={canMove}
+                  onUp={all.indexOf(f) === 0 ? undefined : () => move(f.key, -1)}
+                  onDown={all.indexOf(f) === all.length - 1 ? undefined : () => move(f.key, 1)}
+                  onToggle={(visible) => toggleVisible(f.key, visible)}
+                  onEdit={() => navigate(`${SCREENS.faqnew.path}?id=${f.key}`)}
+                  busy={reorder.isPending || toggle.isPending}
+                />
+              ))}
+            </ol>
+          </Card>
+        </>
+      )}
     </>
   )
 }

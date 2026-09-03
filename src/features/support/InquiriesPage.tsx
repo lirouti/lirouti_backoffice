@@ -15,7 +15,7 @@ import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { Input } from '@/shared/ui/Input'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Segmented } from '@/shared/ui/Segmented'
-import { SkeletonRows } from '@/shared/ui/Skeleton'
+import { SkeletonRows, SkeletonStats } from '@/shared/ui/Skeleton'
 import { StatTile } from '@/shared/ui/StatTile'
 import { Table, type Column } from '@/shared/ui/Table'
 
@@ -135,7 +135,7 @@ export default function InquiriesPage() {
         }
       />
 
-      {data && (
+      {data ? (
         <div
           className={css({
             display: 'grid',
@@ -158,7 +158,9 @@ export default function InquiriesPage() {
           />
           <StatTile label="재문의율" value={`${data.summary.reopenRate}%`} />
         </div>
-      )}
+      ) : isPending ? (
+        <SkeletonStats count={5} min={150} silent className={css({ mb: '16px' })} />
+      ) : null}
 
       <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center', mb: '14px' })}>
         <Input

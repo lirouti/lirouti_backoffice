@@ -23,7 +23,7 @@ import { EmptyState } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { Input } from '@/shared/ui/Input'
 import { PageHeader } from '@/shared/ui/PageHeader'
-import { SkeletonRows } from '@/shared/ui/Skeleton'
+import { SkeletonForm } from '@/shared/ui/Skeleton'
 
 import {
   emptyAchievementInput,
@@ -67,6 +67,10 @@ type PendingAsset = { file: File; preview: string }
 /** 검증에만 쓰는 가짜 `assetId`. 저장되는 값이 아니다 (아이템 폼과 같은 장치) */
 const PENDING_ASSET_ID = '(올리는 중)'
 
+/** 로딩 중에도 그리므로 두 곳이 같은 문장을 쓰게 상수로 둔다 (§43.2) */
+const FORM_SUB =
+  '조형이 곧 이름표입니다. 수집함에서 그림만 보고 어느 업적인지 알 수 있어야 합니다.'
+
 export default function AchievementFormPage() {
   const { achId } = useParams()
   // 수정이면 원본을 받아 초기값으로 쓴다. 등록이면 부르지 않는다.
@@ -76,7 +80,17 @@ export default function AchievementFormPage() {
   //    `defaultValues` 로 한 번만 읽으므로, 같은 자리에서 `achId` 만 바뀌면
   //    **A 의 입력으로 B 를 저장한다** (아이템 폼과 같은 불변식, §18.8).
   if (!achId) return <AchievementForm key="new" initial={emptyAchievementInput()} />
-  if (existing.isPending) return <SkeletonRows rows={5} />
+  if (existing.isPending) {
+    // ⚠️ **헤더는 로딩 중에도 그린다** — 제목·부제가 데이터를 안 쓰므로 아는 값이다.
+    //    지웠다 다시 그리면 아는 것까지 튄다 (docs/ARCHITECTURE.md §43.2).
+    //    다만 **버튼은 빼둔다** — 아직 없는 데이터를 대상으로 하는 동작이다.
+    return (
+      <>
+        <PageHeader title={achId ? '업적 수정' : '업적 등록'} sub={FORM_SUB} />
+        <SkeletonForm fields={4} />
+      </>
+    )
+  }
   if (existing.error || !existing.data) {
     return <ErrorBanner message={existing.error?.message ?? '업적을 불러오지 못했습니다.'} />
   }
@@ -169,10 +183,7 @@ function AchievementForm({ achId, initial }: { achId?: string; initial: Achievem
 
   return (
     <form onSubmit={submit}>
-      <PageHeader
-        title={achId ? '업적 수정' : '업적 등록'}
-        sub="조형이 곧 이름표입니다. 수집함에서 그림만 보고 어느 업적인지 알 수 있어야 합니다."
-      />
+      <PageHeader title={achId ? '업적 수정' : '업적 등록'} sub={FORM_SUB} />
 
       {save.error && <ErrorBanner message={save.error.message} />}
       {upload.error && <ErrorBanner message={upload.error.message} />}

@@ -18,7 +18,7 @@ import { Dialog } from '@/shared/ui/Dialog'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { PageHeader } from '@/shared/ui/PageHeader'
-import { SkeletonRows } from '@/shared/ui/Skeleton'
+import { SkeletonHeader, SkeletonRows } from '@/shared/ui/Skeleton'
 import { Table, type Column } from '@/shared/ui/Table'
 
 import { firstScreen } from '@/domain/access'
@@ -45,8 +45,20 @@ export default function AdminDetailPage() {
   const me = useViewer()
   const { data, isPending, error } = useAdmin(adminId, me.email)
 
-  if (isPending) return <SkeletonRows rows={8} />
-  if (error || !data) return <ErrorBanner message={error?.message ?? '관리자를 불러오지 못했습니다.'} />
+  if (isPending) {
+    // ⚠️ **제목을 그릴 수 없다** — 상세 화면의 제목은 불러온 값이다(「소이」 · 「첫 알」).
+    //    그래서 헤더도 자리만 잡는다. 아는 것과 모르는 것을 섞지 않는다 (docs/ARCHITECTURE.md §43.2).
+
+    return (
+      <>
+        <SkeletonHeader />
+
+        <SkeletonRows rows={6} silent />
+      </>
+    )
+  }
+  if (error || !data)
+    return <ErrorBanner message={error?.message ?? '관리자를 불러오지 못했습니다.'} />
 
   // ⚠️ **`key` 가 있어야 다른 관리자로 옮길 때 아래의 초안이 딸려가지 않는다.**
   return <Detail key={adminId} detail={data} />

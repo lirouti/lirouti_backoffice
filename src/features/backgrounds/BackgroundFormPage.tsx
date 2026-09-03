@@ -23,7 +23,7 @@ import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { Input } from '@/shared/ui/Input'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Segmented } from '@/shared/ui/Segmented'
-import { SkeletonRows } from '@/shared/ui/Skeleton'
+import { SkeletonForm } from '@/shared/ui/Skeleton'
 
 import {
   emptyBackgroundInput,
@@ -68,6 +68,9 @@ type PendingAsset = { file: File; preview: string }
 /** 검증에만 쓰는 가짜 `assetId`. 저장되는 값이 아니다 */
 const PENDING_ASSET_ID = '(올리는 중)'
 
+/** 로딩 중에도 그리므로 두 곳이 같은 문장을 쓰게 상수로 둔다 (§43.2) */
+const FORM_SUB = '장소를 정하는 슬롯입니다. 둥지와 독립이라 어떤 조합으로도 쓰입니다.'
+
 export default function BackgroundFormPage() {
   const { bgId } = useParams()
   // 수정이면 원본을 받아 초기값으로 쓴다. 등록이면 부르지 않는다.
@@ -77,7 +80,17 @@ export default function BackgroundFormPage() {
   //    `defaultValues` 로 한 번만 읽으므로, 같은 자리에서 `bgId` 만 바뀌면
   //    **A 의 입력으로 B 를 저장한다** (§18.8 과 같은 불변식).
   if (!bgId) return <BackgroundForm key="new" initial={emptyBackgroundInput()} />
-  if (existing.isPending) return <SkeletonRows rows={5} />
+  if (existing.isPending) {
+    // ⚠️ **헤더는 로딩 중에도 그린다** — 제목·부제가 데이터를 안 쓰므로 아는 값이다.
+    //    지웠다 다시 그리면 아는 것까지 튄다 (docs/ARCHITECTURE.md §43.2).
+    //    다만 **버튼은 빼둔다** — 아직 없는 데이터를 대상으로 하는 동작이다.
+    return (
+      <>
+        <PageHeader title={bgId ? '배경 수정' : '배경 등록'} sub={FORM_SUB} />
+        <SkeletonForm fields={3} />
+      </>
+    )
+  }
   if (existing.error || !existing.data) {
     return <ErrorBanner message={existing.error?.message ?? '배경을 불러오지 못했습니다.'} />
   }
@@ -169,10 +182,7 @@ function BackgroundForm({ bgId, initial }: { bgId?: string; initial: BackgroundI
 
   return (
     <form onSubmit={submit}>
-      <PageHeader
-        title={bgId ? '배경 수정' : '배경 등록'}
-        sub="장소를 정하는 슬롯입니다. 둥지와 독립이라 어떤 조합으로도 쓰입니다."
-      />
+      <PageHeader title={bgId ? '배경 수정' : '배경 등록'} sub={FORM_SUB} />
 
       {save.error && <ErrorBanner message={save.error.message} />}
       {upload.error && <ErrorBanner message={upload.error.message} />}

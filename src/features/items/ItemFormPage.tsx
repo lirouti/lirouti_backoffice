@@ -22,7 +22,7 @@ import { Input } from '@/shared/ui/Input'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Segmented } from '@/shared/ui/Segmented'
 import { Select } from '@/shared/ui/Select'
-import { SkeletonRows } from '@/shared/ui/Skeleton'
+import { SkeletonForm } from '@/shared/ui/Skeleton'
 import { Switch } from '@/shared/ui/Switch'
 import { Textarea } from '@/shared/ui/Textarea'
 
@@ -114,6 +114,10 @@ const FLAGS: { key: keyof ItemFlags; label: string; hint: string }[] = [
   { key: 'gift', label: '선물 가능', hint: '유저 간 선물을 허용합니다' },
 ]
 
+/** 로딩 중에도 그리므로 두 곳이 같은 문장을 쓰게 상수로 둔다 (§43.2) */
+const FORM_SUB =
+  '상점과 도감에 노출되는 정보입니다. 슬롯이 독립이라 어느 캐릭터에나 그대로 적용됩니다.'
+
 export default function ItemFormPage() {
   const { itemId } = useParams()
   // 수정이면 원본을 받아 초기값으로 쓴다. 등록이면 부르지 않는다.
@@ -127,7 +131,17 @@ export default function ItemFormPage() {
   //    **먼 파일의 설정 한 줄에 달려 있고**, 깨졌을 때 화면은 멀쩡해 보이면서 다른
   //    아이템에 값이 덮인다. 불변식을 여기에 두어 그 의존을 끊는다.
   if (!itemId) return <ItemForm key="new" initial={emptyItemInput()} />
-  if (existing.isPending) return <SkeletonRows rows={6} />
+  if (existing.isPending) {
+    // ⚠️ **헤더는 로딩 중에도 그린다** — 제목·부제가 데이터를 안 쓰므로 아는 값이다.
+    //    지웠다 다시 그리면 아는 것까지 튄다 (docs/ARCHITECTURE.md §43.2).
+    //    다만 **버튼은 빼둔다** — 아직 없는 데이터를 대상으로 하는 동작이다.
+    return (
+      <>
+        <PageHeader title={itemId ? '아이템 수정' : '아이템 등록'} sub={FORM_SUB} />
+        <SkeletonForm fields={6} />
+      </>
+    )
+  }
   if (existing.error || !existing.data) {
     return <ErrorBanner message={existing.error?.message ?? '아이템을 불러오지 못했습니다.'} />
   }
@@ -223,10 +237,7 @@ function ItemForm({ itemId, initial }: { itemId?: string; initial: ItemInput }) 
 
   return (
     <form onSubmit={submit}>
-      <PageHeader
-        title={itemId ? '아이템 수정' : '아이템 등록'}
-        sub="상점과 도감에 노출되는 정보입니다. 슬롯이 독립이라 어느 캐릭터에나 그대로 적용됩니다."
-      />
+      <PageHeader title={itemId ? '아이템 수정' : '아이템 등록'} sub={FORM_SUB} />
 
       {save.error && <ErrorBanner message={save.error.message} />}
       {noticeOpen && (

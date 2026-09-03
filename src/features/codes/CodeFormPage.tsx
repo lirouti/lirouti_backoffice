@@ -22,7 +22,7 @@ import { Input } from '@/shared/ui/Input'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Segmented } from '@/shared/ui/Segmented'
 import { Select } from '@/shared/ui/Select'
-import { SkeletonRows } from '@/shared/ui/Skeleton'
+import { SkeletonForm } from '@/shared/ui/Skeleton'
 import { Textarea } from '@/shared/ui/Textarea'
 
 import {
@@ -60,6 +60,9 @@ const EMPTY: CodeGroupInput = {
   values: [emptyValue(), emptyValue()],
 }
 
+/** 로딩 중에도 그리므로 두 곳이 같은 문장을 쓰게 상수로 둔다 (§43.2) */
+const FORM_SUB = '드롭다운과 배지에 쓰일 값을 만듭니다.'
+
 export default function CodeFormPage() {
   const navigate = useNavigate()
   const viewer = useViewer()
@@ -79,8 +82,19 @@ export default function CodeFormPage() {
   const errors = validateCodeGroup(form, data?.takenKeys ?? [])
   const rows = usableValues(form)
 
-  if (isPending) return <SkeletonRows rows={8} />
-  if (error || !data) return <ErrorBanner message={error?.message ?? '코드 목록을 불러오지 못했습니다.'} />
+  if (isPending) {
+    // ⚠️ **헤더는 로딩 중에도 그린다** — 제목·부제가 데이터를 안 쓰므로 아는 값이다.
+    //    지웠다 다시 그리면 아는 것까지 튄다 (docs/ARCHITECTURE.md §43.2).
+    //    다만 **버튼은 빼둔다** — 아직 없는 데이터를 대상으로 하는 동작이다.
+    return (
+      <>
+        <PageHeader title="코드 그룹 추가" sub={FORM_SUB} />
+        <SkeletonForm fields={5} />
+      </>
+    )
+  }
+  if (error || !data)
+    return <ErrorBanner message={error?.message ?? '코드 목록을 불러오지 못했습니다.'} />
 
   const set = <K extends keyof CodeGroupInput>(k: K, v: CodeGroupInput[K]) =>
     setForm((f) => ({ ...f, [k]: v }))
@@ -100,7 +114,7 @@ export default function CodeFormPage() {
     <>
       <PageHeader
         title="코드 그룹 추가"
-        sub="드롭다운과 배지에 쓰일 값을 만듭니다."
+        sub={FORM_SUB}
         actions={
           <>
             <Button onClick={back}>취소</Button>

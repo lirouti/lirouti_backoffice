@@ -16,7 +16,7 @@ import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { PageHeader } from '@/shared/ui/PageHeader'
-import { SkeletonRows } from '@/shared/ui/Skeleton'
+import { SkeletonCards } from '@/shared/ui/Skeleton'
 
 import { SLOT_LABEL, TIER_LABEL, type Item } from '@/domain/item'
 
@@ -40,9 +40,6 @@ export default function ShopDisplayPage() {
   // 아직 손대지 않았으면 서버가 준 순서를 그대로 보여 준다.
   const rows = draft ?? data ?? []
   const dirty = draft !== null
-
-  if (isPending) return <SkeletonRows rows={8} />
-  if (error || !data) return <ErrorBanner message={error?.message ?? '진열을 불러오지 못했습니다.'} />
 
   const move = (from: number, to: number) => setDraft(moveSlot(rows, from, to))
 
@@ -84,53 +81,89 @@ export default function ShopDisplayPage() {
         }
       />
 
-      {(save.error || reset.error) && (
-        <ErrorBanner message={(save.error ?? reset.error)!.message} />
-      )}
+      {/* ⚠️ **헤더는 로딩 중에도 그린다** — 제목·부제·버튼이 데이터를 안 쓴다 (§43.2) */}
+      {isPending ? (
+        <SkeletonCards count={8} min={96} />
+      ) : error || !data ? (
+        <ErrorBanner message={error?.message ?? '진열을 불러오지 못했습니다.'} />
+      ) : (
+        <>
+          {(save.error || reset.error) && (
+            <ErrorBanner message={(save.error ?? reset.error)!.message} />
+          )}
 
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '18px', alignItems: 'flex-start' })}>
-        <Card className={css({ flex: '2 1 420px', minWidth: '0', p: '15px 17px' })}>
-          <CardTitle title="진열 목록" sub={`${num(rows.length)}개 · 위에서부터 노출됩니다.`} />
-          <ol className={css({ listStyle: 'none', m: '13px 0 0', p: '0' })}>
-            {rows.map((r, i) => (
-              <SlotRow
-                key={r.slot.itemKey}
-                entry={r}
-                n={i + 1}
-                cut={i === PREVIEW - 1}
-                onUp={i === 0 ? undefined : () => move(i, i - 1)}
-                onDown={i === rows.length - 1 ? undefined : () => move(i, i + 1)}
-                disabled={busy}
-              />
-            ))}
-          </ol>
-        </Card>
-
-        <Card className={css({ flex: '1 1 280px', minWidth: '0', p: '15px 17px' })}>
-          <CardTitle title="상점 미리보기" sub={`첫 화면에 보이는 ${PREVIEW}칸입니다.`} />
           <div
             className={css({
-              mt: '13px',
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(96px, 1fr))',
-              gap: '10px',
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '18px',
+              alignItems: 'flex-start',
             })}
           >
-            {rows.slice(0, PREVIEW).map((r) => (
+            <Card className={css({ flex: '2 1 420px', minWidth: '0', p: '15px 17px' })}>
+              <CardTitle
+                title="진열 목록"
+                sub={`${num(rows.length)}개 · 위에서부터 노출됩니다.`}
+              />
+              <ol className={css({ listStyle: 'none', m: '13px 0 0', p: '0' })}>
+                {rows.map((r, i) => (
+                  <SlotRow
+                    key={r.slot.itemKey}
+                    entry={r}
+                    n={i + 1}
+                    cut={i === PREVIEW - 1}
+                    onUp={i === 0 ? undefined : () => move(i, i - 1)}
+                    onDown={i === rows.length - 1 ? undefined : () => move(i, i + 1)}
+                    disabled={busy}
+                  />
+                ))}
+              </ol>
+            </Card>
+
+            <Card className={css({ flex: '1 1 280px', minWidth: '0', p: '15px 17px' })}>
+              <CardTitle title="상점 미리보기" sub={`첫 화면에 보이는 ${PREVIEW}칸입니다.`} />
               <div
-                key={r.slot.itemKey}
-                className={css({ border: '1px solid token(colors.bd)', borderRadius: 'lg', p: '9px', bg: 'prev2' })}
+                className={css({
+                  mt: '13px',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(96px, 1fr))',
+                  gap: '10px',
+                })}
               >
-                <AssetThumb assetId={r.item.assetId} alt={r.item.name} size={64} />
-                <div className={css({ mt: '6px', textStyle: 'micro', fontWeight: '600', color: 'ink', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' })}>
-                  {r.item.name}
-                </div>
-                <div className={css({ textStyle: 'micro', color: 'faint' })}>{priceLabel(r.item)}</div>
+                {rows.slice(0, PREVIEW).map((r) => (
+                  <div
+                    key={r.slot.itemKey}
+                    className={css({
+                      border: '1px solid token(colors.bd)',
+                      borderRadius: 'lg',
+                      p: '9px',
+                      bg: 'prev2',
+                    })}
+                  >
+                    <AssetThumb assetId={r.item.assetId} alt={r.item.name} size={64} />
+                    <div
+                      className={css({
+                        mt: '6px',
+                        textStyle: 'micro',
+                        fontWeight: '600',
+                        color: 'ink',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      })}
+                    >
+                      {r.item.name}
+                    </div>
+                    <div className={css({ textStyle: 'micro', color: 'faint' })}>
+                      {priceLabel(r.item)}
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            </Card>
           </div>
-        </Card>
-      </div>
+        </>
+      )}
     </>
   )
 }

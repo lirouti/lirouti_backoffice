@@ -16,7 +16,7 @@ import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { Input } from '@/shared/ui/Input'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Segmented } from '@/shared/ui/Segmented'
-import { SkeletonRows } from '@/shared/ui/Skeleton'
+import { SkeletonRows, SkeletonStats } from '@/shared/ui/Skeleton'
 import { StatTile } from '@/shared/ui/StatTile'
 import { Table, type Column } from '@/shared/ui/Table'
 
@@ -100,7 +100,7 @@ export default function UsersPage() {
         }
       />
 
-      {summary && (
+      {summary ? (
         <div
           className={css({
             display: 'grid',
@@ -115,7 +115,9 @@ export default function UsersPage() {
           <StatTile label="결제 회원" value={num(summary.paying)} />
           <StatTile label="제재 중" value={num(summary.banned)} />
         </div>
-      )}
+      ) : isPending ? (
+        <SkeletonStats count={4} min={150} silent className={css({ mb: '16px' })} />
+      ) : null}
 
       <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center', mb: '14px' })}>
         <Input

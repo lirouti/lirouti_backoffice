@@ -235,6 +235,24 @@ export function SkeletonBlock({ height = 120, silent = false, className }: Commo
 }
 
 /**
+ * 제목·부제 자리.
+ *
+ * **제목이 불러온 값인 화면**에서 쓴다 — 상세 화면의 제목은 「소이」 처럼 데이터에서 오므로
+ * 로딩 중에는 그릴 수가 없다. 아는 것(고정 제목)이 있으면 이걸 쓰지 말고 **진짜 `PageHeader`**
+ * 를 그린다 (docs/ARCHITECTURE.md §43.2 — 아는 것과 모르는 것을 섞지 않는다).
+ */
+export function SkeletonHeader({ silent = false, className }: Common) {
+  return (
+    <div {...region(silent)} className={className}>
+      <div aria-hidden="true" className={css({ mb: '18px' })}>
+        <div className={bar} style={{ height: 22, width: '180px' }} />
+        <div className={bar} style={{ height: 10, width: '320px', marginTop: 10 }} />
+      </div>
+    </div>
+  )
+}
+
+/**
  * 화면 골격 — 라우트 폴백 전용.
  *
  * ⚠️ **여기서는 어떤 화면이 올지 모른다.** `<Suspense>` 가 lazy 청크를 기다리는 시점이라
@@ -249,10 +267,7 @@ export function SkeletonBlock({ height = 120, silent = false, className }: Commo
 export function SkeletonPage() {
   return (
     <div {...region(false)}>
-      <div aria-hidden="true" className={css({ mb: '18px' })}>
-        <div className={bar} style={{ height: 22, width: '180px' }} />
-        <div className={bar} style={{ height: 10, width: '320px', marginTop: 10 }} />
-      </div>
+      <SkeletonHeader silent />
       <SkeletonRows rows={6} silent />
     </div>
   )

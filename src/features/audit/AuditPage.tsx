@@ -18,7 +18,7 @@ import { Input } from '@/shared/ui/Input'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Segmented } from '@/shared/ui/Segmented'
 import { Select } from '@/shared/ui/Select'
-import { SkeletonRows } from '@/shared/ui/Skeleton'
+import { SkeletonRows, SkeletonStats } from '@/shared/ui/Skeleton'
 import { StatTile } from '@/shared/ui/StatTile'
 import { Switch } from '@/shared/ui/Switch'
 import { Table, type Column } from '@/shared/ui/Table'
@@ -112,7 +112,7 @@ export default function AuditPage() {
         </span>
       </div>
 
-      {data && (
+      {data ? (
         <div
           className={css({
             display: 'grid',
@@ -131,7 +131,9 @@ export default function AuditPage() {
           <StatTile label="활동 관리자" value={num(data.summary.actors)} />
           <StatTile label="보관 기간" value={`${AUDIT_KEEP_YEARS}년`} />
         </div>
-      )}
+      ) : isPending ? (
+        <SkeletonStats count={4} min={150} silent className={css({ mb: '16px' })} />
+      ) : null}
 
       <Card className={css({ p: '14px 16px', mb: '14px' })}>
         <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' })}>

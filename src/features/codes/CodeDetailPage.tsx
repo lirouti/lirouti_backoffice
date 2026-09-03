@@ -17,7 +17,7 @@ import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { PageHeader } from '@/shared/ui/PageHeader'
-import { SkeletonRows } from '@/shared/ui/Skeleton'
+import { SkeletonHeader, SkeletonRows, SkeletonStats } from '@/shared/ui/Skeleton'
 import { StatTile } from '@/shared/ui/StatTile'
 import { Switch } from '@/shared/ui/Switch'
 import { Table, type Column } from '@/shared/ui/Table'
@@ -45,8 +45,21 @@ export default function CodeDetailPage() {
   const { codeId = '' } = useParams()
   const { data, isPending, error } = useCodeGroup(codeId)
 
-  if (isPending) return <SkeletonRows rows={8} />
-  if (error || !data) return <ErrorBanner message={error?.message ?? '코드 그룹을 불러오지 못했습니다.'} />
+  if (isPending) {
+    // ⚠️ **제목을 그릴 수 없다** — 상세 화면의 제목은 불러온 값이다(「소이」 · 「첫 알」).
+    //    그래서 헤더도 자리만 잡는다. 아는 것과 모르는 것을 섞지 않는다 (docs/ARCHITECTURE.md §43.2).
+
+    return (
+      <>
+        <SkeletonHeader />
+        <SkeletonStats count={3} min={150} silent />
+
+        <SkeletonRows rows={5} silent />
+      </>
+    )
+  }
+  if (error || !data)
+    return <ErrorBanner message={error?.message ?? '코드 그룹을 불러오지 못했습니다.'} />
 
   return <Detail detail={data} />
 }

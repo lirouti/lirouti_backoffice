@@ -12,7 +12,7 @@ import { Button } from '@/shared/ui/Button'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { ProgressBar } from '@/shared/ui/ProgressBar'
-import { SkeletonRows } from '@/shared/ui/Skeleton'
+import { SkeletonRows, SkeletonStats } from '@/shared/ui/Skeleton'
 import { StatTile } from '@/shared/ui/StatTile'
 import { Table, type Column } from '@/shared/ui/Table'
 
@@ -33,11 +33,10 @@ const mil = (n: number): string => `${(n / 1_000_000).toFixed(1)}백만원`
 export default function GemsPage() {
   const { data, isPending, error } = useGems()
 
-  if (isPending) return <SkeletonRows rows={6} />
-  if (error || !data) return <ErrorBanner message={error?.message ?? '젬 상품을 불러오지 못했습니다.'} />
-
   // 배분이라 행마다 따로 낼 수 없다 — 목록 전체로 한 번 낸다(§24.2).
-  const shares = orderShares(data.products)
+  // 데이터가 오기 전에도 컬럼 정의를 만들어야 해서(헤더를 먼저 그리므로) 빈 목록을 넘긴다.
+  // 이 값을 읽는 자리는 데이터가 있을 때만 그려진다.
+  const shares = orderShares(data?.products ?? [])
 
   const columns: Column<GemProduct>[] = [
     { key: 'name', label: '상품', width: '110px', strong: true },
@@ -105,25 +104,42 @@ export default function GemsPage() {
         }
       />
 
-      <div
-        className={css({
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-          gap: '12px',
-          mb: '16px',
-        })}
-      >
-        <StatTile label="판매 중" value={num(data.summary.selling)} />
-        <StatTile label="주간 매출" value={mil(data.summary.revenue)} />
-        <StatTile label="주간 결제" value={num(data.summary.orders)} />
-      </div>
+      {/* ⚠️ **헤더는 로딩 중에도 그린다** — 제목·부제·버튼이 데이터를 안 쓴다 (§43.2) */}
+      {isPending ? (
+        <>
+          <SkeletonStats count={3} min={150} />
+          <SkeletonRows rows={8} silent className={css({ mt: '14px' })} />
+        </>
+      ) : error || !data ? (
+        <ErrorBanner message={error?.message ?? '젬 상품을 불러오지 못했습니다.'} />
+      ) : (
+        <>
+          <div
+            className={css({
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+              gap: '12px',
+              mb: '16px',
+            })}
+          >
+            <StatTile label="판매 중" value={num(data.summary.selling)} />
+            <StatTile label="주간 매출" value={mil(data.summary.revenue)} />
+            <StatTile label="주간 결제" value={num(data.summary.orders)} />
+          </div>
 
-      <Table columns={columns} rows={data.products} minWidth={940} rowKey={(p) => String(p.key)} />
+          <Table
+            columns={columns}
+            rows={data.products}
+            minWidth={940}
+            rowKey={(p) => String(p.key)}
+          />
 
-      <p className={css({ m: '14px 0 0', textStyle: 'caption', color: 'faint' })}>
-        판매 비중과 매출은 <strong>판매 중</strong>인 상품만 셉니다 — 예약·중단 상품을 섞으면 합이
-        100%가 되지 않습니다.
-      </p>
+          <p className={css({ m: '14px 0 0', textStyle: 'caption', color: 'faint' })}>
+            판매 비중과 매출은 <strong>판매 중</strong>인 상품만 셉니다 — 예약·중단 상품을
+            섞으면 합이 100%가 되지 않습니다.
+          </p>
+        </>
+      )}
     </>
   )
 }

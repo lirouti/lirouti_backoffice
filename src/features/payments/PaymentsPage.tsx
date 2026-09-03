@@ -16,7 +16,7 @@ import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { Input } from '@/shared/ui/Input'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Segmented } from '@/shared/ui/Segmented'
-import { SkeletonRows } from '@/shared/ui/Skeleton'
+import { SkeletonRows, SkeletonStats } from '@/shared/ui/Skeleton'
 import { StatTile } from '@/shared/ui/StatTile'
 import { Table, type Column } from '@/shared/ui/Table'
 
@@ -92,7 +92,7 @@ export default function PaymentsPage() {
         }
       />
 
-      {data && (
+      {data ? (
         <div
           className={css({
             display: 'grid',
@@ -106,7 +106,9 @@ export default function PaymentsPage() {
           <StatTile label="확인 필요" value={num(data.summary.stuck)} alert={data.summary.stuck > 0} />
           <StatTile label="실패" value={num(data.summary.failed)} />
         </div>
-      )}
+      ) : isPending ? (
+        <SkeletonStats count={4} min={150} silent className={css({ mb: '16px' })} />
+      ) : null}
 
       {data && data.stuck.length > 0 && (
         <Card className={css({ p: '0', overflow: 'hidden', mb: '16px', borderColor: 'rBd' })}>

@@ -16,7 +16,7 @@ import { Card, CardTitle } from '@/shared/ui/Card'
 import { BarChart } from '@/shared/ui/chart/BarChart'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { PageHeader } from '@/shared/ui/PageHeader'
-import { SkeletonRows } from '@/shared/ui/Skeleton'
+import { SkeletonHeader, SkeletonRows, SkeletonStats } from '@/shared/ui/Skeleton'
 import { StatTile } from '@/shared/ui/StatTile'
 
 import {
@@ -37,8 +37,21 @@ export default function ChallengeDetailPage() {
   const { chalId = '' } = useParams()
   const { data, isPending, error } = useChallenge(chalId)
 
-  if (isPending) return <SkeletonRows rows={8} />
-  if (error || !data) return <ErrorBanner message={error?.message ?? '챌린지를 불러오지 못했습니다.'} />
+  if (isPending) {
+    // ⚠️ **제목을 그릴 수 없다** — 상세 화면의 제목은 불러온 값이다(「소이」 · 「첫 알」).
+    //    그래서 헤더도 자리만 잡는다. 아는 것과 모르는 것을 섞지 않는다 (docs/ARCHITECTURE.md §43.2).
+
+    return (
+      <>
+        <SkeletonHeader />
+        <SkeletonStats count={4} min={150} silent />
+
+        <SkeletonRows rows={5} silent />
+      </>
+    )
+  }
+  if (error || !data)
+    return <ErrorBanner message={error?.message ?? '챌린지를 불러오지 못했습니다.'} />
 
   return <Detail detail={data} chalId={chalId} />
 }

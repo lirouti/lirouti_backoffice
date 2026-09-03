@@ -19,7 +19,7 @@ import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { Input } from '@/shared/ui/Input'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Segmented } from '@/shared/ui/Segmented'
-import { SkeletonRows } from '@/shared/ui/Skeleton'
+import { SkeletonForm } from '@/shared/ui/Skeleton'
 import { Switch } from '@/shared/ui/Switch'
 import { Textarea } from '@/shared/ui/Textarea'
 
@@ -61,6 +61,9 @@ const draftScope = (faqId: string): string => `faq:${faqId || 'new'}`
  *    3번을 쓰다 만 초안이 5번 화면에 그대로 뜨고, **5번 칸에 저장되며, 저장을 누르면
  *    3번의 내용이 5번에 덮어써진다** (docs/ARCHITECTURE.md §33.7).
  */
+/** 로딩 중에도 그리므로 두 곳이 같은 문장을 쓰게 상수로 둔다 (§43.2) */
+const FORM_SUB = '앱의 도움말이자 1:1 문의 답변의 템플릿입니다.'
+
 export default function FaqFormPage() {
   const [params] = useSearchParams()
   const { data, isPending, error } = useFaq(idOf(params))
@@ -68,7 +71,17 @@ export default function FaqFormPage() {
   const faqId = idOf(params)
   const editing = faqId !== ''
 
-  if (editing && isPending) return <SkeletonRows rows={8} />
+  if (editing && isPending) {
+    // ⚠️ **헤더는 로딩 중에도 그린다** — 제목·부제가 데이터를 안 쓰므로 아는 값이다.
+    //    지웠다 다시 그리면 아는 것까지 튄다 (docs/ARCHITECTURE.md §43.2).
+    //    다만 **버튼은 빼둔다** — 아직 없는 데이터를 대상으로 하는 동작이다.
+    return (
+      <>
+        <PageHeader title={editing ? 'FAQ 편집' : 'FAQ 등록'} sub={FORM_SUB} />
+        <SkeletonForm fields={4} />
+      </>
+    )
+  }
   if (editing && (error || !data)) {
     return <ErrorBanner message={error?.message ?? 'FAQ 를 불러오지 못했습니다.'} />
   }
@@ -127,7 +140,7 @@ function FaqForm({ faqId, initial }: { faqId: string; initial: FaqInput }) {
     <>
       <PageHeader
         title={editing ? 'FAQ 편집' : 'FAQ 등록'}
-        sub="앱의 도움말이자 1:1 문의 답변의 템플릿입니다."
+        sub={FORM_SUB}
         actions={
           <>
             {editing && (
