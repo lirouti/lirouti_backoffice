@@ -14,6 +14,16 @@ type OtpInputProps = {
   value: string
   onChange: (v: string) => void
   length: number
+  /**
+   * 칸이 **다 찬 순간** 한 번 부른다. 「확인」 을 누르지 않아도 검증이 돌게 하는 자리다.
+   *
+   * ⚠️ **인자로 온 값을 쓸 것.** 같은 이벤트에서 `onChange` 도 불리지만 그 `setState` 는
+   *    아직 반영되지 않았다 — 부모의 `value` 를 읽으면 **한 글자 전** 코드로 검증한다.
+   *
+   * ⚠️ **되돌릴 수 없는 동작에는 달지 말 것.** 자리를 채우는 것은 「하겠다」는 표시가
+   *    아니다 — 2단계 인증 **해제**처럼 마지막 한 번의 누름이 안전장치인 곳에는 없어야 한다.
+   */
+  onComplete?: (value: string) => void
   /** 검증 실패 — 칸을 붉게 물들이고 활성 표시를 끈다 */
   invalid?: boolean
   autoFocus?: boolean
@@ -64,11 +74,21 @@ export function OtpInput({
   value,
   onChange,
   length,
+  onComplete,
   invalid = false,
   autoFocus,
   'aria-label': ariaLabel,
 }: OtpInputProps) {
   const cells = Array.from({ length }, (_, i) => value[i] ?? '')
+
+  const change = (raw: string) => {
+    // 숫자만, 자릿수까지. 붙여넣기도 이 한 곳을 지난다.
+    const next = raw.replace(/\D/g, '').slice(0, length)
+    onChange(next)
+    // **바뀌었을 때만** 알린다. 다 찬 뒤에 숫자를 더 눌러도 잘려서 같은 값이 되는데,
+    // 그걸로도 부르면 누를 때마다 같은 코드를 다시 검증한다.
+    if (next.length === length && next !== value) onComplete?.(next)
+  }
 
   return (
     <div className={`group ${css({ position: 'relative' })}`}>
@@ -87,8 +107,7 @@ export function OtpInput({
 
       <input
         value={value}
-        // 숫자만, 자릿수까지. 붙여넣기도 이 한 곳을 지난다.
-        onChange={(e) => onChange(e.target.value.replace(/\D/g, '').slice(0, length))}
+        onChange={(e) => change(e.target.value)}
         inputMode="numeric"
         autoComplete="one-time-code"
         aria-label={ariaLabel}

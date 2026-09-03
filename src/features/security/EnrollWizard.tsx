@@ -39,9 +39,15 @@ export function EnrollWizard({
   const [step, setStep] = useState<'scan' | 'confirm'>('scan')
   const [code, setCode] = useState('')
 
+  /** 「2단계 인증 켜기」 와 자동 검증이 같은 길을 지난다 (`TotpStep` 과 같은 이유) */
+  const verify = (v: string) => {
+    if (isPending) return
+    mutate({ secret: enrollment.secret, code: v }, { onSuccess: onIssued })
+  }
+
   const submit = (e: FormEvent) => {
     e.preventDefault()
-    mutate({ secret: enrollment.secret, code }, { onSuccess: onIssued })
+    verify(code)
   }
 
   const changeCode = (v: string) => {
@@ -64,6 +70,7 @@ export function EnrollWizard({
           <OtpInput
             value={code}
             onChange={changeCode}
+            onComplete={verify}
             length={TOTP_CODE_LENGTH}
             invalid={!!error}
             autoFocus
