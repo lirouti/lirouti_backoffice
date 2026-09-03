@@ -23,14 +23,16 @@ bun run dev       # http://localhost:5173
 
 ## 검사
 
-`bun run lint` 는 넷을 돌린다. 규칙을 문서에만 두면 새어 나가므로 전부 강제한다.
+`bun run lint` 는 여섯을 돌린다. 규칙을 문서에만 두면 새어 나가므로 전부 강제한다.
 
 | | 무엇을 |
 |---|---|
 | ESLint | 레이어 의존 방향(의존은 아래로만) · import 정렬 · `type` 강제 |
 | `scripts/check-order.ts` | 파일·컴포넌트 안 선언 순서 |
 | `scripts/check-contrast.ts` | 디자인 토큰 명암비 (WCAG AA, 라이트·다크) |
+| `scripts/check-tokens.ts` | 스타일 prop이 쓰는 토큰 이름의 실재 여부 |
 | `scripts/check-comments.ts` | 주석의 자리와 형식 (§17) |
+| `scripts/check-docs.ts` | 문서 규약 (코드 펜스 언어 · 문서 상호참조) |
 
 **"왜를 쓴다" 같은 판단은 강제하지 않는다.** 오탐이 생기면 규칙 자체가 죽는다.
 
