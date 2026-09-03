@@ -11,7 +11,7 @@ import { Checkbox } from '@/shared/ui/Checkbox'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 
 import type { Viewer } from '@/domain/access'
-import { SCREENS } from '@/domain/screens'
+import { matchScreen, SCREENS } from '@/domain/screens'
 
 import { IS_MOCK_LOGIN, useLogin } from '@/api/auth'
 
@@ -29,6 +29,28 @@ import { TotpStep } from './TotpStep'
  * (OTP 발송·검증 엔드포인트, WebAuthn challenge) 백엔드 스펙이 나온 뒤로 미뤘다.
  * "완료" 단계는 정적 캔버스라 필요했던 것이고, SPA 에서는 바로 어드민으로 보낸다.
  */
+/**
+ * 로그인 뒤 어디로 갈 것인가.
+ *
+ * `RequireAuth` 가 실어 보낸 목적지를 그대로 쓰되, **화면을 가리키지 않으면 지표로** 보낸다.
+ *
+ * ⚠️ **루트(`/`)가 그 경우다.** 배포 주소를 그냥 열면 가드가 `from: '/'` 를 실어 보내는데,
+ *    `/` 는 어느 화면에도 매칭되지 않아(docs/ARCHITECTURE.md §10) 로그인하자마자 **빈 작업공간**이 뜬다 —
+ *    "로그인했는데 아무것도 없다" 로 읽힌다. 처음 들어온 사람이 가장 먼저 보는 화면이라
+ *    지표가 맞다.
+ *
+ * ⚠️ **`/` 자체를 지표로 리다이렉트하는 것과 다르다.** 셸 안에서 마지막 탭을 닫으면
+ *    여전히 `/` 로 가고 빈 작업공간이 뜬다 — 그건 "열린 탭이 없음" 을 URL 로 말하는
+ *    의도된 상태다(§10). 여기서 바꾸는 것은 **로그인 직후 한 번**뿐이다.
+ *
+ * 북마크한 `/items/3` 은 그대로 그리로 간다.
+ */
+function landingPath(from: string | undefined): string {
+  // `from` 은 `pathname + search` 라 쿼리를 떼고 봐야 한다.
+  if (from && matchScreen(from.split('?')[0]!)) return from
+  return SCREENS.dash.path
+}
+
 export default function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -41,8 +63,14 @@ export default function LoginPage() {
   /** 1차를 통과하면 받는 일회용 토큰. 있으면 2차 화면이다. */
   const [challenge, setChallenge] = useState<string | null>(null)
 
-  /** 가드가 붙잡아 온 원래 목적지. 없으면 지표로. */
-  const from = (location.state as { from?: string } | null)?.from ?? SCREENS.dash.path
+  /** 가드가 붙잡아 온 원래 목적지. 화면을 가리키지 않으면 지표로 (§16.4). */
+  // ⚠️ **`as` 는 단언일 뿐 런타임 검증이 아니다.** `location.state` 는 히스토리에서 오므로
+  //    우리가 넣은 모양이라는 보장이 없다 — 뒤로 가기가 이전 배포의 항목을 되살리거나
+  //    누가 `history.replaceState` 로 넣으면 문자열이 아닌 값이 온다. 그때 `landingPath` 의
+  //    `from.split` 이 `TypeError` 로 터져 **로그인 화면이 흰 화면**이 된다.
+  //    `api/auth.ts` 의 `asViewer` 와 같은 이유다 — 인증 경계에서만은 값을 믿지 않는다.
+  const state = location.state as { from?: unknown } | null
+  const from = landingPath(typeof state?.from === 'string' ? state.from : undefined)
 
   const finish = (viewer: Viewer) => {
     signIn(viewer)
