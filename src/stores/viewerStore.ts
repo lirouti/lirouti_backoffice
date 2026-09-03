@@ -4,6 +4,9 @@ import { persist } from 'zustand/middleware'
 import { TOP_VIEWER, type Viewer } from '@/domain/access'
 import type { ScopeId } from '@/domain/screens'
 
+import { useDirtyStore } from './dirtyStore'
+import { useTabsStore } from './tabsStore'
+
 /**
  * 지금 누가 보고 있는지. **`null` 이면 미인증**이다.
  *
@@ -42,6 +45,25 @@ export function setSignOutHandler(fn: () => Promise<void>): void {
   serverSignOut = fn
 }
 
+/**
+ * 세션이 끝날 때 작업공간을 비운다.
+ *
+ * ⚠️ **로그아웃해도 탭이 남아 있었다.** 탭은 `localStorage` 에 persist 되는데 `signOut` 이
+ *    `viewer` 만 비웠다. 그래서 다음 사람이 같은 브라우저에서 로그인하면 **앞 사람이 열어
+ *    두었던 화면이 그대로 보인다** — 이름만이 아니라 `/items/3` 처럼 **레코드 id 까지** 남는다.
+ *    권한이 없는 탭은 스트립에서 걸러지지만 **스토어에는 계속 남아 있다.**
+ *
+ * ⚠️ **미저장 표시도 함께 지운다.** `dirtyStore` 는 persist 하지 않지만 로그아웃은
+ *    새로고침이 아니라, 비우지 않으면 새 세션의 탭에 앞 세션의 점(●)이 붙는다.
+ *
+ * ⚠️ **`preview`/`exit` 에서는 부르지 않는다.** 미리보기는 보이는 범위만 바꾸는 것이고
+ *    로그인한 사람은 그대로다 — 탭을 닫으면 하던 일이 사라진다.
+ */
+function endSession(): void {
+  useTabsStore.getState().reset()
+  useDirtyStore.getState().reset()
+}
+
 export const useViewerStore = create<ViewerState>()(
   persist(
     (set) => ({
@@ -53,6 +75,7 @@ export const useViewerStore = create<ViewerState>()(
         } finally {
           // 서버 호출이 실패해도 로컬 세션은 반드시 끊는다.
           set({ viewer: null })
+          endSession()
         }
       },
       // 미리보기는 **보이는 범위만** 바꾼다 — 로그인한 사람은 그대로다.
@@ -62,7 +85,12 @@ export const useViewerStore = create<ViewerState>()(
           viewer: { role: 'operator', name, email: s.viewer?.email ?? TOP_VIEWER.email, scopes },
         })),
       exit: () => set({ viewer: TOP_VIEWER }),
-      clear: () => set({ viewer: null }),
+      // 401 로 세션이 끊긴 경로. 사람이 누른 로그아웃과 **같게** 정리한다 —
+      // 여기만 빠뜨리면 세션 만료로 튕긴 뒤 재로그인했을 때 탭이 살아 있다.
+      clear: () => {
+        set({ viewer: null })
+        endSession()
+      },
     }),
     { name: 'riruti_admin_view_v2' },
   ),
