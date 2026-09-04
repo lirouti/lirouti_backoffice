@@ -7,6 +7,7 @@
 import { daysAgo } from '@/shared/lib/today'
 
 import type {
+  EventInput,
   GrantAsset,
   GrantInput,
   GrantKind,
@@ -102,8 +103,12 @@ const EVENTS: EventRow[] = [
   ['가을 낙엽길', '가을 배경 사전 공개', -19, -32, '#E08A50', 3, 0],
 ]
 
-export const allEvents = (): OpsEvent[] =>
-  EVENTS.map(([title, desc, from, to, accent, rewardItemKey, joined], key) => ({
+const ADDED_EVENTS: OpsEvent[] = []
+let nextEventKey = EVENTS.length
+
+export const allEvents = (): OpsEvent[] => [
+  ...ADDED_EVENTS,
+  ...EVENTS.map(([title, desc, from, to, accent, rewardItemKey, joined], key) => ({
     key,
     title,
     desc,
@@ -112,7 +117,29 @@ export const allEvents = (): OpsEvent[] =>
     accent,
     rewardItemKey,
     joined,
-  }))
+  })),
+]
+
+/** 만든 이벤트를 목록 앞에 쌓는다 */
+export function addEvent(input: EventInput & { rewardItemKey: number }): OpsEvent {
+  const event: OpsEvent = {
+    ...input,
+    key: nextEventKey,
+    title: input.title.trim(),
+    desc: input.desc.trim(),
+    accent: input.accent.toUpperCase(),
+    joined: 0,
+  }
+  nextEventKey += 1
+  ADDED_EVENTS.unshift(event)
+  return event
+}
+
+/** 테스트 사이에 이벤트 목 저장소가 새지 않게 초기화한다 */
+export function resetEvents(): void {
+  ADDED_EVENTS.splice(0)
+  nextEventKey = EVENTS.length
+}
 
 const WHYS = ['서버 점검 보상', '시즌 오픈 기념', '오류 지급 회수', 'CS 보상', '이벤트 미지급 보정']
 const BYS = ['김운영', '박라이브', '이CS']

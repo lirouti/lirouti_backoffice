@@ -4,6 +4,8 @@
  * **진행 중인 것이 위**다. 끝난 이벤트가 섞여 있으면 무엇이 라이브인지 한눈에
  * 안 보인다 (docs/ARCHITECTURE.md §25.2).
  */
+import { useNavigate } from 'react-router'
+
 import { css } from 'styled-system/css'
 
 import { num } from '@/shared/lib/format'
@@ -16,10 +18,12 @@ import { PageHeader } from '@/shared/ui/PageHeader'
 import { SkeletonBlock } from '@/shared/ui/Skeleton'
 
 import { EVENT_STATUS_LABEL, PERIOD_STATUS_TONE, periodLabel } from '@/domain/ops'
+import { SCREENS } from '@/domain/screens'
 
 import { useEvents, type EventEntry } from '@/api/ops'
 
 export default function EventsPage() {
+  const navigate = useNavigate()
   const { data, isPending, error } = useEvents()
 
   return (
@@ -28,10 +32,9 @@ export default function EventsPage() {
         title="이벤트"
         sub="기간제 이벤트입니다. 보상 아이템은 아이템 모듈에서 먼저 등록해야 합니다."
         actions={
-          <>
-            {/* TODO(이벤트 생성 API 가 생기면): 기간·보상 아이템·설명을 받는 폼 (§18.8) */}
-            <Button disabled>이벤트 생성 · 준비 중</Button>
-          </>
+          <Button onClick={() => navigate(SCREENS.eventnew.path)} variant="primary">
+            이벤트 생성
+          </Button>
         }
       />
 

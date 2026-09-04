@@ -109,6 +109,7 @@ export const SCREENS = {
   notice: { path: '/ops/notices', label: '공지', scope: 'ops' },
   noticenew: { path: '/ops/notices/new', label: '공지 작성', scope: 'ops', section: 'notice' },
   event: { path: '/ops/events', label: '이벤트', scope: 'ops' },
+  eventnew: { path: '/ops/events/new', label: '이벤트 생성', scope: 'ops', section: 'event' },
   push: { path: '/ops/push', label: '푸시 알림', scope: 'ops' },
   pushnew: { path: '/ops/push/new', label: '알림 작성', scope: 'ops', section: 'push' },
   pushdet: { path: '/ops/push/:pushId', label: '알림 상세', scope: 'ops', section: 'push' },

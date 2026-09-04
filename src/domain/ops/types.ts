@@ -48,6 +48,21 @@ export type Notice = {
   pinned: boolean
 }
 
+/** 운영자가 만드는 이벤트. `key`·참여자 수는 서버가 정한다 */
+export type EventInput = {
+  title: string
+  /** 카드에 그대로 보여 줄 한 줄 설명 */
+  desc: string
+  /** `YYYY-MM-DD` */
+  startAt: string
+  /** `YYYY-MM-DD`. 비우면 상시 */
+  endAt: string
+  /** 카드 장식 색. `#RRGGBB` */
+  accent: string
+  /** 보상 아이템 `key`. 아직 고르지 않았으면 `null` */
+  rewardItemKey: number | null
+}
+
 export type OpsEvent = {
   key: number
   title: string

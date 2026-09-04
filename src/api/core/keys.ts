@@ -104,6 +104,8 @@ export const qk = {
     all: ['ops'] as const,
     notices: () => ['ops', 'notices'] as const,
     events: () => ['ops', 'events'] as const,
+    /** 이벤트 생성의 전체 보상 아이템 선택지 */
+    eventForm: () => ['ops', 'event-form'] as const,
     /** 지급·회수 이력 */
     grants: () => ['ops', 'grants'] as const,
   },
