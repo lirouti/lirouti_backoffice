@@ -30,6 +30,7 @@ import {
   DEVICE_LABEL,
   hasSignedIn,
   mfaResetBlockReason,
+  passwordResetBlockReason,
   viewerOf,
   type AdminLog,
 } from '@/domain/admin'
@@ -37,6 +38,7 @@ import { SCREENS, type ScopeId } from '@/domain/screens'
 
 import {
   useAdmin,
+  useRequestPasswordReset,
   useResetMfa,
   useSetScopes,
   useSuspendAdmin,
@@ -78,6 +80,7 @@ function Detail({ detail }: { detail: AdminDetail }) {
   const setScopes = useSetScopes()
   const suspend = useSuspendAdmin()
   const resetMfa = useResetMfa()
+  const requestPasswordReset = useRequestPasswordReset()
   /**
    * 서버 응답이 오기 전의 화면 값. `null` 이면 서버 값을 그대로 쓴다.
    *
@@ -87,7 +90,10 @@ function Detail({ detail }: { detail: AdminDetail }) {
   const [draft, setDraft] = useState<ScopeId[] | null>(null)
   const [asking, setAsking] = useState(false)
   const [askingMfaReset, setAskingMfaReset] = useState(false)
+  const [askingPasswordReset, setAskingPasswordReset] = useState(false)
+  const [passwordResetSent, setPasswordResetSent] = useState(false)
   const mfaResetting = useRef(false)
+  const passwordResetting = useRef(false)
   /**
    * 보낸 순서대로 서버에 닿게 하는 줄.
    *
@@ -103,6 +109,7 @@ function Detail({ detail }: { detail: AdminDetail }) {
   const top = admin.role === 'top'
   const suspended = status === '정지'
   const mfaResetBlocked = mfaResetBlockReason(admin, me.email)
+  const passwordResetBlocked = passwordResetBlockReason(admin)
 
   const toggle = (scope: ScopeId) => {
     const next = scopes.includes(scope) ? scopes.filter((s) => s !== scope) : [...scopes, scope]
@@ -135,8 +142,12 @@ function Detail({ detail }: { detail: AdminDetail }) {
           <>
             {/* 최고 관리자를 미리보기 하면 지금과 똑같다 — 보여 줄 것이 없다. */}
             {!top && <Button onClick={enterPreview}>이 계정으로 보기</Button>}
-            {/* TODO(비밀번호 재설정 흐름이 생기면): 초기화 메일 발송 */}
-            <Button disabled>비밀번호 초기화 · 준비 중</Button>
+            <Button
+              onClick={() => setAskingPasswordReset(true)}
+              disabled={passwordResetBlocked !== null || requestPasswordReset.isPending}
+            >
+              {passwordResetSent ? '초기화 메일 다시 보내기' : '비밀번호 초기화'}
+            </Button>
             <Button
               variant={suspended ? 'secondary' : 'danger'}
               onClick={() => (suspended ? suspend.mutate({ adminId: admin.adminId, suspended: false, meEmail: me.email }) : setAsking(true))}
@@ -154,6 +165,28 @@ function Detail({ detail }: { detail: AdminDetail }) {
       {setScopes.error && <ErrorBanner message={setScopes.error.message} />}
       {suspend.error && <ErrorBanner message={suspend.error.message} />}
       {resetMfa.error && <ErrorBanner message={resetMfa.error.message} />}
+      {requestPasswordReset.error && <ErrorBanner message={requestPasswordReset.error.message} />}
+      {passwordResetBlocked && (
+        <p className={css({ m: '-6px 0 14px', textStyle: 'label', color: 'sub' })}>
+          {passwordResetBlocked}
+        </p>
+      )}
+      {passwordResetSent && (
+        <p
+          role="status"
+          className={css({
+            m: '-6px 0 14px',
+            p: '10px 13px',
+            borderRadius: 'lg',
+            bg: 'soft',
+            border: '1px solid token(colors.liveBd)',
+            textStyle: 'label',
+            color: 'priD',
+          })}
+        >
+          {admin.email}로 비밀번호 초기화 메일을 보냈습니다.
+        </p>
+      )}
 
       <div className={css({ display: 'flex', alignItems: 'center', gap: '8px', mb: '16px', flexWrap: 'wrap' })}>
         <Badge tone={ADMIN_ROLE_TONE[admin.role]}>{ADMIN_ROLE_LABEL[admin.role]}</Badge>
@@ -278,6 +311,27 @@ function Detail({ detail }: { detail: AdminDetail }) {
         tone="danger"
         confirmLabel="초기화"
         confirmDisabled={resetMfa.isPending}
+      />
+      <Dialog
+        open={askingPasswordReset}
+        onCancel={() => setAskingPasswordReset(false)}
+        onConfirm={() => {
+          if (passwordResetting.current || requestPasswordReset.isPending) return
+          passwordResetting.current = true
+          requestPasswordReset.mutate(admin.adminId, {
+            onSuccess: () => {
+              setPasswordResetSent(true)
+              setAskingPasswordReset(false)
+            },
+            onSettled: () => {
+              passwordResetting.current = false
+            },
+          })
+        }}
+        title="비밀번호 초기화 메일 발송"
+        body={`${admin.email}로 일회용 링크를 보냅니다. 링크에서 새 비밀번호를 저장하기 전까지 현재 비밀번호와 열린 세션은 유지됩니다.`}
+        confirmLabel={requestPasswordReset.isPending ? '보내는 중…' : '메일 보내기'}
+        confirmDisabled={requestPasswordReset.isPending}
       />
     </>
   )

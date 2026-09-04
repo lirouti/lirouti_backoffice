@@ -15,6 +15,7 @@ import {
   hasSignedIn,
   normalizeAdminInput,
   mfaResetBlockReason,
+  passwordResetBlockReason,
   sameEmail,
   suspendBlockReason,
   summarizeAdmins,
@@ -192,6 +193,24 @@ export function useResetMfa() {
     mutationFn: resetMfa,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.admins.all }),
   })
+}
+
+/** 등록된 사내 이메일로 일회용 비밀번호 초기화 링크를 보낸다. */
+export async function requestPasswordReset(adminId: number): Promise<void> {
+  if (USE_MOCK) {
+    await mockDelay()
+    const admin = findAdmin(adminId)
+    if (!admin) throw apiError('http', `관리자 #${adminId} 을(를) 찾을 수 없습니다.`, 404)
+    const blocked = passwordResetBlockReason(admin)
+    if (blocked) throw apiError('http', blocked, 409)
+    return
+  }
+
+  throw new Error('관리자 API 가 아직 연결되지 않았습니다. VITE_USE_MOCK=1 로 두세요.')
+}
+
+export function useRequestPasswordReset() {
+  return useMutation({ mutationFn: requestPasswordReset })
 }
 
 /**

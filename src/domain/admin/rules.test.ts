@@ -16,6 +16,7 @@ import {
   isPending,
   mfaResetBlockReason,
   normalizeAdminInput,
+  passwordResetBlockReason,
   sameEmail,
   summarizeAdmins,
   suspendBlockReason,
@@ -221,6 +222,18 @@ describe('mfaResetBlockReason', () => {
   it('다른 등록 계정은 정지 상태여도 초기화할 수 있다', () => {
     expect(mfaResetBlockReason(adm(), me)).toBeNull()
     expect(mfaResetBlockReason(adm({ suspended: true }), me)).toBeNull()
+  })
+})
+
+describe('passwordResetBlockReason', () => {
+  it('⚠️ 최초 로그인 전 계정은 초대 링크 하나로 시작한다', () => {
+    expect(passwordResetBlockReason(adm({ firstLoginAt: '' }))).toContain('초대 링크')
+  })
+
+  it('로그인한 계정은 상태나 자기 계정 여부와 무관하게 메일을 받을 수 있다', () => {
+    expect(passwordResetBlockReason(adm())).toBeNull()
+    expect(passwordResetBlockReason(adm({ state: '휴면' }))).toBeNull()
+    expect(passwordResetBlockReason(adm({ suspended: true }))).toBeNull()
   })
 })
 
