@@ -21,7 +21,13 @@ import {
   type CouponUseLog,
 } from '@/domain/coupon'
 
-import { addCoupon, allCoupons, couponLogs, setCouponStopped, usageByDay } from '@/mocks/coupons'
+import {
+  addCoupon,
+  allCoupons,
+  couponLogs,
+  setCouponStopped,
+  usageByDay,
+} from '@/mocks/coupons'
 
 import { mockDelay, qk, queryClient, today, USE_MOCK } from './core'
 import { apiError } from './error'
@@ -139,7 +145,12 @@ export async function issueCoupon({ input, by }: IssueVars): Promise<Coupon> {
     await mockDelay()
     // ⚠️ **검증한 값과 저장할 값이 같아야 한다** (§29.3.1). 방식이 안 쓰는 칸도 여기서 지운다.
     const clean = normalizeCouponInput(input)
-    const first = Object.values(validateCoupon(clean, allCoupons().map((c) => c.code)))[0]
+    const first = Object.values(
+      validateCoupon(
+        clean,
+        allCoupons().map((c) => c.code),
+      ),
+    )[0]
     if (first) throw apiError('http', first, 400)
     return addCoupon(clean, by)
   }

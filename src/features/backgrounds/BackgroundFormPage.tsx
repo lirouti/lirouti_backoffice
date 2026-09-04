@@ -8,7 +8,12 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { flushSync } from 'react-dom'
 
-import { useForm, type FieldPath, type FieldPathValue, type UseFormReturn } from 'react-hook-form'
+import {
+  useForm,
+  type FieldPath,
+  type FieldPathValue,
+  type UseFormReturn,
+} from 'react-hook-form'
 import { useNavigate, useParams } from 'react-router'
 
 import { css } from 'styled-system/css'
@@ -173,7 +178,11 @@ function BackgroundForm({ bgId, initial }: { bgId?: string; initial: BackgroundI
     let assetId = input.assetId
     if (pending) {
       try {
-        const asset = await upload.mutateAsync({ kind: 'bg', file: pending.file, name: input.name })
+        const asset = await upload.mutateAsync({
+          kind: 'bg',
+          file: pending.file,
+          name: input.name,
+        })
         assetId = asset.assetId
       } catch {
         // 오류는 `upload.error` 로 화면에 나온다.
@@ -250,10 +259,24 @@ function BackgroundForm({ bgId, initial }: { bgId?: string; initial: BackgroundI
         />
       )}
 
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '18px', alignItems: 'flex-start' })}>
+      <div
+        className={css({
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '18px',
+          alignItems: 'flex-start',
+        })}
+      >
         <Card className={css({ flex: '3 1 460px', minWidth: '0', p: '17px 20px' })}>
           <CardTitle title="기본 정보" />
-          <div className={css({ display: 'flex', flexDirection: 'column', gap: '14px', mt: '14px' })}>
+          <div
+            className={css({
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '14px',
+              mt: '14px',
+            })}
+          >
             <Input
               value={values.name}
               onChange={(name) => set('name', name)}
@@ -303,7 +326,9 @@ function BackgroundForm({ bgId, initial }: { bgId?: string; initial: BackgroundI
         />
       </div>
 
-      <div className={css({ display: 'flex', justifyContent: 'flex-end', gap: '8px', mt: '16px' })}>
+      <div
+        className={css({ display: 'flex', justifyContent: 'flex-end', gap: '8px', mt: '16px' })}
+      >
         <Button onClick={() => navigate(SCREENS.bg.path)}>취소</Button>
         <Button onClick={draft.saveNow} disabled={!form.formState.isDirty}>
           임시 저장
@@ -350,7 +375,9 @@ function SideCard({
   ]
 
   return (
-    <Card className={css({ flex: '1 1 280px', minWidth: '250px', maxWidth: '360px', p: '15px' })}>
+    <Card
+      className={css({ flex: '1 1 280px', minWidth: '250px', maxWidth: '360px', p: '15px' })}
+    >
       <CardTitle title="타일 미리보기" sub="유료는 타일 배경이 어두워집니다." />
       <div className={css({ mt: '12px' })}>
         {pending ? (
@@ -358,7 +385,11 @@ function SideCard({
         ) : input.assetId ? (
           <AssetThumb assetId={input.assetId} src={current?.src} fluid paid={paid} />
         ) : (
-          <EmptyState title="에셋 없음" body="아래에서 고르거나 올려 주세요." className={css({ border: '0' })} />
+          <EmptyState
+            title="에셋 없음"
+            body="아래에서 고르거나 올려 주세요."
+            className={css({ border: '0' })}
+          />
         )}
       </div>
 
@@ -407,11 +438,21 @@ function SideCard({
         {checks.map((c) => (
           <li
             key={c.label}
-            className={css({ display: 'flex', alignItems: 'center', gap: '8px', textStyle: 'caption' })}
+            className={css({
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              textStyle: 'caption',
+            })}
           >
             <span
               aria-hidden="true"
-              className={css({ width: '7px', height: '7px', flex: 'none', borderRadius: '50%' })}
+              className={css({
+                width: '7px',
+                height: '7px',
+                flex: 'none',
+                borderRadius: '50%',
+              })}
               style={{ background: c.ok ? 'var(--colors-g-fg)' : 'var(--colors-faint2)' }}
             />
             <span className={css({ color: c.ok ? 'sub' : 'faint' })}>{c.label}</span>

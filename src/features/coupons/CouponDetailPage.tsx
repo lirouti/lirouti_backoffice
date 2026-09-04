@@ -43,7 +43,9 @@ const LOG_COLUMNS: Column<CouponUseLog>[] = [
     key: 'code',
     label: '코드',
     width: '150px',
-    render: (l) => <span className={css({ fontFamily: 'mono', textStyle: 'caption' })}>{l.code}</span>,
+    render: (l) => (
+      <span className={css({ fontFamily: 'mono', textStyle: 'caption' })}>{l.code}</span>
+    ),
   },
   { key: 'who', label: '유저', width: '110px', strong: true },
   { key: 'what', label: '지급 항목', truncate: true },
@@ -78,7 +80,11 @@ export default function CouponDetailPage() {
   return <Detail detail={data} />
 }
 
-function Detail({ detail: { coupon: c, status, days, logs, stoppable } }: { detail: CouponDetail }) {
+function Detail({
+  detail: { coupon: c, status, days, logs, stoppable },
+}: {
+  detail: CouponDetail
+}) {
   const navigate = useNavigate()
   const stop = useStopCoupon()
   const [asking, setAsking] = useState(false)
@@ -101,7 +107,9 @@ function Detail({ detail: { coupon: c, status, days, logs, stoppable } }: { deta
             {/* 끝난 쿠폰은 버튼을 없애지 않고 잠가 이유를 라벨에 적는다 */}
             <Button
               variant={c.stopped ? 'primary' : 'danger'}
-              onClick={() => (c.stopped ? stop.mutate({ couponId: c.key, stopped: false }) : setAsking(true))}
+              onClick={() =>
+                c.stopped ? stop.mutate({ couponId: c.key, stopped: false }) : setAsking(true)
+              }
               disabled={!stoppable || stop.isPending}
             >
               {!stoppable ? '기간 종료됨' : c.stopped ? '중단 해제' : '중단'}
@@ -112,10 +120,20 @@ function Detail({ detail: { coupon: c, status, days, logs, stoppable } }: { deta
 
       {stop.error && <ErrorBanner message={stop.error.message} />}
 
-      <div className={css({ display: 'flex', alignItems: 'center', gap: '8px', mb: '16px', flexWrap: 'wrap' })}>
+      <div
+        className={css({
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          mb: '16px',
+          flexWrap: 'wrap',
+        })}
+      >
         <Badge tone={COUPON_KIND_TONE[c.kind]}>{COUPON_KIND_LABEL[c.kind]}</Badge>
         <Badge tone={COUPON_STATUS_TONE[status]}>{status}</Badge>
-        <span className={css({ fontFamily: 'mono', textStyle: 'caption', color: 'faint' })}>{c.code}</span>
+        <span className={css({ fontFamily: 'mono', textStyle: 'caption', color: 'faint' })}>
+          {c.code}
+        </span>
         <span className={css({ textStyle: 'caption', color: 'faint' })}>
           {c.limits.dated ? `${c.startAt} ~ ${c.endAt}` : '기간 제한 없음'}
         </span>
@@ -133,31 +151,84 @@ function Detail({ detail: { coupon: c, status, days, logs, stoppable } }: { deta
         <StatTile label="발급 코드" value={c.issued > 0 ? num(c.issued) : '무제한'} />
         <StatTile label="사용 건수" value={num(c.used)} />
         <StatTile label="사용률" value={rate === null ? '—' : `${rate}%`} />
-        <StatTile label="남은 코드" value={left === null ? '—' : num(left)} alert={left !== null && left === 0} />
+        <StatTile
+          label="남은 코드"
+          value={left === null ? '—' : num(left)}
+          alert={left !== null && left === 0}
+        />
       </div>
 
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '18px', alignItems: 'flex-start' })}>
+      <div
+        className={css({
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '18px',
+          alignItems: 'flex-start',
+        })}
+      >
         <Card className={css({ flex: '2 1 460px', minWidth: '0', p: '17px 20px' })}>
           <CardTitle title="일자별 사용" sub="최근 14일" />
           <div className={css({ mt: '10px' })}>
-            <BarChart groups={groups} max={Math.max(1, ...days.map((d) => d.used))} legend={['사용']} />
+            <BarChart
+              groups={groups}
+              max={Math.max(1, ...days.map((d) => d.used))}
+              legend={['사용']}
+            />
           </div>
         </Card>
 
-        <div className={css({ flex: '1 1 280px', minWidth: '0', display: 'flex', flexDirection: 'column', gap: '18px' })}>
+        <div
+          className={css({
+            flex: '1 1 280px',
+            minWidth: '0',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '18px',
+          })}
+        >
           <Card className={css({ p: '15px' })}>
             <CardTitle title="보상 묶음" sub="한 번에 모두 지급됩니다." />
-            <ul className={css({ listStyle: 'none', m: '12px 0 0', p: '0', display: 'flex', flexDirection: 'column', gap: '9px' })}>
+            <ul
+              className={css({
+                listStyle: 'none',
+                m: '12px 0 0',
+                p: '0',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '9px',
+              })}
+            >
               {c.rewards.map((r) => (
-                <li key={`${r.kind}-${r.label}`} className={css({ display: 'flex', alignItems: 'center', gap: '9px' })}>
+                <li
+                  key={`${r.kind}-${r.label}`}
+                  className={css({ display: 'flex', alignItems: 'center', gap: '9px' })}
+                >
                   <Badge size="sm">{REWARD_KIND_LABEL[r.kind]}</Badge>
                   <span className={css({ flex: '1', minWidth: '0' })}>
-                    <span className={css({ display: 'block', textStyle: 'label', fontWeight: '600', color: 'ink' })}>
+                    <span
+                      className={css({
+                        display: 'block',
+                        textStyle: 'label',
+                        fontWeight: '600',
+                        color: 'ink',
+                      })}
+                    >
                       {r.label}
                     </span>
-                    <span className={css({ display: 'block', textStyle: 'micro', color: 'faint' })}>{r.note}</span>
+                    <span
+                      className={css({ display: 'block', textStyle: 'micro', color: 'faint' })}
+                    >
+                      {r.note}
+                    </span>
                   </span>
-                  <span className={css({ flex: 'none', textStyle: 'label', fontWeight: '700', color: 'ink' })}>
+                  <span
+                    className={css({
+                      flex: 'none',
+                      textStyle: 'label',
+                      fontWeight: '700',
+                      color: 'ink',
+                    })}
+                  >
                     ×{num(r.qty)}
                   </span>
                 </li>
@@ -167,7 +238,14 @@ function Detail({ detail: { coupon: c, status, days, logs, stoppable } }: { deta
 
           <Card className={css({ p: '15px' })}>
             <CardTitle title="사용 제한" />
-            <dl className={css({ m: '12px 0 0', display: 'flex', flexDirection: 'column', gap: '9px' })}>
+            <dl
+              className={css({
+                m: '12px 0 0',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '9px',
+              })}
+            >
               <Row k="1인 1회" v={c.limits.perUser ? '제한함' : '제한 없음'} />
               <Row k="선착순" v={cap === null ? '제한 없음' : `${num(cap)}명`} />
               <Row k="기간 한정" v={c.limits.dated ? '적용' : '없음'} />
@@ -180,7 +258,12 @@ function Detail({ detail: { coupon: c, status, days, logs, stoppable } }: { deta
         <Card className={css({ p: '15px 17px' })}>
           <CardTitle title="사용 이력" sub="최근 8건입니다. 전체 건수는 위 지표를 보세요." />
           <div className={css({ mt: '13px' })}>
-            <Table columns={LOG_COLUMNS} rows={logs} minWidth={780} rowKey={(l) => String(l.key)} />
+            <Table
+              columns={LOG_COLUMNS}
+              rows={logs}
+              minWidth={780}
+              rowKey={(l) => String(l.key)}
+            />
           </div>
         </Card>
       </div>
@@ -188,7 +271,9 @@ function Detail({ detail: { coupon: c, status, days, logs, stoppable } }: { deta
       <Dialog
         open={asking}
         onCancel={() => setAsking(false)}
-        onConfirm={() => stop.mutate({ couponId: c.key, stopped: true }, { onSuccess: () => setAsking(false) })}
+        onConfirm={() =>
+          stop.mutate({ couponId: c.key, stopped: true }, { onSuccess: () => setAsking(false) })
+        }
         title="쿠폰을 중단합니다"
         body="지금부터 이 코드를 입력해도 보상이 지급되지 않습니다. 이미 받은 보상은 회수되지 않습니다."
         tone="danger"
@@ -201,8 +286,22 @@ function Detail({ detail: { coupon: c, status, days, logs, stoppable } }: { deta
 function Row({ k, v }: { k: string; v: string }) {
   return (
     <div className={css({ display: 'flex', alignItems: 'center', gap: '10px' })}>
-      <dt className={css({ flex: 'none', width: '72px', textStyle: 'caption', color: 'faint' })}>{k}</dt>
-      <dd className={css({ m: '0', flex: '1', minWidth: '0', textAlign: 'right', textStyle: 'label', fontWeight: '600', color: 'ink' })}>
+      <dt
+        className={css({ flex: 'none', width: '72px', textStyle: 'caption', color: 'faint' })}
+      >
+        {k}
+      </dt>
+      <dd
+        className={css({
+          m: '0',
+          flex: '1',
+          minWidth: '0',
+          textAlign: 'right',
+          textStyle: 'label',
+          fontWeight: '600',
+          color: 'ink',
+        })}
+      >
         {v}
       </dd>
     </div>

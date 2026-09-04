@@ -17,7 +17,9 @@ export function PlaceholderPage({ screen }: { screen: ScreenId }) {
         {SCREENS[screen].label}
       </h2>
       <Card className={css({ p: '48px 24px', textAlign: 'center' })}>
-        <div className={css({ textStyle: 'body', color: 'sub' })}>아직 구현되지 않은 화면입니다.</div>
+        <div className={css({ textStyle: 'body', color: 'sub' })}>
+          아직 구현되지 않은 화면입니다.
+        </div>
         <div className={css({ mt: '6px', textStyle: 'caption', color: 'faint' })}>
           {SCREENS[screen].path} · scope: {SCREENS[screen].scope}
         </div>

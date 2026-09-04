@@ -3,7 +3,14 @@
  *
  * 원본 행은 `[이름, 코드, 희귀도, 대표색, 가중치, 시즌, 보유유저, 등록일, 아트담당, 설명]` 이다.
  */
-import { RIG_SLOTS, SLOT_PARTS, UNLOCKS, type Species, type SpeciesInput, type SpeciesLog } from '@/domain/species'
+import {
+  RIG_SLOTS,
+  SLOT_PARTS,
+  UNLOCKS,
+  type Species,
+  type SpeciesInput,
+  type SpeciesLog,
+} from '@/domain/species'
 
 type Row = [
   name: string,
@@ -18,6 +25,9 @@ type Row = [
   note: string,
 ]
 
+// ⚠️ **한 줄이 한 레코드다.** 표처럼 읽는 것이 이 파일의 목적이라 자동 포맷을 끈다 —
+//    풀어 놓으면 12칸짜리 한 줄이 14줄이 되어 무엇이 무엇인지 보이지 않는다.
+// prettier-ignore
 const ROWS: Row[] = [
   ['루티', 'SP-BLUE', '기본', '#7DBAFF', 420, '상시', 128400, '2026-01-12', '최지우', '파랑 계열 기본종. 볏 하나에 짧은 꼬리'],
   ['하늬', 'SP-SKY', '기본', '#8ADFF0', 420, '상시', 96200, '2026-01-12', '최지우', '하늘색 몸에 옆으로 뻗은 볏'],
@@ -38,6 +48,7 @@ const ROWS: Row[] = [
  * 슬롯 기본값은 원본에 표가 없다 — 설명(`note`)에 적힌 특징을 부품 이름으로 옮겼다.
  * 걸리는 말이 없으면 각 슬롯의 첫 부품이다.
  */
+// prettier-ignore
 const SLOT_HINTS: [keyword: string, slot: keyof typeof SLOT_PARTS, part: string][] = [
   ['별 모양 깃', '정수리', '별 모양 깃'],
   ['볏이 낮음', '정수리', '낮은 볏'],
@@ -51,7 +62,9 @@ const SLOT_HINTS: [keyword: string, slot: keyof typeof SLOT_PARTS, part: string]
 ]
 
 function slotsOf(note: string): Species['slots'] {
-  const slots = Object.fromEntries(RIG_SLOTS.map((s) => [s, SLOT_PARTS[s][0]!])) as Species['slots']
+  const slots = Object.fromEntries(
+    RIG_SLOTS.map((s) => [s, SLOT_PARTS[s][0]!]),
+  ) as Species['slots']
   for (const [keyword, slot, part] of SLOT_HINTS) {
     if (note.includes(keyword)) slots[slot] = part
   }
@@ -62,30 +75,37 @@ let cache: Species[] | null = null
 
 export function allSpecies(): Species[] {
   if (cache) return cache
-  cache = ROWS.map(([name, code, rarity, tone, weight, season, owners, madeAt, by, note], i) => ({
-    key: i,
-    code,
-    name,
-    rarity,
-    tone,
-    weight,
-    // 기본종은 조건 없이 주고 나머지는 레벨을 건다 — 원본 `UNLOCK_OPTS[rarity === '기본' ? 0 : 1]`.
-    unlock: UNLOCKS[rarity === '기본' ? 0 : 1]!,
-    season,
-    slots: slotsOf(note),
-    owners,
-    madeAt,
-    by,
-    note,
-    hidden: false,
-  }))
+  cache = ROWS.map(
+    ([name, code, rarity, tone, weight, season, owners, madeAt, by, note], i) => ({
+      key: i,
+      code,
+      name,
+      rarity,
+      tone,
+      weight,
+      // 기본종은 조건 없이 주고 나머지는 레벨을 건다 — 원본 `UNLOCK_OPTS[rarity === '기본' ? 0 : 1]`.
+      unlock: UNLOCKS[rarity === '기본' ? 0 : 1]!,
+      season,
+      slots: slotsOf(note),
+      owners,
+      madeAt,
+      by,
+      note,
+      hidden: false,
+    }),
+  )
   return cache
 }
 
 /** 변경 이력. 원본이 종마다 같은 네 줄을 보여 주므로 그대로 만든다. */
 export function logsOf(sp: Species): SpeciesLog[] {
   return [
-    { at: '2026-08-07 15:12', kind: '가중치', what: `출현 가중치 ${sp.weight} 로 조정`, by: '정민재' },
+    {
+      at: '2026-08-07 15:12',
+      kind: '가중치',
+      what: `출현 가중치 ${sp.weight} 로 조정`,
+      by: '정민재',
+    },
     { at: '2026-07-22 11:40', kind: '슬롯', what: '정수리 기본값 변경', by: '최지우' },
     { at: '2026-06-14 09:28', kind: '아트', what: '성체 아트 리터치 반영', by: '이도윤' },
     { at: '2026-05-30 16:55', kind: '출현', what: '시즌 3 한정으로 전환', by: '김하늘' },

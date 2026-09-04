@@ -75,7 +75,9 @@ describe('validateChallenge', () => {
   })
 
   it('종료가 시작보다 빠르면 막는다', () => {
-    expect(validateChallenge(input({ startAt: '2026-09-01', endAt: '2026-08-01' })).endAt).toBeTruthy()
+    expect(
+      validateChallenge(input({ startAt: '2026-09-01', endAt: '2026-08-01' })).endAt,
+    ).toBeTruthy()
   })
 
   it('한쪽만 비어 있으면 기간 검사를 하지 않는다 — 빈 값은 「제한 없음」 이다', () => {
@@ -85,7 +87,9 @@ describe('validateChallenge', () => {
 
 describe('challengeStatusOf', () => {
   it('시작이 아직이면 예약', () => {
-    expect(challengeStatusOf({ startAt: '2026-09-01', endAt: '' }, '2026-08-30')).toBe('SCHEDULED')
+    expect(challengeStatusOf({ startAt: '2026-09-01', endAt: '' }, '2026-08-30')).toBe(
+      'SCHEDULED',
+    )
   })
 
   it('종료가 지났으면 종료', () => {
@@ -94,7 +98,9 @@ describe('challengeStatusOf', () => {
 
   it('기간 안이거나 제한이 없으면 진행', () => {
     expect(challengeStatusOf({ startAt: '', endAt: '' }, '2026-08-30')).toBe('ACTIVE')
-    expect(challengeStatusOf({ startAt: '2026-08-01', endAt: '2026-09-30' }, '2026-08-30')).toBe('ACTIVE')
+    expect(
+      challengeStatusOf({ startAt: '2026-08-01', endAt: '2026-09-30' }, '2026-08-30'),
+    ).toBe('ACTIVE')
   })
 
   it('시작 당일과 종료 당일은 진행이다 — 경계는 포함', () => {
@@ -111,13 +117,19 @@ describe('challengeStatusOf', () => {
   // 둘을 같게 다루면 운영자가 분명히 고쳤는데 화면이 아무 반응을 안 한다.
   it('⚠️ 자동으로 끝난 것은 종료일을 미루면 되살아난다', () => {
     // 어제 끝났다 → 종료
-    expect(challengeStatusOf({ startAt: '', endAt: '2026-08-29' }, '2026-08-30', false)).toBe('ENDED')
+    expect(challengeStatusOf({ startAt: '', endAt: '2026-08-29' }, '2026-08-30', false)).toBe(
+      'ENDED',
+    )
     // 종료일을 미래로 고치면 진행
-    expect(challengeStatusOf({ startAt: '', endAt: '2026-09-30' }, '2026-08-30', false)).toBe('ACTIVE')
+    expect(challengeStatusOf({ startAt: '', endAt: '2026-09-30' }, '2026-08-30', false)).toBe(
+      'ACTIVE',
+    )
   })
 
   it('중단은 종료일을 미래로 고쳐도 유지된다', () => {
-    expect(challengeStatusOf({ startAt: '', endAt: '2026-09-30' }, '2026-08-30', true)).toBe('ENDED')
+    expect(challengeStatusOf({ startAt: '', endAt: '2026-09-30' }, '2026-08-30', true)).toBe(
+      'ENDED',
+    )
   })
 })
 
@@ -152,7 +164,9 @@ describe('periodLabel', () => {
   })
 
   it('둘 다 있으면 구간', () => {
-    expect(periodLabel({ startAt: '2026-08-01', endAt: '2026-09-30' })).toBe('2026-08-01 ~ 2026-09-30')
+    expect(periodLabel({ startAt: '2026-08-01', endAt: '2026-09-30' })).toBe(
+      '2026-08-01 ~ 2026-09-30',
+    )
   })
 })
 
@@ -189,6 +203,10 @@ describe('toChallengeInput', () => {
 describe('hasItemReward', () => {
   it('아이템 보상 유무', () => {
     expect(hasItemReward(chal())).toBe(false)
-    expect(hasItemReward(chal({ rewardItem: { assetId: 'as_head_0', name: '밀짚모자', slot: 'HEAD' } }))).toBe(true)
+    expect(
+      hasItemReward(
+        chal({ rewardItem: { assetId: 'as_head_0', name: '밀짚모자', slot: 'HEAD' } }),
+      ),
+    ).toBe(true)
   })
 })

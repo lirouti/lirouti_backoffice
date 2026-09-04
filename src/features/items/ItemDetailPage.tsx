@@ -84,7 +84,8 @@ export default function ItemDetailPage() {
     )
   }
   // 못 불러왔으면 배너만 남긴다 — 빈 상태를 겹치면 "없는 것" 과 "못 받은 것" 이 섞인다 (§18.5)
-  if (error || !data) return <ErrorBanner message={error?.message ?? '아이템을 불러오지 못했습니다.'} />
+  if (error || !data)
+    return <ErrorBanner message={error?.message ?? '아이템을 불러오지 못했습니다.'} />
 
   const { item } = data
 
@@ -97,15 +98,37 @@ export default function ItemDetailPage() {
         className={css({ mb: '12px', px: '0' })}
       >
         <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-          <path d="M7.5,2 L3.5,6 L7.5,10" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+          <path
+            d="M7.5,2 L3.5,6 L7.5,10"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
         아이템 목록
       </Button>
 
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '18px', alignItems: 'flex-start' })}>
+      <div
+        className={css({
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '18px',
+          alignItems: 'flex-start',
+        })}
+      >
         <AssetCard item={item} />
 
-        <div className={css({ flex: '3 1 520px', minWidth: '0', display: 'flex', flexDirection: 'column', gap: '14px' })}>
+        <div
+          className={css({
+            flex: '3 1 520px',
+            minWidth: '0',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '14px',
+          })}
+        >
           <HeadCard
             detail={data}
             onEdit={() => navigate(SCREENS.itemedit.path.replace(':itemId', String(item.key)))}
@@ -124,7 +147,16 @@ export default function ItemDetailPage() {
               {basics(item).map(({ k, v }) => (
                 <div key={k}>
                   <dt className={css({ textStyle: 'micro', color: 'faint' })}>{k}</dt>
-                  <dd className={css({ m: '2px 0 0', textStyle: 'body', fontWeight: '600', color: 'ink' })}>{v}</dd>
+                  <dd
+                    className={css({
+                      m: '2px 0 0',
+                      textStyle: 'body',
+                      fontWeight: '600',
+                      color: 'ink',
+                    })}
+                  >
+                    {v}
+                  </dd>
                 </div>
               ))}
             </dl>
@@ -135,19 +167,34 @@ export default function ItemDetailPage() {
             <div className={css({ mt: '10px' })}>
               <LineChart values={data.trend} {...trendAxis(data.trend)} height={140} />
             </div>
-            <div className={css({ display: 'flex', justifyContent: 'space-between', textStyle: 'micro', color: 'faint', px: '4px' })}>
+            <div
+              className={css({
+                display: 'flex',
+                justifyContent: 'space-between',
+                textStyle: 'micro',
+                color: 'faint',
+                px: '4px',
+              })}
+            >
               <span>8주 전</span>
               <span>지난주</span>
             </div>
           </Card>
 
           <div>
-            <h3 className={css({ m: '0 0 10px', textStyle: 'h3', color: 'ink' })}>최근 지급·회수 이력</h3>
+            <h3 className={css({ m: '0 0 10px', textStyle: 'h3', color: 'ink' })}>
+              최근 지급·회수 이력
+            </h3>
             {/*
               원본은 760 인데 열 폭의 합이 690 이라 41px 때문에 가로 스크롤이 걸렸다.
               실제로 필요한 만큼만 잡는다 — 더 좁아지면 그때는 정말로 스크롤이 맞다.
             */}
-            <Table columns={LEDGER_COLUMNS} rows={data.ledger} rowKey={(e) => String(e.key)} minWidth={700} />
+            <Table
+              columns={LEDGER_COLUMNS}
+              rows={data.ledger}
+              rowKey={(e) => String(e.key)}
+              minWidth={700}
+            />
           </div>
         </div>
       </div>
@@ -171,8 +218,16 @@ function AssetCard({ item }: { item: Item }) {
   // 세로도 길어져, 넓은 화면에서 왕관 하나가 400px 넘게 차지하고 오른쪽 단이
   // 표(760px)보다 좁아졌다. 왼쪽을 멈춰 세우면 남는 폭이 전부 오른쪽으로 간다.
   return (
-    <Card className={css({ flex: '1 1 300px', minWidth: '260px', maxWidth: '380px', p: '15px' })}>
-      <AssetThumb assetId={item.assetId} src={item.assetSrc} fluid paid={item.tier === 'PAID'} alt={item.name} />
+    <Card
+      className={css({ flex: '1 1 300px', minWidth: '260px', maxWidth: '380px', p: '15px' })}
+    >
+      <AssetThumb
+        assetId={item.assetId}
+        src={item.assetSrc}
+        fluid
+        paid={item.tier === 'PAID'}
+        alt={item.name}
+      />
       <div className={css({ display: 'flex', gap: '7px', mt: '12px' })}>
         {/*
           내려받기는 진짜로 된다. 빌드 에셋은 URL 로 들어와 있고, 올린 에셋은 `blob:` 이라
@@ -225,14 +280,32 @@ function HeadCard({ detail, onEdit }: { detail: ItemDetail; onEdit: () => void }
   return (
     <>
       <Card className={css({ p: '19px 21px' })}>
-        <div className={css({ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: '12px' })}>
+        <div
+          className={css({
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'flex-start',
+            gap: '12px',
+          })}
+        >
           <div className={css({ flex: '1 1 300px', minWidth: '0' })}>
-            <div className={css({ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' })}>
+            <div
+              className={css({
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                flexWrap: 'wrap',
+              })}
+            >
               <Badge tone={TIER_TONE[item.tier]}>{TIER_LABEL[item.tier]}</Badge>
-              <Badge tone={ITEM_STATUS_TONE[item.status]}>{ITEM_STATUS_LABEL[item.status]}</Badge>
+              <Badge tone={ITEM_STATUS_TONE[item.status]}>
+                {ITEM_STATUS_LABEL[item.status]}
+              </Badge>
               <span className={css({ textStyle: 'caption', color: 'faint' })}>{item.code}</span>
             </div>
-            <h2 className={css({ m: '6px 0 0', textStyle: 'h2', color: 'ink' })}>{item.name}</h2>
+            <h2 className={css({ m: '6px 0 0', textStyle: 'h2', color: 'ink' })}>
+              {item.name}
+            </h2>
             <p className={css({ m: '5px 0 0', textStyle: 'body', color: 'sub' })}>{item.sub}</p>
           </div>
 
@@ -261,7 +334,15 @@ function HeadCard({ detail, onEdit }: { detail: ItemDetail; onEdit: () => void }
           })}
         >
           {stats.map(({ k, v }) => (
-            <div key={k} className={css({ bg: 'surf2', border: '1px solid token(colors.ln)', borderRadius: 'lg', p: '11px 13px' })}>
+            <div
+              key={k}
+              className={css({
+                bg: 'surf2',
+                border: '1px solid token(colors.ln)',
+                borderRadius: 'lg',
+                p: '11px 13px',
+              })}
+            >
               <dt className={css({ textStyle: 'micro', color: 'faint' })}>{k}</dt>
               <dd className={css({ m: '3px 0 0', textStyle: 'h3', color: 'ink' })}>{v}</dd>
             </div>
@@ -287,7 +368,9 @@ function HeadCard({ detail, onEdit }: { detail: ItemDetail; onEdit: () => void }
               : '상점과 앱에 즉시 다시 노출됩니다.'
         }
         tone={hiding ? 'danger' : 'default'}
-        confirmLabel={visibility.isPending ? '변경 중…' : hiding ? '미노출로 전환' : '노출로 전환'}
+        confirmLabel={
+          visibility.isPending ? '변경 중…' : hiding ? '미노출로 전환' : '노출로 전환'
+        }
       >
         {visibility.error && (
           <p role="alert" className={css({ m: '0', textStyle: 'label', color: 'rFg' })}>

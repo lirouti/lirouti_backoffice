@@ -116,7 +116,10 @@ describe('isAdminEmail', () => {
 
 describe('viewerOf', () => {
   it('운영자는 담당 모듈을 그대로 가진다', () => {
-    expect(viewerOf(adm())).toMatchObject({ role: 'operator', scopes: ['items', 'shop', 'ops'] })
+    expect(viewerOf(adm())).toMatchObject({
+      role: 'operator',
+      scopes: ['items', 'shop', 'ops'],
+    })
   })
 
   // 전체 접근인 계정에 3개만 적힌 뷰어를 만들면 미리보기가 실제보다 좁게 나온다.
@@ -252,7 +255,9 @@ describe('normalizeAdminInput', () => {
 
   // 운영자로 모듈을 고르다 최고 관리자로 바꾸면 고른 목록이 그대로 남는다.
   it('⚠️ 최고 관리자로 바꾸면 고른 모듈을 지운다', () => {
-    expect(normalizeAdminInput(input({ role: 'top', scopes: ['items', 'cs'] })).scopes).toEqual([])
+    expect(normalizeAdminInput(input({ role: 'top', scopes: ['items', 'cs'] })).scopes).toEqual(
+      [],
+    )
   })
 
   // 화면이 넘긴 순서를 그대로 저장하면 같은 조합이 두 가지 모양으로 남는다.
@@ -288,13 +293,17 @@ describe('validateAdmin', () => {
   })
 
   it('사내 이메일이 아니면 막는다', () => {
-    expect(validateAdmin(input({ email: 'jimin@gmail.com' }), taken).email).toContain('사내 이메일')
+    expect(validateAdmin(input({ email: 'jimin@gmail.com' }), taken).email).toContain(
+      '사내 이메일',
+    )
   })
 
   // 끝만 보면 `@riruti.co` 가 그대로 통과해 **로그인할 수 없는 계정**이 만들어진다.
   it('⚠️ 도메인만 적은 것도 막는다', () => {
     expect(validateAdmin(input({ email: '@riruti.co' }), taken).email).toContain('사내 이메일')
-    expect(validateAdmin(input({ email: 'a@b@riruti.co' }), taken).email).toContain('사내 이메일')
+    expect(validateAdmin(input({ email: 'a@b@riruti.co' }), taken).email).toContain(
+      '사내 이메일',
+    )
   })
 
   // 같은 아이디로 두 계정이 생기면 로그인이 어느 쪽인지 알 수 없다.
@@ -306,7 +315,9 @@ describe('validateAdmin', () => {
 
   // 0개로 부르면 로그인해도 사이드바가 비어 있어 할 수 있는 일이 없다.
   it('⚠️ 운영자는 담당 모듈이 하나는 있어야 한다', () => {
-    expect(validateAdmin(input({ scopes: [] }), taken).scopes).toBe('담당 모듈을 하나 이상 고르세요.')
+    expect(validateAdmin(input({ scopes: [] }), taken).scopes).toBe(
+      '담당 모듈을 하나 이상 고르세요.',
+    )
   })
 
   // 최고 관리자는 전체 접근이라 고를 것이 없다. 여기서 막으면 발급 자체가 안 된다.

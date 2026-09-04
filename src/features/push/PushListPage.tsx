@@ -47,7 +47,9 @@ const COLUMNS: Column<Push>[] = [
     truncate: true,
     render: (p) => (
       <span>
-        <span className={css({ display: 'block', fontWeight: '600', color: 'ink' })}>{p.title}</span>
+        <span className={css({ display: 'block', fontWeight: '600', color: 'ink' })}>
+          {p.title}
+        </span>
         <span
           className={css({
             display: 'block',
@@ -70,7 +72,13 @@ const COLUMNS: Column<Push>[] = [
     render: (p) => <Badge tone={PUSH_KIND_TONE[p.kind]}>{PUSH_KIND_LABEL[p.kind]}</Badge>,
   },
   { key: 'audience', label: '대상', width: '110px' },
-  { key: 'targeted', label: '대상 수', width: '96px', align: 'right', render: (p) => num(p.targeted) },
+  {
+    key: 'targeted',
+    label: '대상 수',
+    width: '96px',
+    align: 'right',
+    render: (p) => num(p.targeted),
+  },
   {
     key: 'openRate',
     label: '열림률',
@@ -133,16 +141,21 @@ export default function PushListPage() {
             alert={data.summary.scheduled > 0}
           />
           <StatTile label="평균 열림률" value={`${data.summary.openRate}%`} />
-          <StatTile
-            label="푸시 허용"
-            value={share(data.consent.push, data.consent.all)}
-          />
+          <StatTile label="푸시 허용" value={share(data.consent.push, data.consent.all)} />
         </div>
       ) : isPending ? (
         <SkeletonStats count={4} min={150} silent className={css({ mb: '16px' })} />
       ) : null}
 
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center', mb: '14px' })}>
+      <div
+        className={css({
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '10px',
+          alignItems: 'center',
+          mb: '14px',
+        })}
+      >
         <Input
           value={query.q}
           onChange={(v) => patch('q', v)}

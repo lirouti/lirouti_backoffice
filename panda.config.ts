@@ -45,8 +45,7 @@ export default defineConfig({
       tokens: {
         fonts: {
           sans: {
-            value:
-              "Pretendard, -apple-system, 'Apple SD Gothic Neo', system-ui, sans-serif",
+            value: "Pretendard, -apple-system, 'Apple SD Gothic Neo', system-ui, sans-serif",
           },
           /**
            * 시크릿 키·백업 코드처럼 **한 글자씩 옮겨 적는** 값에만 쓴다.
@@ -54,8 +53,7 @@ export default defineConfig({
            * 시스템 폰트만 쓴다 — 이 값을 못 읽으면 계정에 못 들어오므로 CDN 에 걸 수 없다.
            */
           mono: {
-            value:
-              "ui-monospace, SFMono-Regular, Menlo, 'Cascadia Mono', Consolas, monospace",
+            value: "ui-monospace, SFMono-Regular, Menlo, 'Cascadia Mono', Consolas, monospace",
           },
         },
         radii: {
@@ -231,13 +229,28 @@ export default defineConfig({
       // 컴포넌트에서 매번 쓰지 않도록 텍스트 스타일로 묶는다.
       textStyles: {
         display: {
-          value: { fontSize: '24px', lineHeight: '31px', letterSpacing: '-0.9px', fontWeight: '700' },
+          value: {
+            fontSize: '24px',
+            lineHeight: '31px',
+            letterSpacing: '-0.9px',
+            fontWeight: '700',
+          },
         },
         h2: {
-          value: { fontSize: '19px', lineHeight: '27px', letterSpacing: '-0.5px', fontWeight: '700' },
+          value: {
+            fontSize: '19px',
+            lineHeight: '27px',
+            letterSpacing: '-0.5px',
+            fontWeight: '700',
+          },
         },
         h3: {
-          value: { fontSize: '14px', lineHeight: '19px', letterSpacing: '-0.4px', fontWeight: '700' },
+          value: {
+            fontSize: '14px',
+            lineHeight: '19px',
+            letterSpacing: '-0.4px',
+            fontWeight: '700',
+          },
         },
         body: {
           value: { fontSize: '13px', lineHeight: '19px', letterSpacing: '-0.35px' },

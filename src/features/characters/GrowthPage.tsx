@@ -45,7 +45,10 @@ const STAGES: Stage[] = [
 export default function GrowthPage() {
   return (
     <>
-      <PageHeader title="성장 단계" sub="알에서 성체까지 네 단계입니다. 알 껍질 색이 부화 결과를 예고합니다." />
+      <PageHeader
+        title="성장 단계"
+        sub="알에서 성체까지 네 단계입니다. 알 껍질 색이 부화 결과를 예고합니다."
+      />
 
       <div
         className={css({
@@ -94,7 +97,9 @@ function StageCard({ stage: s }: { stage: Stage }) {
         </span>
       </div>
       <div className={css({ p: '10px 12px 12px', borderTop: '1px solid token(colors.ln)' })}>
-        <div className={css({ textStyle: 'label', fontWeight: '700', color: 'ink' })}>{s.name}</div>
+        <div className={css({ textStyle: 'label', fontWeight: '700', color: 'ink' })}>
+          {s.name}
+        </div>
         <div className={css({ mt: '3px', textStyle: 'micro', color: 'faint' })}>{s.days}</div>
       </div>
     </Card>

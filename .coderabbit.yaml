@@ -1,14 +1,14 @@
 # 백엔드 저장소(Li-routi_Backend)와 같은 설정을 쓰되, 이 저장소에만 있는
 # **생성물**을 리뷰 대상에서 뺀다.
-language: "ko-KR"
+language: 'ko-KR'
 
 reviews:
-  profile: "chill"
+  profile: 'chill'
 
   path_filters:
     # `bun run assets` 산출물 — 손으로 고치지 않는다.
     # design/ 을 gitignore 하는 대신 산출물을 커밋하기 때문에 저장소에 있을 뿐이다.
     # SVG 69개(424KB)를 리뷰해봐야 얻을 게 없다. (docs/ARCHITECTURE.md §8)
-    - "!src/assets/icons/**"
-    - "!src/assets/images/**"
-    - "!bun.lock"
+    - '!src/assets/icons/**'
+    - '!src/assets/images/**'
+    - '!bun.lock'

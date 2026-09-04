@@ -115,7 +115,8 @@ describe('filePathRefs', () => {
   // 문서에는 실재하지 않는 이름이 정상적으로 쓰인다. 이것들을 오류로 만들면
   // 사람이 검사를 끈다.
   it('⚠️ 글롭과 자리표시자는 뺀다', () => {
-    const md = '`src/api/*.ts` · `src/assets/{icons,images}/index.ts` · `src/features/<name>/Page.tsx`'
+    const md =
+      '`src/api/*.ts` · `src/assets/{icons,images}/index.ts` · `src/features/<name>/Page.tsx`'
     expect(filePathRefs(md)).toEqual([])
   })
 

@@ -22,7 +22,11 @@ export function orderShares(list: GemProduct[]): Record<number, number> {
   const total = sold.reduce((sum, p) => sum + p.orders, 0)
   if (total === 0) return out
 
-  const exact = sold.map((p) => ({ key: p.key, orders: p.orders, pct: (p.orders / total) * 100 }))
+  const exact = sold.map((p) => ({
+    key: p.key,
+    orders: p.orders,
+    pct: (p.orders / total) * 100,
+  }))
   let left = 100
   for (const e of exact) {
     out[e.key] = Math.floor(e.pct)

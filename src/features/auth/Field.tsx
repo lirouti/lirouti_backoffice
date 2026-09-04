@@ -33,7 +33,11 @@ const inputStyle = css({
   letterSpacing: '-0.3px',
   color: 'ink',
   bg: 'surf',
-  _focusVisible: { outline: 'none', borderColor: 'ringBd', boxShadow: '0 0 0 3px token(colors.ring)' },
+  _focusVisible: {
+    outline: 'none',
+    borderColor: 'ringBd',
+    boxShadow: '0 0 0 3px token(colors.ring)',
+  },
   _placeholder: { color: 'faint' },
   // `Input` 과 같은 방식 — 상태를 따로 들지 않고 `aria-invalid` 하나로 색까지 정한다.
   '&[aria-invalid]': { borderColor: 'rBd' },
@@ -68,7 +72,14 @@ export function TextField({ label, value, onChange, error, required, ...rest }: 
   )
 }
 
-export function PasswordField({ label, value, onChange, error, required, ...rest }: FieldProps) {
+export function PasswordField({
+  label,
+  value,
+  onChange,
+  error,
+  required,
+  ...rest
+}: FieldProps) {
   const id = useId()
   const [shown, setShown] = useState(false)
 
@@ -123,7 +134,14 @@ export function PasswordField({ label, value, onChange, error, required, ...rest
               strokeLinejoin="round"
             />
             <circle cx="8" cy="8" r="2.1" fill="none" stroke="currentColor" strokeWidth="1.4" />
-            {shown && <path d="M2.6,2.6 L13.4,13.4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />}
+            {shown && (
+              <path
+                d="M2.6,2.6 L13.4,13.4"
+                stroke="currentColor"
+                strokeWidth="1.4"
+                strokeLinecap="round"
+              />
+            )}
           </svg>
         </button>
       </div>
@@ -168,7 +186,13 @@ function ErrorText({ id, error }: { id: string; error?: string }) {
         color: 'rFg',
       })}
     >
-      <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true" className={css({ flex: 'none' })}>
+      <svg
+        width="12"
+        height="12"
+        viewBox="0 0 16 16"
+        aria-hidden="true"
+        className={css({ flex: 'none' })}
+      >
         <circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" strokeWidth="1.6" />
         <path d="M8,4.6 V8.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
         <circle cx="8" cy="11.1" r="0.9" fill="currentColor" />

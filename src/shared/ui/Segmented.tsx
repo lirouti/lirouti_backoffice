@@ -16,8 +16,10 @@ type SegmentedProps<V extends string> = {
   className?: string
 }
 
-const valueOf = <V extends string>(o: SegmentedOption<V>): V => (typeof o === 'string' ? o : o.value)
-const labelOf = <V extends string>(o: SegmentedOption<V>): string => (typeof o === 'string' ? o : o.label)
+const valueOf = <V extends string>(o: SegmentedOption<V>): V =>
+  typeof o === 'string' ? o : o.value
+const labelOf = <V extends string>(o: SegmentedOption<V>): string =>
+  typeof o === 'string' ? o : o.label
 
 /**
  * 몇 개 안 되는 선택지를 나란히 놓는 필터. 원본 `tabOf()`/`seg()`.

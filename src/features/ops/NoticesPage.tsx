@@ -16,12 +16,7 @@ import { SkeletonRows, SkeletonStats } from '@/shared/ui/Skeleton'
 import { StatTile } from '@/shared/ui/StatTile'
 import { Table, type Column } from '@/shared/ui/Table'
 
-import {
-  NOTICE_STATUS_LABEL,
-  PERIOD_STATUS_TONE,
-  PIN_LIMIT,
-  periodLabel,
-} from '@/domain/ops'
+import { NOTICE_STATUS_LABEL, PERIOD_STATUS_TONE, PIN_LIMIT, periodLabel } from '@/domain/ops'
 import { SCREENS } from '@/domain/screens'
 
 import { useNotices, type NoticeEntry } from '@/api/ops'
@@ -31,7 +26,13 @@ export default function NoticesPage() {
   const { data, isPending, error } = useNotices()
 
   const columns: Column<NoticeEntry>[] = [
-    { key: 'title', label: '제목', truncate: true, strong: true, render: (r) => r.notice.title },
+    {
+      key: 'title',
+      label: '제목',
+      truncate: true,
+      strong: true,
+      render: (r) => r.notice.title,
+    },
     { key: 'category', label: '분류', width: '92px', render: (r) => r.notice.category },
     {
       key: 'period',

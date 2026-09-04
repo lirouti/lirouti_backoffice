@@ -97,7 +97,9 @@ export function assertResolved(markup: string, what: string): void {
   const hit = DIRECTIVE.exec(markup)
   if (hit) {
     const at = Math.max(0, hit.index - 40)
-    throw new Error(`${what}: 처리하지 못한 템플릿이 남았습니다 — …${markup.slice(at, hit.index + 60)}…`)
+    throw new Error(
+      `${what}: 처리하지 못한 템플릿이 남았습니다 — …${markup.slice(at, hit.index + 60)}…`,
+    )
   }
 }
 
@@ -144,4 +146,3 @@ export function jsTable(js: string, name: string, arity: number): Record<string,
   if (!Object.keys(out).length) throw new Error(`표가 비었습니다: ${name}`)
   return out
 }
-

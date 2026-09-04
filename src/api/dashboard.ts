@@ -14,7 +14,14 @@ import type { Kpi, SeriesPoint } from '@/domain/dashboard'
 import { topSelling, type Item } from '@/domain/item'
 
 import { allChallenges } from '@/mocks/challenges'
-import { DAU_DOMAIN, DAU_SERIES, DAU_TICKS, GEM_FLOW, GEM_FLOW_MAX, KPIS } from '@/mocks/dashboard'
+import {
+  DAU_DOMAIN,
+  DAU_SERIES,
+  DAU_TICKS,
+  GEM_FLOW,
+  GEM_FLOW_MAX,
+  KPIS,
+} from '@/mocks/dashboard'
 import { allItems } from '@/mocks/items'
 
 import { mockDelay, qk, USE_MOCK } from './core'

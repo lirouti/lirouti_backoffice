@@ -19,7 +19,12 @@ import { SkeletonRows, SkeletonStats } from '@/shared/ui/Skeleton'
 import { StatTile } from '@/shared/ui/StatTile'
 import { Table, type Column } from '@/shared/ui/Table'
 
-import { CODE_CATEGORIES, CODE_TONE_BADGE, type CodeFilter, type CodeGroup } from '@/domain/code'
+import {
+  CODE_CATEGORIES,
+  CODE_TONE_BADGE,
+  type CodeFilter,
+  type CodeGroup,
+} from '@/domain/code'
 import { SCREENS } from '@/domain/screens'
 
 import { useCodeGroups } from '@/api/codes'
@@ -40,7 +45,9 @@ const COLUMNS: Column<CodeGroup>[] = [
     minWidth: '200px',
     render: (g) => (
       <span>
-        <span className={css({ display: 'block', fontWeight: '600', color: 'ink' })}>{g.name}</span>
+        <span className={css({ display: 'block', fontWeight: '600', color: 'ink' })}>
+          {g.name}
+        </span>
         <span
           className={css({
             display: 'block',
@@ -60,7 +67,9 @@ const COLUMNS: Column<CodeGroup>[] = [
     key: 'codeKey',
     label: '코드 키',
     width: '160px',
-    render: (g) => <span className={css({ fontFamily: 'mono', textStyle: 'caption' })}>{g.codeKey}</span>,
+    render: (g) => (
+      <span className={css({ fontFamily: 'mono', textStyle: 'caption' })}>{g.codeKey}</span>
+    ),
   },
   {
     key: 'values',
@@ -79,7 +88,13 @@ const COLUMNS: Column<CodeGroup>[] = [
       </span>
     ),
   },
-  { key: 'n', label: '개수', width: '68px', align: 'right', render: (g) => num(g.values.length) },
+  {
+    key: 'n',
+    label: '개수',
+    width: '68px',
+    align: 'right',
+    render: (g) => num(g.values.length),
+  },
   {
     key: 'usages',
     label: '사용처',
@@ -87,7 +102,13 @@ const COLUMNS: Column<CodeGroup>[] = [
     // 0 이면 아직 아무 화면도 안 쓴다 — 「0개 화면」 보다 그렇게 읽히는 편이 낫다.
     render: (g) => (g.usages.length === 0 ? '없음' : `${num(g.usages.length)}개 화면`),
   },
-  { key: 'updatedAt', label: '수정', width: '110px', nowrap: true, render: (g) => g.updatedAt.slice(0, 10) },
+  {
+    key: 'updatedAt',
+    label: '수정',
+    width: '110px',
+    nowrap: true,
+    render: (g) => g.updatedAt.slice(0, 10),
+  },
 ]
 
 export default function CodesPage() {
@@ -135,7 +156,15 @@ export default function CodesPage() {
         <SkeletonStats count={4} min={150} silent className={css({ mb: '16px' })} />
       ) : null}
 
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center', mb: '14px' })}>
+      <div
+        className={css({
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '10px',
+          alignItems: 'center',
+          mb: '14px',
+        })}
+      >
         <Input
           value={f.q ?? ''}
           onChange={(v) => patch('q', v)}

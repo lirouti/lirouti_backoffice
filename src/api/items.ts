@@ -57,7 +57,10 @@ export async function getItems({ page, perPage, ...filter }: ItemsQuery): Promis
     // 규칙은 도메인에서 가져다 쓴다. 목 생성기에 두면 서버로 갈아탈 때 같이 사라진다.
     const matched = filterItems(allItems(), filter)
     const from = (page - 1) * perPage
-    return { items: matched.slice(from, from + perPage).map(withAssetSrc), total: matched.length }
+    return {
+      items: matched.slice(from, from + perPage).map(withAssetSrc),
+      total: matched.length,
+    }
   }
 
   // TODO(백엔드 스펙 확정 후): http.get<ItemsDto>('/admin/items', { params }) → 도메인 타입으로 매핑
@@ -164,7 +167,10 @@ export function useSaveItem() {
 export type SetItemVisibilityVars = { itemId: string; hidden: boolean }
 
 /** 앱 노출 여부만 바꾼다. 미노출 해제 시 저장된 기간에 따라 노출 또는 예약으로 돌아간다. */
-export async function setItemVisibility({ itemId, hidden }: SetItemVisibilityVars): Promise<Item> {
+export async function setItemVisibility({
+  itemId,
+  hidden,
+}: SetItemVisibilityVars): Promise<Item> {
   if (USE_MOCK) {
     await mockDelay()
     const item = allItems().find((it) => String(it.key) === itemId)

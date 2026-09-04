@@ -8,7 +8,13 @@ import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { FilePicker } from '@/shared/ui/FilePicker'
 import { SkeletonRows } from '@/shared/ui/Skeleton'
 
-import { acceptAttr, assetHint, validateAssetFile, ASSET_SPECS, type AssetKind } from '@/domain/asset'
+import {
+  acceptAttr,
+  assetHint,
+  validateAssetFile,
+  ASSET_SPECS,
+  type AssetKind,
+} from '@/domain/asset'
 
 import { useAssets } from '@/api/assets'
 
@@ -37,7 +43,14 @@ type AssetPickerProps = {
  * ⚠️ **종류가 바뀌면 고를 수 있는 것도 바뀐다.** 머리 아이템에 몸 에셋을 붙이면
  *    캐릭터에 겹쳐 그려진다. 그래서 목록을 종류로 거른다.
  */
-export function AssetPicker({ open, kind, value, onClose, onPick, onPickFile }: AssetPickerProps) {
+export function AssetPicker({
+  open,
+  kind,
+  value,
+  onClose,
+  onPick,
+  onPickFile,
+}: AssetPickerProps) {
   const { data, isPending, error } = useAssets(kind)
   const [fileError, setFileError] = useState<string | null>(null)
   // 창 안에서만 쓰는 임시 선택. 「선택」 을 눌러야 폼에 반영된다.
@@ -117,7 +130,15 @@ export function AssetPicker({ open, kind, value, onClose, onPick, onPickFile }: 
  * 고른 것을 **테두리 색으로만** 알리지 않는다 — `aria-pressed` 가 있어야 스크린리더가
  * "눌림" 을 읽는다. 라디오로 안 만든 이유는 창을 닫아야 확정되기 때문이다.
  */
-function Tile({ asset, on, onPick }: { asset: { assetId: string; name: string; paid: boolean }; on: boolean; onPick: () => void }) {
+function Tile({
+  asset,
+  on,
+  onPick,
+}: {
+  asset: { assetId: string; name: string; paid: boolean }
+  on: boolean
+  onPick: () => void
+}) {
   return (
     <button
       type="button"
@@ -138,7 +159,11 @@ function Tile({ asset, on, onPick }: { asset: { assetId: string; name: string; p
         overflow: 'hidden',
         cursor: 'pointer',
         _hover: { borderColor: on ? 'pri' : 'faint2' },
-        _focusVisible: { outline: 'none', borderColor: 'ringBd', boxShadow: '0 0 0 3px token(colors.ring)' },
+        _focusVisible: {
+          outline: 'none',
+          borderColor: 'ringBd',
+          boxShadow: '0 0 0 3px token(colors.ring)',
+        },
       })}
     >
       <AssetThumb assetId={asset.assetId} fluid paid={asset.paid} />

@@ -61,7 +61,11 @@ export async function confirmTotpEnrollment(v: TotpConfirmation): Promise<string
   if (USE_MOCK) {
     await mockDelay(500)
     if (v.code.trim() === MOCK_BAD_CODE) {
-      throw apiError('http', '코드가 일치하지 않습니다. 인증 앱의 시간이 맞는지 확인해 주세요.', 401)
+      throw apiError(
+        'http',
+        '코드가 일치하지 않습니다. 인증 앱의 시간이 맞는지 확인해 주세요.',
+        401,
+      )
     }
     const codes = makeBackupCodes()
     securityState.totp = {

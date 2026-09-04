@@ -8,14 +8,7 @@ import type { ScreenId } from '../screens'
 
 /** 코드 그룹이 속한 모듈 */
 export type CodeCategory =
-  | '공통'
-  | '고객 소통'
-  | '아이템'
-  | '운영'
-  | '챌린지'
-  | '캐릭터'
-  | '재화 · 상점'
-  | '성장 · 레벨'
+  '공통' | '고객 소통' | '아이템' | '운영' | '챌린지' | '캐릭터' | '재화 · 상점' | '성장 · 레벨'
 
 export const CODE_CATEGORIES: CodeCategory[] = [
   '공통',

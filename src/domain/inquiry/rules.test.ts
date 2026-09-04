@@ -59,9 +59,9 @@ describe('waitMinutes · firstResponseMinutes', () => {
 
   // 어제 답한 문의가 오늘도 계속 늘어나면 SLA 가 무너진다.
   it('⚠️ 끝난 건은 「접수 → 첫 답변」 이다 — 지금까지가 아니다', () => {
-    expect(
-      waitMinutes(inq({ status: '답변완료', answeredAt: '2026-08-11 10:14' }), NOW),
-    ).toBe(60)
+    expect(waitMinutes(inq({ status: '답변완료', answeredAt: '2026-08-11 10:14' }), NOW)).toBe(
+      60,
+    )
   })
 
   // 접수 시각부터 재면 **이미 답한 시간까지 합쳐져** 답을 늦게 준 것처럼 보인다.
@@ -128,9 +128,27 @@ describe('isOverdue', () => {
 
 describe('filterInquiries', () => {
   const list = [
-    inq({ key: 0, status: '대기', category: '버그', title: '알이 부화하지 않아요', assignee: '' }),
-    inq({ key: 1, status: '보류', category: '챌린지', title: '출석이 초기화됐습니다', assignee: '박라이브' }),
-    inq({ key: 2, status: '답변완료', category: '결제', title: '환불 요청합니다', assignee: '이CS' }),
+    inq({
+      key: 0,
+      status: '대기',
+      category: '버그',
+      title: '알이 부화하지 않아요',
+      assignee: '',
+    }),
+    inq({
+      key: 1,
+      status: '보류',
+      category: '챌린지',
+      title: '출석이 초기화됐습니다',
+      assignee: '박라이브',
+    }),
+    inq({
+      key: 2,
+      status: '답변완료',
+      category: '결제',
+      title: '환불 요청합니다',
+      assignee: '이CS',
+    }),
   ]
 
   it('상태 · 분류 · 검색어를 함께 건다', () => {
@@ -159,7 +177,13 @@ describe('summarizeInquiries', () => {
   const list = [
     inq({ key: 0, at: '2026-08-11 09:14', status: '대기' }),
     inq({ key: 1, at: '2026-08-10 21:00', status: '보류' }),
-    inq({ key: 2, at: '2026-08-10 15:44', status: '답변완료', answeredAt: '2026-08-10 17:44', reopened: false }),
+    inq({
+      key: 2,
+      at: '2026-08-10 15:44',
+      status: '답변완료',
+      answeredAt: '2026-08-10 17:44',
+      reopened: false,
+    }),
     // ⚠️ **답변했지만 재문의로 다시 열린 건.** 이게 없으면 「평균 응답」 을 현재 대기
     //    시간으로 재도 테스트가 통과한다 — 둘이 같은 값을 주기 때문이다.
     inq({

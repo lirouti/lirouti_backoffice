@@ -54,7 +54,10 @@ const tabOf = (p: URLSearchParams): ReportTab => {
 const liveParams = (): URLSearchParams => new URLSearchParams(window.location.search)
 
 /** `base` 에 값을 얹은 새 쿼리. **빈 값은 지운다** — `?id=` 는 아무것도 안 가리킨다 */
-function withParams(base: URLSearchParams, next: Partial<Record<'tab' | 'id', string>>): URLSearchParams {
+function withParams(
+  base: URLSearchParams,
+  next: Partial<Record<'tab' | 'id', string>>,
+): URLSearchParams {
   const p = new URLSearchParams(base)
   for (const [k, v] of Object.entries(next)) {
     if (v === '') p.delete(k)
@@ -241,7 +244,9 @@ function QueueRow({ report: r, on, pick }: { report: Report; on: boolean; pick: 
             <Badge tone={REPORT_STATE_TONE[r.state]} size="sm">
               {r.state}
             </Badge>
-            <span className={css({ textStyle: 'micro', color: 'faint' })}>신고 {num(reportCount(r))}건</span>
+            <span className={css({ textStyle: 'micro', color: 'faint' })}>
+              신고 {num(reportCount(r))}건
+            </span>
           </span>
           <span
             className={css({
@@ -257,7 +262,9 @@ function QueueRow({ report: r, on, pick }: { report: Report; on: boolean; pick: 
           >
             {r.title}
           </span>
-          <span className={css({ display: 'block', mt: '1px', textStyle: 'micro', color: 'faint' })}>
+          <span
+            className={css({ display: 'block', mt: '1px', textStyle: 'micro', color: 'faint' })}
+          >
             {r.who} · {short(r.at)}
           </span>
         </span>
@@ -276,25 +283,60 @@ function Detail({
   busy: boolean
 }) {
   return (
-    <div className={css({ flex: '2 1 420px', minWidth: '0', display: 'flex', flexDirection: 'column', gap: '18px' })}>
+    <div
+      className={css({
+        flex: '2 1 420px',
+        minWidth: '0',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '18px',
+      })}
+    >
       <Card className={css({ p: '17px 20px' })}>
-        <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '12px 16px', alignItems: 'flex-start' })}>
+        <div
+          className={css({
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '12px 16px',
+            alignItems: 'flex-start',
+          })}
+        >
           <div className={css({ flex: '1 1 260px', minWidth: '0' })}>
             <div className={css({ display: 'flex', alignItems: 'center', gap: '8px' })}>
               <Badge tone={REPORT_STATE_TONE[r.state]}>{r.state}</Badge>
-              <span className={css({ fontFamily: 'mono', textStyle: 'caption', color: 'faint' })}>{r.code}</span>
+              <span
+                className={css({ fontFamily: 'mono', textStyle: 'caption', color: 'faint' })}
+              >
+                {r.code}
+              </span>
             </div>
-            <h3 className={css({ m: '9px 0 0', textStyle: 'h3', fontWeight: '700', color: 'ink' })}>{r.title}</h3>
+            <h3
+              className={css({
+                m: '9px 0 0',
+                textStyle: 'h3',
+                fontWeight: '700',
+                color: 'ink',
+              })}
+            >
+              {r.title}
+            </h3>
             <p className={css({ m: '4px 0 0', textStyle: 'caption', color: 'sub' })}>
               {r.who} · {r.at}
             </p>
           </div>
           <div className={css({ display: 'flex', gap: '8px' })}>
             {/* 이미 그 상태인 쪽은 잠근다 — 눌러도 아무 일이 없는데 반응한 것처럼 보인다 */}
-            <Button onClick={() => onDecide('숨김 해제')} disabled={busy || !canDecide(r, '숨김 해제')}>
+            <Button
+              onClick={() => onDecide('숨김 해제')}
+              disabled={busy || !canDecide(r, '숨김 해제')}
+            >
               숨김 해제
             </Button>
-            <Button variant="danger" onClick={() => onDecide('숨김 유지')} disabled={busy || !canDecide(r, '숨김 유지')}>
+            <Button
+              variant="danger"
+              onClick={() => onDecide('숨김 유지')}
+              disabled={busy || !canDecide(r, '숨김 유지')}
+            >
               숨김 유지
             </Button>
           </div>
@@ -318,8 +360,12 @@ function Detail({
           })}
         >
           <Icon name="ic_image" size={40} />
-          <div className={css({ textStyle: 'label', fontWeight: '600', color: 'sub' })}>인증 사진 원본</div>
-          <div className={css({ textStyle: 'micro' })}>모더레이션 화면에서만 열람 · 내려받기 차단</div>
+          <div className={css({ textStyle: 'label', fontWeight: '600', color: 'sub' })}>
+            인증 사진 원본
+          </div>
+          <div className={css({ textStyle: 'micro' })}>
+            모더레이션 화면에서만 열람 · 내려받기 차단
+          </div>
         </div>
 
         <p
@@ -339,17 +385,39 @@ function Detail({
                남는다고 하면 운영자는 추적되고 있다고 믿는다 — 헤더의 정적 「● 라이브」
                배지를 지운 것과 같은 이유다(§23.5). 규칙은 남기되 상태는 사실대로 적는다.
           */}
-          <strong>열람 기록은 아직 남지 않습니다</strong> — 감사 로그 연동 전이라 지금은 규칙으로만
-          지켜집니다.
+          <strong>열람 기록은 아직 남지 않습니다</strong> — 감사 로그 연동 전이라 지금은
+          규칙으로만 지켜집니다.
         </p>
       </Card>
 
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '18px', alignItems: 'flex-start' })}>
+      <div
+        className={css({
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '18px',
+          alignItems: 'flex-start',
+        })}
+      >
         <Card className={css({ flex: '1 1 280px', minWidth: '0', p: '15px' })}>
-          <CardTitle title={`신고자 ${num(reportCount(r))}명`} sub="사유는 신고한 사람이 고른 값입니다." />
-          <ul className={css({ listStyle: 'none', m: '12px 0 0', p: '0', display: 'flex', flexDirection: 'column', gap: '10px' })}>
+          <CardTitle
+            title={`신고자 ${num(reportCount(r))}명`}
+            sub="사유는 신고한 사람이 고른 값입니다."
+          />
+          <ul
+            className={css({
+              listStyle: 'none',
+              m: '12px 0 0',
+              p: '0',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px',
+            })}
+          >
             {r.reporters.map((p) => (
-              <li key={`${p.nick}-${p.at}`} className={css({ display: 'flex', alignItems: 'center', gap: '9px' })}>
+              <li
+                key={`${p.nick}-${p.at}`}
+                className={css({ display: 'flex', alignItems: 'center', gap: '9px' })}
+              >
                 <span
                   aria-hidden="true"
                   className={css({
@@ -368,10 +436,21 @@ function Detail({
                   {p.nick.slice(0, 1)}
                 </span>
                 <span className={css({ flex: '1', minWidth: '0' })}>
-                  <span className={css({ display: 'block', textStyle: 'label', fontWeight: '600', color: 'ink' })}>
+                  <span
+                    className={css({
+                      display: 'block',
+                      textStyle: 'label',
+                      fontWeight: '600',
+                      color: 'ink',
+                    })}
+                  >
                     {p.nick}
                   </span>
-                  <span className={css({ display: 'block', textStyle: 'micro', color: 'faint' })}>{short(p.at)}</span>
+                  <span
+                    className={css({ display: 'block', textStyle: 'micro', color: 'faint' })}
+                  >
+                    {short(p.at)}
+                  </span>
                 </span>
                 <Badge size="sm">{p.why}</Badge>
               </li>
@@ -381,7 +460,14 @@ function Detail({
 
         <Card className={css({ flex: '1 1 280px', minWidth: '0', p: '15px' })}>
           <CardTitle title="작성자 이력" sub="이 건 하나가 아니라 사람을 봅니다." />
-          <dl className={css({ m: '12px 0 0', display: 'flex', flexDirection: 'column', gap: '9px' })}>
+          <dl
+            className={css({
+              m: '12px 0 0',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '9px',
+            })}
+          >
             <Row k="닉네임" v={r.who} />
             <Row k="누적 인증" v={`${num(r.author.certs)}회`} />
             <Row k="피신고" v={`${num(r.author.reports)}건`} />
@@ -403,8 +489,22 @@ function Detail({
 function Row({ k, v }: { k: string; v: string }) {
   return (
     <div className={css({ display: 'flex', alignItems: 'center', gap: '10px' })}>
-      <dt className={css({ flex: 'none', width: '72px', textStyle: 'caption', color: 'faint' })}>{k}</dt>
-      <dd className={css({ m: '0', flex: '1', minWidth: '0', textAlign: 'right', textStyle: 'label', fontWeight: '600', color: 'ink' })}>
+      <dt
+        className={css({ flex: 'none', width: '72px', textStyle: 'caption', color: 'faint' })}
+      >
+        {k}
+      </dt>
+      <dd
+        className={css({
+          m: '0',
+          flex: '1',
+          minWidth: '0',
+          textAlign: 'right',
+          textStyle: 'label',
+          fontWeight: '600',
+          color: 'ink',
+        })}
+      >
         {v}
       </dd>
     </div>

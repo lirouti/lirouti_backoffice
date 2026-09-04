@@ -33,7 +33,11 @@ const PER_PAGE = 12
  */
 export function RewardItemPicker({ open, value, onClose, onPick }: RewardItemPickerProps) {
   const [q, setQ] = useState('')
-  const { data, isPending, error } = useItems({ q: q.trim() || undefined, page: 1, perPage: PER_PAGE })
+  const { data, isPending, error } = useItems({
+    q: q.trim() || undefined,
+    page: 1,
+    perPage: PER_PAGE,
+  })
   const [picked, setPicked] = useState<ChallengeReward | null>(value)
   const [wasOpen, setWasOpen] = useState(open)
 
@@ -75,7 +79,15 @@ export function RewardItemPicker({ open, value, onClose, onPick }: RewardItemPic
       ) : error ? (
         <ErrorBanner message={error.message} />
       ) : items.length === 0 ? (
-        <p className={css({ m: '0', p: '18px 0', textAlign: 'center', textStyle: 'caption', color: 'faint' })}>
+        <p
+          className={css({
+            m: '0',
+            p: '18px 0',
+            textAlign: 'center',
+            textStyle: 'caption',
+            color: 'faint',
+          })}
+        >
           찾는 아이템이 없습니다.
         </p>
       ) : (
@@ -98,7 +110,12 @@ export function RewardItemPicker({ open, value, onClose, onPick }: RewardItemPic
                 on={picked?.assetId === it.assetId && picked?.name === it.name}
                 // ⚠️ `assetSrc` 를 함께 담는다 — 버리면 고른 뒤에 그림이 사라진다.
                 onPick={() =>
-                  setPicked({ assetId: it.assetId, assetSrc: it.assetSrc, name: it.name, slot: it.slot })
+                  setPicked({
+                    assetId: it.assetId,
+                    assetSrc: it.assetSrc,
+                    name: it.name,
+                    slot: it.slot,
+                  })
                 }
               />
             </li>
@@ -146,7 +163,12 @@ function Row({ item, on, onPick }: { item: Item; on: boolean; onPick: () => void
         _focusVisible: { outline: 'none', boxShadow: '0 0 0 3px token(colors.ring)' },
       })}
     >
-      <AssetThumb assetId={item.assetId} src={item.assetSrc} size={32} paid={item.tier === 'PAID'} />
+      <AssetThumb
+        assetId={item.assetId}
+        src={item.assetSrc}
+        size={32}
+        paid={item.tier === 'PAID'}
+      />
       <span className={css({ flex: '1', minWidth: '0' })}>
         <span
           className={css({
@@ -162,7 +184,9 @@ function Row({ item, on, onPick }: { item: Item; on: boolean; onPick: () => void
           {item.name}
         </span>
         {/* ⚠️ 고른 줄은 `soft` 배경이라 `faint` 가 4.35:1 로 모자란다 (docs/ARCHITECTURE.md §3.5.1) */}
-        <span className={css({ display: 'block', mt: '1px', textStyle: 'micro', color: 'sub' })}>
+        <span
+          className={css({ display: 'block', mt: '1px', textStyle: 'micro', color: 'sub' })}
+        >
           {SLOT_LABEL[item.slot]} · {item.code}
         </span>
       </span>

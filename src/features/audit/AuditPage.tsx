@@ -102,13 +102,33 @@ export default function AuditPage() {
           color: 'priD',
         })}
       >
-        <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true" className={css({ flex: 'none', mt: '1px' })}>
-          <rect x="3.4" y="7" width="9.2" height="6.6" rx="1.6" fill="none" stroke="currentColor" strokeWidth="1.5" />
-          <path d="M5.6,7 V5.2 A2.4,2.4 0 0 1 10.4,5.2 V7" fill="none" stroke="currentColor" strokeWidth="1.5" />
+        <svg
+          width="15"
+          height="15"
+          viewBox="0 0 16 16"
+          aria-hidden="true"
+          className={css({ flex: 'none', mt: '1px' })}
+        >
+          <rect
+            x="3.4"
+            y="7"
+            width="9.2"
+            height="6.6"
+            rx="1.6"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          />
+          <path
+            d="M5.6,7 V5.2 A2.4,2.4 0 0 1 10.4,5.2 V7"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          />
         </svg>
         <span>
-          추가만 되는 기록입니다. 화면에서도 서버에서도 지우거나 고칠 수 없고, 재화 지급 · 환불 · 제재 ·
-          숨김 처리 · 권한 변경이 자동으로 쌓입니다.
+          추가만 되는 기록입니다. 화면에서도 서버에서도 지우거나 고칠 수 없고, 재화 지급 · 환불
+          · 제재 · 숨김 처리 · 권한 변경이 자동으로 쌓입니다.
         </span>
       </div>
 
@@ -136,7 +156,14 @@ export default function AuditPage() {
       ) : null}
 
       <Card className={css({ p: '14px 16px', mb: '14px' })}>
-        <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' })}>
+        <div
+          className={css({
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '10px',
+            alignItems: 'center',
+          })}
+        >
           <Input
             value={f.q ?? ''}
             onChange={(v) => patch('q', v)}
@@ -172,7 +199,14 @@ export default function AuditPage() {
       ) : error ? (
         <ErrorBanner message={error.message} />
       ) : (
-        <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '18px', alignItems: 'flex-start' })}>
+        <div
+          className={css({
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '18px',
+            alignItems: 'flex-start',
+          })}
+        >
           {/*
             ⚠️ **기준 폭은 표가 열을 다 보여 주는 데 필요한 폭(920px)이다.** 원본처럼
             560px 로 두면 좁은 화면에서도 옆 패널과 나란히 서려다가 **표가 눌려 「사유」
@@ -190,7 +224,10 @@ export default function AuditPage() {
                 selectedIndex={selectedIndex}
               />
             ) : (
-              <EmptyState title="조건에 맞는 기록이 없습니다" body="검색어나 분류를 바꿔 보세요." />
+              <EmptyState
+                title="조건에 맞는 기록이 없습니다"
+                body="검색어나 분류를 바꿔 보세요."
+              />
             )}
           </div>
 
@@ -207,7 +244,15 @@ function Detail({ log }: { log: AuditLog }) {
   return (
     <div className={css({ display: 'flex', flexDirection: 'column', gap: '14px' })}>
       <Card className={css({ p: '18px 20px' })}>
-        <div className={css({ display: 'flex', alignItems: 'center', gap: '8px', mb: '13px', flexWrap: 'wrap' })}>
+        <div
+          className={css({
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            mb: '13px',
+            flexWrap: 'wrap',
+          })}
+        >
           <CardTitle title="기록 상세" />
           <Badge tone={AUDIT_KIND_TONE[log.kind]}>{log.kind}</Badge>
         </div>
@@ -219,7 +264,16 @@ function Detail({ log }: { log: AuditLog }) {
           <Row k="IP" v={log.ip} mono />
         </dl>
         <div className={css({ pt: '13px' })}>
-          <div className={css({ textStyle: 'caption', fontWeight: '700', color: 'sub', mb: '6px' })}>사유</div>
+          <div
+            className={css({
+              textStyle: 'caption',
+              fontWeight: '700',
+              color: 'sub',
+              mb: '6px',
+            })}
+          >
+            사유
+          </div>
           <p
             className={css({
               m: '0',
@@ -239,7 +293,9 @@ function Detail({ log }: { log: AuditLog }) {
       <Card className={css({ p: '18px 20px' })}>
         <CardTitle title="변경 전 · 후" />
         <div className={css({ mt: '12px' })}>
-          <div className={css({ textStyle: 'micro', color: 'sub', mb: '5px' })}>{log.field}</div>
+          <div className={css({ textStyle: 'micro', color: 'sub', mb: '5px' })}>
+            {log.field}
+          </div>
           {/*
             ⚠️ 앞뒤가 같으면 화살표를 그리지 않는다. 「숨김 유지」 는 살펴보고 **그대로
             두기로 한** 조작인데, 빨강 → 초록으로 그리면 바뀐 것처럼 읽힌다 (§32.4).
@@ -262,7 +318,13 @@ function Detail({ log }: { log: AuditLog }) {
           ) : (
             <div className={css({ display: 'flex', alignItems: 'center', gap: '8px' })}>
               <Side value={log.from} tone="from" />
-              <svg width="13" height="13" viewBox="0 0 12 12" aria-hidden="true" className={css({ flex: 'none', color: 'faint' })}>
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 12 12"
+                aria-hidden="true"
+                className={css({ flex: 'none', color: 'faint' })}
+              >
                 <path
                   d="M2,6 H10 M7,3 L10,6 L7,9"
                   fill="none"
@@ -291,10 +353,18 @@ function Detail({ log }: { log: AuditLog }) {
             _hover: { bg: 'hov' },
           })}
         >
-          <span className={css({ flex: '1', textStyle: 'label', fontWeight: '600', color: 'ink' })}>
+          <span
+            className={css({ flex: '1', textStyle: 'label', fontWeight: '600', color: 'ink' })}
+          >
             {SCREENS[log.screen].label} 화면으로 이동
           </span>
-          <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" className={css({ flex: 'none', color: 'faint' })}>
+          <svg
+            width="11"
+            height="11"
+            viewBox="0 0 12 12"
+            aria-hidden="true"
+            className={css({ flex: 'none', color: 'faint' })}
+          >
             <path
               d="M4.5,2 L8.5,6 L4.5,10"
               fill="none"
@@ -330,7 +400,9 @@ const COLUMNS: Column<AuditLog>[] = [
       l.delta === '' ? (
         <span className={css({ color: 'faint' })}>—</span>
       ) : (
-        <span className={css({ fontWeight: '700', color: l.delta.startsWith('-') ? 'rFg' : 'gFg' })}>
+        <span
+          className={css({ fontWeight: '700', color: l.delta.startsWith('-') ? 'rFg' : 'gFg' })}
+        >
           {l.delta}
         </span>
       ),
@@ -371,7 +443,9 @@ function Row({ k, v, mono }: { k: string; v: string; mono?: boolean }) {
         borderBottom: '1px solid token(colors.ln)',
       })}
     >
-      <dt className={css({ w: '92px', flex: 'none', textStyle: 'caption', color: 'sub' })}>{k}</dt>
+      <dt className={css({ w: '92px', flex: 'none', textStyle: 'caption', color: 'sub' })}>
+        {k}
+      </dt>
       <dd
         className={css({
           m: '0',

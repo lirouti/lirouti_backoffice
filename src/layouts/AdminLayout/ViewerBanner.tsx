@@ -20,7 +20,13 @@ export function ViewerBanner() {
         borderBottom: '1px solid token(colors.warnBd)',
       })}
     >
-      <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true" className={css({ flex: 'none', color: 'aFg' })}>
+      <svg
+        width="15"
+        height="15"
+        viewBox="0 0 16 16"
+        aria-hidden="true"
+        className={css({ flex: 'none', color: 'aFg' })}
+      >
         <path
           d="M1.6,8 C3.4,4.8 5.6,3.3 8,3.3 C10.4,3.3 12.6,4.8 14.4,8 C12.6,11.2 10.4,12.7 8,12.7 C5.6,12.7 3.4,11.2 1.6,8 Z"
           fill="none"
@@ -30,7 +36,14 @@ export function ViewerBanner() {
         />
         <circle cx="8" cy="8" r="2.1" fill="none" stroke="currentColor" strokeWidth="1.5" />
       </svg>
-      <span className={css({ flex: '1 1 240px', minWidth: '0', textStyle: 'label', color: 'warnFg' })}>
+      <span
+        className={css({
+          flex: '1 1 240px',
+          minWidth: '0',
+          textStyle: 'label',
+          color: 'warnFg',
+        })}
+      >
         {viewer.name} 계정으로 보고 있습니다 · 담당 모듈만 표시됩니다
       </span>
       <button

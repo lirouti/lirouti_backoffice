@@ -108,8 +108,16 @@ export default function AiReviewPage() {
               mb: '16px',
             })}
           >
-            <SkeletonStats count={4} min={140} className={css({ flex: '2 1 420px', minWidth: '0' })} />
-            <SkeletonBlock height={70} silent className={css({ flex: '1 1 300px', minWidth: '0' })} />
+            <SkeletonStats
+              count={4}
+              min={140}
+              className={css({ flex: '2 1 420px', minWidth: '0' })}
+            />
+            <SkeletonBlock
+              height={70}
+              silent
+              className={css({ flex: '1 1 300px', minWidth: '0' })}
+            />
           </div>
           <SkeletonRows rows={8} silent />
         </>

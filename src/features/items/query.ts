@@ -97,7 +97,11 @@ export function patchQuery(
   patch: Partial<ItemsScreenQuery>,
 ): ItemsScreenQuery {
   const onlyPage = Object.keys(patch).every((k) => k === 'page')
-  return { ...current, ...patch, page: onlyPage ? (patch.page ?? current.page) : DEFAULT_QUERY.page }
+  return {
+    ...current,
+    ...patch,
+    page: onlyPage ? (patch.page ?? current.page) : DEFAULT_QUERY.page,
+  }
 }
 
 /** 조건이 하나라도 걸려 있는가. 「필터 초기화」를 보일지 정한다. */

@@ -66,7 +66,11 @@ function EventCard({ entry: { event: e, status, reward } }: { entry: EventEntry 
         왼쪽 띠는 기획이 넣는 색이라 토큰이 아니다. 장식 전용이고 이 위에 글자를
         올리지 않는다 — 대비 검사가 못 보는 값이다 (§25.2).
       */}
-      <div aria-hidden="true" className={css({ flex: 'none', width: '5px' })} style={{ background: e.accent }} />
+      <div
+        aria-hidden="true"
+        className={css({ flex: 'none', width: '5px' })}
+        style={{ background: e.accent }}
+      />
       <div className={css({ flex: '1', minWidth: '0', p: '15px 18px' })}>
         <div className={css({ display: 'flex', alignItems: 'center', gap: '8px' })}>
           <Badge tone={PERIOD_STATUS_TONE[status]}>{EVENT_STATUS_LABEL[status]}</Badge>
@@ -74,10 +78,20 @@ function EventCard({ entry: { event: e, status, reward } }: { entry: EventEntry 
             {periodLabel(e.startAt, e.endAt)}
           </span>
         </div>
-        <h3 className={css({ m: '9px 0 0', textStyle: 'h3', fontWeight: '700', color: 'ink' })}>{e.title}</h3>
+        <h3 className={css({ m: '9px 0 0', textStyle: 'h3', fontWeight: '700', color: 'ink' })}>
+          {e.title}
+        </h3>
         <p className={css({ m: '3px 0 0', textStyle: 'body', color: 'sub' })}>{e.desc}</p>
 
-        <div className={css({ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '18px', mt: '13px' })}>
+        <div
+          className={css({
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            gap: '18px',
+            mt: '13px',
+          })}
+        >
           <div className={css({ display: 'flex', alignItems: 'center', gap: '10px' })}>
             {/* 보상 아이템이 지워졌을 수 있다 — 빈 칸 대신 무엇이 없는지 말한다 */}
             {reward ? (
@@ -85,7 +99,13 @@ function EventCard({ entry: { event: e, status, reward } }: { entry: EventEntry 
             ) : null}
             <div>
               <div className={css({ textStyle: 'micro', color: 'faint' })}>보상 아이템</div>
-              <div className={css({ textStyle: 'label', fontWeight: '600', color: reward ? 'ink' : 'rFg' })}>
+              <div
+                className={css({
+                  textStyle: 'label',
+                  fontWeight: '600',
+                  color: reward ? 'ink' : 'rFg',
+                })}
+              >
                 {reward ? reward.name : '삭제된 아이템'}
               </div>
             </div>

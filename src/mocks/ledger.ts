@@ -26,7 +26,16 @@ const SEGMENTS = [
   { name: '휴면 복귀 유저', min: 40, span: 120, reasons: ['복귀 보상'] },
 ]
 
-const ACCOUNTS = ['별하늘_01', '루티조아', '깃털모아', 'nightowl', '해질녘', '코코넛', '민트초코', '구름한점']
+const ACCOUNTS = [
+  '별하늘_01',
+  '루티조아',
+  '깃털모아',
+  'nightowl',
+  '해질녘',
+  '코코넛',
+  '민트초코',
+  '구름한점',
+]
 const ADMINS = ['김운영', '박운영', '이운영']
 
 /** 개별 계정에 주는 사유. 한 사람에게 "서버 점검 보상"을 주지는 않는다. */
@@ -44,7 +53,7 @@ function stamp(daysAgo: number, hour: number, minute: number): string {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`
 }
 
-const pick = <T,>(r: () => number, xs: T[]): T => xs[Math.floor(r() * xs.length)]!
+const pick = <T>(r: () => number, xs: T[]): T => xs[Math.floor(r() * xs.length)]!
 
 /** 이 아이템의 최근 지급·회수. **최신이 먼저다.** */
 export function ledgerOf(itemKey: number): LedgerEntry[] {

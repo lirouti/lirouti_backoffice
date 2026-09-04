@@ -22,7 +22,13 @@ import { StatTile } from '@/shared/ui/StatTile'
 import { Switch } from '@/shared/ui/Switch'
 import { Table, type Column } from '@/shared/ui/Table'
 
-import { canDeleteValue, CODE_LOG_TONE, CODE_TONE_BADGE, type CodeLog, type CodeValue } from '@/domain/code'
+import {
+  canDeleteValue,
+  CODE_LOG_TONE,
+  CODE_TONE_BADGE,
+  type CodeLog,
+  type CodeValue,
+} from '@/domain/code'
 import { SCREENS } from '@/domain/screens'
 
 import { useCodeGroup, useSaveCodeValues, type CodeGroupDetail } from '@/api/codes'
@@ -82,7 +88,15 @@ function Detail({ detail: { group: g, logs } }: { detail: CodeGroupDetail }) {
   const remove = (code: string) => setDraft(values.filter((v) => v.code !== code))
 
   const commit = () =>
-    save.mutate({ codeId: g.key, values }, { onSuccess: () => { setDraft(null); markSaved() } })
+    save.mutate(
+      { codeId: g.key, values },
+      {
+        onSuccess: () => {
+          setDraft(null)
+          markSaved()
+        },
+      },
+    )
 
   return (
     <>
@@ -101,9 +115,19 @@ function Detail({ detail: { group: g, logs } }: { detail: CodeGroupDetail }) {
 
       {save.error && <ErrorBanner message={save.error.message} />}
 
-      <div className={css({ display: 'flex', alignItems: 'center', gap: '8px', mb: '16px', flexWrap: 'wrap' })}>
+      <div
+        className={css({
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          mb: '16px',
+          flexWrap: 'wrap',
+        })}
+      >
         <Badge>{g.category}</Badge>
-        <span className={css({ fontFamily: 'mono', textStyle: 'caption', color: 'faint' })}>{g.codeKey}</span>
+        <span className={css({ fontFamily: 'mono', textStyle: 'caption', color: 'faint' })}>
+          {g.codeKey}
+        </span>
         <span className={css({ textStyle: 'caption', color: 'faint' })}>
           {g.updatedAt} · {g.updatedBy}
         </span>
@@ -125,8 +149,9 @@ function Detail({ detail: { group: g, logs } }: { detail: CodeGroupDetail }) {
             color: 'warnFg',
           })}
         >
-          <strong>{num(g.usages.length)}개 화면이 이 코드를 참조합니다.</strong> 쓰이는 값을 감추면 기존
-          데이터는 남고 새로 고를 수만 없습니다. <strong>지우는 것은 되돌릴 수 없습니다.</strong>
+          <strong>{num(g.usages.length)}개 화면이 이 코드를 참조합니다.</strong> 쓰이는 값을
+          감추면 기존 데이터는 남고 새로 고를 수만 없습니다.{' '}
+          <strong>지우는 것은 되돌릴 수 없습니다.</strong>
         </p>
       )}
 
@@ -143,7 +168,14 @@ function Detail({ detail: { group: g, logs } }: { detail: CodeGroupDetail }) {
         <StatTile label="총 사용 건수" value={num(values.reduce((s, v) => s + v.uses, 0))} />
       </div>
 
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '18px', alignItems: 'flex-start' })}>
+      <div
+        className={css({
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '18px',
+          alignItems: 'flex-start',
+        })}
+      >
         <Card className={css({ flex: '2 1 460px', minWidth: '0', p: '15px 17px' })}>
           <CardTitle title="코드 값" sub="순서를 바꾸면 드롭다운 순서도 함께 바뀝니다." />
           <ol className={css({ listStyle: 'none', m: '13px 0 0', p: '0' })}>
@@ -169,7 +201,16 @@ function Detail({ detail: { group: g, logs } }: { detail: CodeGroupDetail }) {
               아직 어느 화면도 쓰지 않습니다.
             </p>
           ) : (
-            <ul className={css({ listStyle: 'none', m: '12px 0 0', p: '0', display: 'flex', flexDirection: 'column', gap: '8px' })}>
+            <ul
+              className={css({
+                listStyle: 'none',
+                m: '12px 0 0',
+                p: '0',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+              })}
+            >
               {g.usages.map((u) => (
                 <li key={`${u.screen}-${u.where}`}>
                   <button
@@ -187,14 +228,32 @@ function Detail({ detail: { group: g, logs } }: { detail: CodeGroupDetail }) {
                       bg: 'surf',
                       cursor: 'pointer',
                       _hover: { bg: 'hov' },
-                      _focusVisible: { outline: '2px solid token(colors.ringBd)', outlineOffset: '2px' },
+                      _focusVisible: {
+                        outline: '2px solid token(colors.ringBd)',
+                        outlineOffset: '2px',
+                      },
                     })}
                   >
                     <span className={css({ flex: '1', minWidth: '0' })}>
-                      <span className={css({ display: 'block', textStyle: 'label', fontWeight: '600', color: 'ink' })}>
+                      <span
+                        className={css({
+                          display: 'block',
+                          textStyle: 'label',
+                          fontWeight: '600',
+                          color: 'ink',
+                        })}
+                      >
                         {SCREENS[u.screen].label}
                       </span>
-                      <span className={css({ display: 'block', textStyle: 'micro', color: 'faint' })}>{u.where}</span>
+                      <span
+                        className={css({
+                          display: 'block',
+                          textStyle: 'micro',
+                          color: 'faint',
+                        })}
+                      >
+                        {u.where}
+                      </span>
                     </span>
                     <span aria-hidden="true" className={css({ flex: 'none', color: 'faint2' })}>
                       ›
@@ -211,7 +270,12 @@ function Detail({ detail: { group: g, logs } }: { detail: CodeGroupDetail }) {
         <Card className={css({ p: '15px 17px' })}>
           <CardTitle title="변경 이력" />
           <div className={css({ mt: '13px' })}>
-            <Table columns={LOG_COLUMNS} rows={logs} minWidth={620} rowKey={(l) => `${l.at}-${l.kind}`} />
+            <Table
+              columns={LOG_COLUMNS}
+              rows={logs}
+              minWidth={620}
+              rowKey={(l) => `${l.at}-${l.kind}`}
+            />
           </div>
         </Card>
       </div>
@@ -248,21 +312,51 @@ function ValueRow({
         borderBottom: '1px solid token(colors.ln)',
       })}
     >
-      <span className={css({ flex: 'none', width: '22px', textStyle: 'caption', color: 'faint', textAlign: 'right' })}>
+      <span
+        className={css({
+          flex: 'none',
+          width: '22px',
+          textStyle: 'caption',
+          color: 'faint',
+          textAlign: 'right',
+        })}
+      >
         {n}
       </span>
-      <span className={css({ flex: 'none', width: '120px', fontFamily: 'mono', textStyle: 'caption', color: 'ink' })}>
+      <span
+        className={css({
+          flex: 'none',
+          width: '120px',
+          fontFamily: 'mono',
+          textStyle: 'caption',
+          color: 'ink',
+        })}
+      >
         {v.code}
       </span>
       <span className={css({ flex: '1', minWidth: '0' })}>
         <Badge tone={CODE_TONE_BADGE[v.tone]}>{v.label}</Badge>
       </span>
-      <span className={css({ flex: 'none', width: '86px', textAlign: 'right', textStyle: 'caption', color: 'sub' })}>
+      <span
+        className={css({
+          flex: 'none',
+          width: '86px',
+          textAlign: 'right',
+          textStyle: 'caption',
+          color: 'sub',
+        })}
+      >
         {num(v.uses)}건
       </span>
       <span className={css({ flex: 'none' })}>
         {/* 줄마다 스위치가 있으므로 이름은 다 적고 화면에서만 감춘다 (§27.2) */}
-        <Switch checked={v.visible} onChange={onToggle} disabled={busy} label={`${v.label} 노출`} labelHidden />
+        <Switch
+          checked={v.visible}
+          onChange={onToggle}
+          disabled={busy}
+          label={`${v.label} 노출`}
+          labelHidden
+        />
       </span>
       <span className={css({ display: 'flex', gap: '4px' })}>
         <Button onClick={onUp} disabled={busy || !onUp} aria-label={`${v.label} 위로`}>

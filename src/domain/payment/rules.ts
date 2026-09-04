@@ -13,7 +13,8 @@ export function filterPayments(list: Payment[], f: PayFilter): Payment[] {
   return list.filter((p) => {
     if (f.status && p.status !== f.status) return false
     if (f.pg && p.pg !== f.pg) return false
-    if (q && !p.orderNo.includes(q) && !p.who.includes(q) && !p.product.includes(q)) return false
+    if (q && !p.orderNo.includes(q) && !p.who.includes(q) && !p.product.includes(q))
+      return false
     return true
   })
 }
@@ -25,7 +26,8 @@ export function filterPayments(list: Payment[], f: PayFilter): Payment[] {
  *    「준비」 가 전체에 섞여 있으면 **돈이 나갔는데 재화가 안 들어간 건**을 아무도 못 보기
  *    때문이다. 운영자가 매일 먼저 볼 자리다.
  */
-export const stuckPayments = (list: Payment[]): Payment[] => list.filter((p) => p.status === 'READY')
+export const stuckPayments = (list: Payment[]): Payment[] =>
+  list.filter((p) => p.status === 'READY')
 
 /** 목록 위 지표 */
 export type PaySummary = {

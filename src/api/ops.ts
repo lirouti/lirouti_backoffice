@@ -34,7 +34,14 @@ import {
 import { parseUserIds } from '@/domain/user'
 
 import { allItems } from '@/mocks/items'
-import { addEvent, addGrantLog, addNotice, allEvents, allGrantLogs, allNotices } from '@/mocks/ops'
+import {
+  addEvent,
+  addGrantLog,
+  addNotice,
+  allEvents,
+  allGrantLogs,
+  allNotices,
+} from '@/mocks/ops'
 import { allUsers } from '@/mocks/users'
 
 import { mockDelay, qk, queryClient, today, USE_MOCK } from './core'
@@ -151,7 +158,8 @@ export async function saveEvent(input: EventInput): Promise<OpsEvent> {
     const errors = validateEvent(input)
     const first = Object.values(errors)[0]
     if (first) throw apiError('http', first, 400)
-    if (!isHexColor(input.accent)) throw apiError('http', '#RRGGBB 형식의 색을 입력하세요.', 400)
+    if (!isHexColor(input.accent))
+      throw apiError('http', '#RRGGBB 형식의 색을 입력하세요.', 400)
     if (input.rewardItemKey === null) throw apiError('http', '보상 아이템을 고르세요.', 400)
     if (!allItems().some((item) => item.key === input.rewardItemKey)) {
       throw apiError('http', '없는 아이템입니다. 목록에서 다시 고르세요.', 404)
@@ -263,7 +271,10 @@ export async function runGrant({ input, by }: RunGrantVars): Promise<GrantLog> {
 
     // 폼을 열어 둔 사이에 아이템이 지워졌을 수 있다. 없는 것을 「성공」 으로 기록하면
     // 이력에는 남는데 아무도 못 받은 처리가 된다 (§25.3.1).
-    const missingItem = checkGrantItem(input, allItems().map((it) => it.key))
+    const missingItem = checkGrantItem(
+      input,
+      allItems().map((it) => it.key),
+    )
     if (missingItem) throw apiError('http', missingItem, 404)
 
     const { count, missing } = await checkGrantTargets(input)
@@ -272,7 +283,9 @@ export async function runGrant({ input, by }: RunGrantVars): Promise<GrantLog> {
     const label =
       input.target === '전체'
         ? `전체 유저 ${count}명`
-        : parseUserIds(input.who).filter((id) => !missing.includes(id)).join(', ')
+        : parseUserIds(input.who)
+            .filter((id) => !missing.includes(id))
+            .join(', ')
 
     return addGrantLog(input, label, by)
   }

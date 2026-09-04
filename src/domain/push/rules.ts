@@ -1,7 +1,15 @@
 /** 푸시 알림 규칙. */
 import { parseUserIds } from '../user/rules'
 import type { User } from '../user/types'
-import type { Push, PushAudience, PushConsent, PushFailure, PushInput, PushKind, PushStatus } from './types'
+import type {
+  Push,
+  PushAudience,
+  PushConsent,
+  PushFailure,
+  PushInput,
+  PushKind,
+  PushStatus,
+} from './types'
 
 /**
  * 잠금화면에 들어가는 길이.
@@ -29,7 +37,8 @@ export function hourOf(at: string): number | null {
   if (h > 23 || mi > 59) return null
   // 2월 30일은 3월 2일로 넘어간다 — 되돌려 보면 원래 날짜와 다르다.
   const at0 = new Date(Date.UTC(y, mo - 1, d))
-  if (at0.getUTCFullYear() !== y || at0.getUTCMonth() !== mo - 1 || at0.getUTCDate() !== d) return null
+  if (at0.getUTCFullYear() !== y || at0.getUTCMonth() !== mo - 1 || at0.getUTCDate() !== d)
+    return null
   return h
 }
 
@@ -216,7 +225,10 @@ export function summarizePushes(list: Push[], today: string): PushSummary {
   return {
     sentToday: sent.filter((p) => p.at.startsWith(today)).length,
     scheduled: list.filter((p) => p.status === '예약').length,
-    openRate: delivered === 0 ? 0 : Math.round((sent.reduce((s, p) => s + p.opened, 0) / delivered) * 100),
+    openRate:
+      delivered === 0
+        ? 0
+        : Math.round((sent.reduce((s, p) => s + p.opened, 0) / delivered) * 100),
   }
 }
 

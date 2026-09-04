@@ -69,7 +69,13 @@ export default function BackgroundsPage() {
  * ⚠️ **누를 수 있다** — 업적 카드(§40.1)와 반대다. 배경 화면에는 표가 없어서 카드가
  *    수정으로 가는 **유일한** 길이다. 통로가 하나뿐이면 예측할 수 없는 문제도 없다.
  */
-function BackgroundCard({ background: b, onOpen }: { background: Background; onOpen: () => void }) {
+function BackgroundCard({
+  background: b,
+  onOpen,
+}: {
+  background: Background
+  onOpen: () => void
+}) {
   const paid = b.tier === 'PAID'
 
   return (
@@ -108,9 +114,15 @@ function BackgroundCard({ background: b, onOpen }: { background: Background; onO
           </span>
         </div>
         <div className={css({ p: '10px 12px 12px', borderTop: '1px solid token(colors.ln)' })}>
-          <div className={css({ textStyle: 'label', fontWeight: '700', color: 'ink' })}>{b.name}</div>
-          <div className={css({ mt: '3px', display: 'flex', alignItems: 'center', gap: '6px' })}>
-            <span className={css({ textStyle: 'micro', color: 'faint' })}>{backgroundMeta(b)}</span>
+          <div className={css({ textStyle: 'label', fontWeight: '700', color: 'ink' })}>
+            {b.name}
+          </div>
+          <div
+            className={css({ mt: '3px', display: 'flex', alignItems: 'center', gap: '6px' })}
+          >
+            <span className={css({ textStyle: 'micro', color: 'faint' })}>
+              {backgroundMeta(b)}
+            </span>
             <span
               className={css({
                 ml: 'auto',

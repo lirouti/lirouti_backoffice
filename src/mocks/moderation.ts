@@ -42,6 +42,9 @@ type Row = [
 ]
 
 /** ⚠️ **최신순으로 둔다.** 서버가 정렬해 주는 자리라 목이 흐트러져 있으면 화면만 이상해진다 */
+// ⚠️ **한 줄이 한 레코드다.** 표처럼 읽는 것이 이 파일의 목적이라 자동 포맷을 끈다 —
+//    풀어 놓으면 12칸짜리 한 줄이 14줄이 되어 무엇이 무엇인지 보이지 않는다.
+// prettier-ignore
 const ROWS: Row[] = [
   [0, '20:14', '주 3회 러닝', '새벽러너', '대기', [2, 0, 1], [302, 1, 0, 0]],
   [0, '06:58', '아침 6시 기상', '민트초코', '대기', [0, 1, 0, 2, 0], [41, 6, 2, 1]],
@@ -109,7 +112,9 @@ export function decideReport(key: number, next: ReportState): Report | undefined
  *    여기서는 **승인 + 반려**로 쌓아 선과 막대가 같은 것을 말하게 했다 (§23.3).
  */
 const RATE = [82, 76, 91, 88, 79, 94, 86, 90, 73, 88, 92, 85, 89, 87]
-const JUDGED = [1120, 1043, 1288, 1197, 1064, 1352, 1216, 1301, 986, 1244, 1330, 1178, 1259, 1284]
+const JUDGED = [
+  1120, 1043, 1288, 1197, 1064, 1352, 1216, 1301, 986, 1244, 1330, 1178, 1259, 1284,
+]
 
 export const allAiDays = (): AiDay[] =>
   RATE.map((rate, i) => {
@@ -126,6 +131,7 @@ type ReviewRow = [time: string, who: string, title: string, tookSec: number | nu
  * ⚠️ **「심사 대기」 지표를 이 목록에서 세므로 둘이 어긋날 수 없다.** 원본은 지표에
  *    11 을 적고 목록에는 대기 2건만 뒀다 (§23.3).
  */
+// prettier-ignore
 const TODAY_REVIEWS: ReviewRow[] = [
   ['08:14', '풀잎', '아침 6시 기상', null],
   ['08:13', '소이', '아침 6시 기상', null],
@@ -146,20 +152,25 @@ const TODAY_REVIEWS: ReviewRow[] = [
   ['06:44', '모카', '독서 30분', 2.2],
 ]
 
+// ⚠️ **한 줄이 한 레코드다.** 표처럼 읽는 것이 이 파일의 목적이라 자동 포맷을 끈다 —
+//    풀어 놓으면 12칸짜리 한 줄이 14줄이 되어 무엇이 무엇인지 보이지 않는다.
+// prettier-ignore
 const YESTERDAY_REVIEWS: ReviewRow[] = [
   ['22:15', '새벽러너', '야간 러닝', 2.6],
   ['21:04', '하루뭉치', '하루 한 챕터', 1.9],
   ['20:31', '풀잎', '물 2L 마시기', 2.3],
 ]
 
-const toReview = (ago: number) => ([time, who, title, tookSec]: ReviewRow, i: number): AiReview => ({
-  key: ago * 100 + i,
-  at: `${daysAgo(ago)} ${time}`,
-  who,
-  title,
-  verdict: tookSec === null ? '대기' : '승인',
-  tookSec,
-})
+const toReview =
+  (ago: number) =>
+  ([time, who, title, tookSec]: ReviewRow, i: number): AiReview => ({
+    key: ago * 100 + i,
+    at: `${daysAgo(ago)} ${time}`,
+    who,
+    title,
+    verdict: tookSec === null ? '대기' : '승인',
+    tookSec,
+  })
 
 export const allAiReviews = (): AiReview[] => [
   ...TODAY_REVIEWS.map(toReview(0)),

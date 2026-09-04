@@ -87,7 +87,9 @@ describe('checkLines', () => {
   })
 
   it('함수 본문 안의 `//` 는 대상이 아니다', () => {
-    expect(check('export function f() {', '  // 왜 이렇게 했는지', '  const a = 1', '}')).toEqual([])
+    expect(
+      check('export function f() {', '  // 왜 이렇게 했는지', '  const a = 1', '}'),
+    ).toEqual([])
   })
 
   it('문자열 리터럴 안의 TODO 는 위반이 아니다', () => {
@@ -99,7 +101,10 @@ describe('checkLines', () => {
   })
 
   it('한 주석에 TODO 가 둘이면 조건 없는 쪽이 걸린다', () => {
-    const found = check('/** 설명. TODO: 급함; TODO(스펙 확정 후): 나중 */', 'export const a = 1')
+    const found = check(
+      '/** 설명. TODO: 급함; TODO(스펙 확정 후): 나중 */',
+      'export const a = 1',
+    )
     expect(found).toHaveLength(1)
     expect(found[0]?.why).toContain('TODO')
   })

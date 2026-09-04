@@ -70,7 +70,9 @@ export default function AdminInvitePage() {
   const toggle = (scope: (typeof ASSIGNABLE_SCOPES)[number]) =>
     setForm((f) => ({
       ...f,
-      scopes: f.scopes.includes(scope) ? f.scopes.filter((s) => s !== scope) : [...f.scopes, scope],
+      scopes: f.scopes.includes(scope)
+        ? f.scopes.filter((s) => s !== scope)
+        : [...f.scopes, scope],
     }))
 
   const submit = () => {
@@ -84,12 +86,20 @@ export default function AdminInvitePage() {
 
   return (
     <>
-      <PageHeader title="관리자 초대" sub="초대 메일을 보내면 계정이 「대기」 상태로 만들어집니다." />
+      <PageHeader
+        title="관리자 초대"
+        sub="초대 메일을 보내면 계정이 「대기」 상태로 만들어집니다."
+      />
 
       {/* ⚠️ **헤더는 로딩 중에도 그린다** — 제목·부제·버튼이 데이터를 안 쓴다 (§43.2) */}
       {isPending ? (
         <div
-          className={css({ display: 'flex', flexWrap: 'wrap', gap: '18px', alignItems: 'flex-start' })}
+          className={css({
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '18px',
+            alignItems: 'flex-start',
+          })}
         >
           {/*
             카드 격자가 아니라 **2단 폼**이다 — 좌측 세 카드(계정 정보 · 담당 모듈 · 보안)와
@@ -109,7 +119,11 @@ export default function AdminInvitePage() {
             <SkeletonBlock height={346} silent />
             <SkeletonBlock height={183} silent />
           </div>
-          <SkeletonBlock height={384} silent className={css({ flex: '1 1 300px', minWidth: '280px' })} />
+          <SkeletonBlock
+            height={384}
+            silent
+            className={css({ flex: '1 1 300px', minWidth: '280px' })}
+          />
         </div>
       ) : error ? (
         <ErrorBanner message={error.message} />
@@ -370,10 +384,19 @@ function Note({ label, on, children }: { label: string; on?: boolean; children: 
         })}
       />
       <span className={css({ minWidth: '0' })}>
-        <span className={css({ display: 'block', textStyle: 'label', fontWeight: '600', color: on ? 'ink' : 'sub' })}>
+        <span
+          className={css({
+            display: 'block',
+            textStyle: 'label',
+            fontWeight: '600',
+            color: on ? 'ink' : 'sub',
+          })}
+        >
           {label}
         </span>
-        <span className={css({ display: 'block', textStyle: 'micro', color: 'faint' })}>{children}</span>
+        <span className={css({ display: 'block', textStyle: 'micro', color: 'faint' })}>
+          {children}
+        </span>
       </span>
     </li>
   )
@@ -382,7 +405,9 @@ function Note({ label, on, children }: { label: string; on?: boolean; children: 
 function Row({ k, v }: { k: string; v: string }) {
   return (
     <div className={css({ display: 'flex', alignItems: 'baseline', gap: '10px' })}>
-      <dt className={css({ flex: 'none', w: '92px', textStyle: 'caption', color: 'faint' })}>{k}</dt>
+      <dt className={css({ flex: 'none', w: '92px', textStyle: 'caption', color: 'faint' })}>
+        {k}
+      </dt>
       <dd
         className={css({
           m: '0',

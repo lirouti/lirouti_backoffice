@@ -57,7 +57,9 @@ export default function InquiriesPage() {
       key: 'code',
       label: '문의번호',
       width: '92px',
-      render: (i) => <span className={css({ fontFamily: 'mono', textStyle: 'caption' })}>{i.code}</span>,
+      render: (i) => (
+        <span className={css({ fontFamily: 'mono', textStyle: 'caption' })}>{i.code}</span>
+      ),
     },
     {
       key: 'category',
@@ -70,12 +72,26 @@ export default function InquiriesPage() {
       label: '제목',
       truncate: true,
       render: (i) => (
-        <span className={css({ display: 'flex', alignItems: 'center', gap: '7px', minWidth: '0' })}>
-          <span className={css({ fontWeight: '600', color: 'ink', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' })}>
+        <span
+          className={css({ display: 'flex', alignItems: 'center', gap: '7px', minWidth: '0' })}
+        >
+          <span
+            className={css({
+              fontWeight: '600',
+              color: 'ink',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            })}
+          >
             {i.title}
           </span>
           {/* 재문의는 답변이 문제를 못 풀었다는 신호다 — 목록에서 바로 보여야 한다 */}
-          {i.reopened && <Badge tone="danger" size="sm">재문의</Badge>}
+          {i.reopened && (
+            <Badge tone="danger" size="sm">
+              재문의
+            </Badge>
+          )}
         </span>
       ),
     },
@@ -90,7 +106,9 @@ export default function InquiriesPage() {
         if (waited === null) return '—'
         const late = data ? isOverdue(i, data.now) : false
         return (
-          <span className={css({ color: late ? 'rFg' : 'sub', fontWeight: late ? '700' : '400' })}>
+          <span
+            className={css({ color: late ? 'rFg' : 'sub', fontWeight: late ? '700' : '400' })}
+          >
             {durationLabel(waited)}
             {/* 끝난 건의 시간은 「걸린 시간」 이라 뜻이 다르다 */}
             {!isOpen(i.status) && <span className={css({ color: 'faint' })}> 만에</span>}
@@ -129,7 +147,11 @@ export default function InquiriesPage() {
             mb: '16px',
           })}
         >
-          <StatTile label="답변 대기" value={`${num(data.summary.open)}건`} alert={data.summary.open > 0} />
+          <StatTile
+            label="답변 대기"
+            value={`${num(data.summary.open)}건`}
+            alert={data.summary.open > 0}
+          />
           <StatTile
             label={`${SLA_HOURS}시간 초과`}
             value={`${num(data.summary.overdue)}건`}
@@ -139,7 +161,9 @@ export default function InquiriesPage() {
           {/* 답한 건이 없으면 평균이 없다 — 0분으로 그리면 즉답한 것처럼 보인다 */}
           <StatTile
             label="평균 응답"
-            value={data.summary.avgResponse === null ? '—' : durationLabel(data.summary.avgResponse)}
+            value={
+              data.summary.avgResponse === null ? '—' : durationLabel(data.summary.avgResponse)
+            }
           />
           <StatTile label="재문의율" value={`${data.summary.reopenRate}%`} />
         </div>
@@ -147,7 +171,15 @@ export default function InquiriesPage() {
         <SkeletonStats count={5} min={150} silent className={css({ mb: '16px' })} />
       ) : null}
 
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center', mb: '14px' })}>
+      <div
+        className={css({
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '10px',
+          alignItems: 'center',
+          mb: '14px',
+        })}
+      >
         <Input
           value={f.q ?? ''}
           onChange={(v) => patch('q', v)}

@@ -40,7 +40,10 @@ export type InquiriesResult = {
 
 export type InquiriesQuery = InquiryFilter & { userUid?: string }
 
-export async function getInquiries({ userUid, ...filter }: InquiriesQuery): Promise<InquiriesResult> {
+export async function getInquiries({
+  userUid,
+  ...filter
+}: InquiriesQuery): Promise<InquiriesResult> {
   if (USE_MOCK) {
     await mockDelay()
     const all = allInquiries()
@@ -88,7 +91,11 @@ export async function getInquiry(qnaId: string): Promise<InquiryDetail> {
       inquiry,
       user,
       // 결제는 닉네임으로 붙는다. 회원을 못 찾으면 결제도 못 찾는다.
-      payments: user ? allPayments().filter((p) => p.who === user.nick).slice(0, 3) : [],
+      payments: user
+        ? allPayments()
+            .filter((p) => p.who === user.nick)
+            .slice(0, 3)
+        : [],
       past: pastInquiries(all, inquiry),
       now: nowAt(),
     }

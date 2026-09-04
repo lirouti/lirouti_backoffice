@@ -23,6 +23,9 @@ type Row = [
   mfa: Admin['mfa'],
 ]
 
+// ⚠️ **한 줄이 한 레코드다.** 표처럼 읽는 것이 이 파일의 목적이라 자동 포맷을 끈다 —
+//    풀어 놓으면 12칸짜리 한 줄이 14줄이 되어 무엇이 무엇인지 보이지 않는다.
+// prettier-ignore
 const ROWS: Row[] = [
   ['김하늘', 'sky@riruti.co', 'top', [], 'mac', '5분 전', '활성', false, '나', '2025-11-02', '2025-11-02 09:14', '앱 OTP'],
   ['박서준', 'seojun@riruti.co', 'operator', ['items', 'shop', 'ops'], 'mac', '1시간 전', '활성', false, '김하늘', '2026-01-08', '2026-01-08 10:22', '앱 OTP'],
@@ -39,7 +42,23 @@ const ROWS: Row[] = [
  * 모듈 수준 캐시. **새로고침하면 초대·정지·권한 변경이 전부 사라진다** — 목이라 그렇다.
  */
 const admins: Admin[] = ROWS.map(
-  ([name, email, role, scopes, passkey, seenAt, state, suspended, invitedBy, invitedAt, firstLoginAt, mfa], i) => ({
+  (
+    [
+      name,
+      email,
+      role,
+      scopes,
+      passkey,
+      seenAt,
+      state,
+      suspended,
+      invitedBy,
+      invitedAt,
+      firstLoginAt,
+      mfa,
+    ],
+    i,
+  ) => ({
     adminId: i + 1,
     name,
     email,
@@ -113,11 +132,36 @@ export function adminLogs(adminId: number): AdminLog[] {
   const device = adminId % 2 === 0 ? 'Chrome · macOS' : 'Chrome · Windows'
   return [
     { at: '2026-08-11 09:12', kind: '로그인', what: '비밀번호 · 인증 앱으로 로그인', device },
-    { at: '2026-08-10 17:40', kind: '수정', what: '아이템 · 성좌의 로브 가격 변경', device: 'Chrome · macOS' },
-    { at: '2026-08-10 11:26', kind: '등록', what: '챌린지 · 여름 사진 모으기', device: 'Chrome · macOS' },
-    { at: '2026-08-08 15:02', kind: '지급', what: '젬 500개 · 점검 보상', device: 'Chrome · macOS' },
-    { at: '2026-08-07 10:18', kind: '로그인', what: '비밀번호 · 인증 앱으로 로그인', device: 'Chrome · Windows' },
-    { at: '2026-08-05 09:33', kind: '수정', what: 'FAQ · 부화 관련 답변', device: 'Chrome · macOS' },
+    {
+      at: '2026-08-10 17:40',
+      kind: '수정',
+      what: '아이템 · 성좌의 로브 가격 변경',
+      device: 'Chrome · macOS',
+    },
+    {
+      at: '2026-08-10 11:26',
+      kind: '등록',
+      what: '챌린지 · 여름 사진 모으기',
+      device: 'Chrome · macOS',
+    },
+    {
+      at: '2026-08-08 15:02',
+      kind: '지급',
+      what: '젬 500개 · 점검 보상',
+      device: 'Chrome · macOS',
+    },
+    {
+      at: '2026-08-07 10:18',
+      kind: '로그인',
+      what: '비밀번호 · 인증 앱으로 로그인',
+      device: 'Chrome · Windows',
+    },
+    {
+      at: '2026-08-05 09:33',
+      kind: '수정',
+      what: 'FAQ · 부화 관련 답변',
+      device: 'Chrome · macOS',
+    },
   ]
 }
 

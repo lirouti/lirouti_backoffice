@@ -150,7 +150,15 @@ function Detail({ detail }: { detail: AdminDetail }) {
             </Button>
             <Button
               variant={suspended ? 'secondary' : 'danger'}
-              onClick={() => (suspended ? suspend.mutate({ adminId: admin.adminId, suspended: false, meEmail: me.email }) : setAsking(true))}
+              onClick={() =>
+                suspended
+                  ? suspend.mutate({
+                      adminId: admin.adminId,
+                      suspended: false,
+                      meEmail: me.email,
+                    })
+                  : setAsking(true)
+              }
               disabled={(!suspended && suspendBlocked !== null) || suspend.isPending}
             >
               {suspended ? '정지 해제' : '계정 정지'}
@@ -160,12 +168,16 @@ function Detail({ detail }: { detail: AdminDetail }) {
       />
 
       {suspendBlocked && !suspended && (
-        <p className={css({ m: '-6px 0 14px', textStyle: 'label', color: 'sub' })}>{suspendBlocked}</p>
+        <p className={css({ m: '-6px 0 14px', textStyle: 'label', color: 'sub' })}>
+          {suspendBlocked}
+        </p>
       )}
       {setScopes.error && <ErrorBanner message={setScopes.error.message} />}
       {suspend.error && <ErrorBanner message={suspend.error.message} />}
       {resetMfa.error && <ErrorBanner message={resetMfa.error.message} />}
-      {requestPasswordReset.error && <ErrorBanner message={requestPasswordReset.error.message} />}
+      {requestPasswordReset.error && (
+        <ErrorBanner message={requestPasswordReset.error.message} />
+      )}
       {passwordResetBlocked && (
         <p className={css({ m: '-6px 0 14px', textStyle: 'label', color: 'sub' })}>
           {passwordResetBlocked}
@@ -188,21 +200,54 @@ function Detail({ detail }: { detail: AdminDetail }) {
         </p>
       )}
 
-      <div className={css({ display: 'flex', alignItems: 'center', gap: '8px', mb: '16px', flexWrap: 'wrap' })}>
+      <div
+        className={css({
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          mb: '16px',
+          flexWrap: 'wrap',
+        })}
+      >
         <Badge tone={ADMIN_ROLE_TONE[admin.role]}>{ADMIN_ROLE_LABEL[admin.role]}</Badge>
         <Badge tone={ADMIN_STATUS_TONE[status]}>{status}</Badge>
       </div>
 
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '18px', alignItems: 'flex-start' })}>
-        <div className={css({ flex: '3 1 520px', minWidth: '0', display: 'flex', flexDirection: 'column', gap: '14px' })}>
+      <div
+        className={css({
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '18px',
+          alignItems: 'flex-start',
+        })}
+      >
+        <div
+          className={css({
+            flex: '3 1 520px',
+            minWidth: '0',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '14px',
+          })}
+        >
           <Card className={css({ p: '18px 20px' })}>
             <CardTitle
               title="담당 모듈"
               sub={top ? '최고 관리자는 전체 접근' : '체크를 바꾸면 즉시 반영됩니다'}
             />
 
-            <div className={css({ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px', m: '13px 0' })}>
-              <span className={css({ textStyle: 'micro', color: 'faint', mr: '2px' })}>사이드바에 표시</span>
+            <div
+              className={css({
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                gap: '6px',
+                m: '13px 0',
+              })}
+            >
+              <span className={css({ textStyle: 'micro', color: 'faint', mr: '2px' })}>
+                사이드바에 표시
+              </span>
               {menu.length > 0 ? (
                 menu.map((label) => (
                   <Badge key={label} tone="brand">
@@ -224,7 +269,12 @@ function Detail({ detail }: { detail: AdminDetail }) {
               <CardTitle title="최근 활동" sub="전체 기록은 감사 로그에 남습니다." />
             </div>
             {logs.length > 0 ? (
-              <Table columns={LOG_COLUMNS} rows={logs} minWidth={640} className={css({ border: '0' })} />
+              <Table
+                columns={LOG_COLUMNS}
+                rows={logs}
+                minWidth={640}
+                className={css({ border: '0' })}
+              />
             ) : (
               <EmptyState
                 title="아직 활동이 없습니다"
@@ -234,14 +284,32 @@ function Detail({ detail }: { detail: AdminDetail }) {
           </Card>
         </div>
 
-        <div className={css({ flex: '1 1 300px', minWidth: '280px', display: 'flex', flexDirection: 'column', gap: '14px' })}>
+        <div
+          className={css({
+            flex: '1 1 300px',
+            minWidth: '280px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '14px',
+          })}
+        >
           <Card className={css({ p: '18px 20px' })}>
             <CardTitle title="계정" />
-            <dl className={css({ m: '13px 0 0', display: 'flex', flexDirection: 'column', gap: '9px' })}>
+            <dl
+              className={css({
+                m: '13px 0 0',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '9px',
+              })}
+            >
               <Row k="발급자" v={admin.invitedBy} />
               <Row k="발급일" v={admin.invitedAt} />
               {/* ⚠️ 대기 계정은 최초 로그인이 없다. 「—」 는 0시가 아니라 **아직 없음**이다. */}
-              <Row k="최초 로그인" v={hasSignedIn(admin) ? admin.firstLoginAt : '— · 아직 로그인하지 않음'} />
+              <Row
+                k="최초 로그인"
+                v={hasSignedIn(admin) ? admin.firstLoginAt : '— · 아직 로그인하지 않음'}
+              />
               <Row k="최근 접속" v={admin.seenAt} />
               <Row k="2단계 인증" v={admin.mfa} />
               <Row k="담당 모듈" v={top ? '전체' : `${num(scopes.length)}개`} />
@@ -265,7 +333,14 @@ function Detail({ detail }: { detail: AdminDetail }) {
 
           <Card className={css({ p: '18px 20px' })}>
             <CardTitle title="생체 인증" />
-            <div className={css({ mt: '11px', textStyle: 'label', fontWeight: '600', color: admin.passkey ? 'ink' : 'sub' })}>
+            <div
+              className={css({
+                mt: '11px',
+                textStyle: 'label',
+                fontWeight: '600',
+                color: admin.passkey ? 'ink' : 'sub',
+              })}
+            >
               {admin.passkey ? DEVICE_LABEL[admin.passkey] : '등록된 기기 없음'}
             </div>
             {/* ⚠️ 패스키는 **아직 로그인에 쓰이지 않는다.** 표시만 하고 있다는 것을 밝힌다. */}
@@ -352,8 +427,20 @@ const LOG_COLUMNS: Column<AdminLog>[] = [
 function Row({ k, v }: { k: string; v: string }) {
   return (
     <div className={css({ display: 'flex', alignItems: 'baseline', gap: '10px' })}>
-      <dt className={css({ flex: 'none', w: '92px', textStyle: 'caption', color: 'faint' })}>{k}</dt>
-      <dd className={css({ m: '0', flex: '1', minWidth: '0', textAlign: 'right', textStyle: 'label', fontWeight: '600', color: 'ink' })}>
+      <dt className={css({ flex: 'none', w: '92px', textStyle: 'caption', color: 'faint' })}>
+        {k}
+      </dt>
+      <dd
+        className={css({
+          m: '0',
+          flex: '1',
+          minWidth: '0',
+          textAlign: 'right',
+          textStyle: 'label',
+          fontWeight: '600',
+          color: 'ink',
+        })}
+      >
         {v}
       </dd>
     </div>

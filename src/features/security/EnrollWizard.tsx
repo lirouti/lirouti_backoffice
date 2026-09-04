@@ -103,7 +103,14 @@ export function EnrollWizard({
         Google Authenticator · 1Password · Authy 등 TOTP 를 지원하는 앱이면 무엇이든 됩니다.
       </p>
 
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '20px', alignItems: 'flex-start' })}>
+      <div
+        className={css({
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '20px',
+          alignItems: 'flex-start',
+        })}
+      >
         {/*
           QR 은 **테마를 따르지 않는다.** 어두운 배경에 검은 모듈을 그리면 스캐너가 못 읽는다.
           여백(quiet zone)도 흰색이어야 해서 흰 카드를 통째로 깔고 그 위에 그린다.
@@ -130,11 +137,14 @@ export function EnrollWizard({
         </div>
 
         <div className={css({ flex: '1 1 280px', minWidth: '0' })}>
-          <div className={css({ textStyle: 'label', fontWeight: '700', color: 'sub', mb: '6px' })}>
+          <div
+            className={css({ textStyle: 'label', fontWeight: '700', color: 'sub', mb: '6px' })}
+          >
             QR 을 쓸 수 없나요?
           </div>
           <p className={css({ m: '0 0 10px', textStyle: 'caption', color: 'faint' })}>
-            앱에 이 키를 직접 입력하세요. 계정 이름은 <strong>{enrollment.account}</strong> 입니다.
+            앱에 이 키를 직접 입력하세요. 계정 이름은 <strong>{enrollment.account}</strong>{' '}
+            입니다.
           </p>
           <div
             className={css({

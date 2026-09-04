@@ -71,7 +71,9 @@ const COLUMNS: Column<Item>[] = [
     label: '에셋',
     width: '60px',
     // 이름 열이 바로 옆에서 같은 것을 말한다. 여기서 또 읽으면 두 번 들린다.
-    render: (it) => <AssetThumb assetId={it.assetId} src={it.assetSrc} size={36} paid={it.tier === 'PAID'} />,
+    render: (it) => (
+      <AssetThumb assetId={it.assetId} src={it.assetSrc} size={36} paid={it.tier === 'PAID'} />
+    ),
   },
   { key: 'name', label: '아이템명', minWidth: '180px', truncate: true, strong: true },
   { key: 'slot', label: '슬롯', width: '80px', render: (it) => SLOT_LABEL[it.slot] },
@@ -82,7 +84,12 @@ const COLUMNS: Column<Item>[] = [
     render: (it) => <Badge tone={TIER_TONE[it.tier]}>{TIER_LABEL[it.tier]}</Badge>,
   },
   { key: 'price', label: '가격', width: '96px', render: (it) => gem(it.price) },
-  { key: 'source', label: '획득 경로', width: '110px', render: (it) => ITEM_SOURCE_LABEL[it.source] },
+  {
+    key: 'source',
+    label: '획득 경로',
+    width: '110px',
+    render: (it) => ITEM_SOURCE_LABEL[it.source],
+  },
   { key: 'sold', label: '판매', width: '96px', align: 'right', render: (it) => num(it.sold) },
   {
     key: 'own',
@@ -103,7 +110,9 @@ const COLUMNS: Column<Item>[] = [
     key: 'status',
     label: '상태',
     width: '84px',
-    render: (it) => <Badge tone={ITEM_STATUS_TONE[it.status]}>{ITEM_STATUS_LABEL[it.status]}</Badge>,
+    render: (it) => (
+      <Badge tone={ITEM_STATUS_TONE[it.status]}>{ITEM_STATUS_LABEL[it.status]}</Badge>
+    ),
   },
 ]
 
@@ -161,7 +170,14 @@ export default function ItemsPage() {
       />
 
       <Card className={css({ p: '13px 15px', mb: '13px' })}>
-        <div className={css({ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' })}>
+        <div
+          className={css({
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            flexWrap: 'wrap',
+          })}
+        >
           <Input
             value={draft}
             onChange={setDraft}
@@ -169,8 +185,21 @@ export default function ItemsPage() {
             placeholder="아이템명 검색"
             prefixIcon={
               <svg width="14" height="14" viewBox="0 0 16 16">
-                <circle cx="7" cy="7" r="4.4" fill="none" stroke="currentColor" strokeWidth="1.7" />
-                <path d="M10.4,10.4 L13.5,13.5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+                <circle
+                  cx="7"
+                  cy="7"
+                  r="4.4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                />
+                <path
+                  d="M10.4,10.4 L13.5,13.5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  strokeLinecap="round"
+                />
               </svg>
             }
             className={css({ width: '250px' })}

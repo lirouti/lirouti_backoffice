@@ -11,7 +11,8 @@
 export const HEAD_LINES = 30
 
 /** 최상위 선언 — 들여쓰기가 없다. 함수 본문 안의 지역 변수는 대상이 아니다. */
-const TOP_DECL = /^(export\s+)?(default\s+)?(async\s+)?(function|const|let|class|type|interface)\s/
+const TOP_DECL =
+  /^(export\s+)?(default\s+)?(async\s+)?(function|const|let|class|type|interface)\s/
 
 /**
  * 타입 리터럴 안의 필드. `type X = {` 와 `interface X {` 블록 안에서만 본다.
@@ -50,7 +51,10 @@ export const START: ScanState = { tpl: false, blk: false }
  * ⚠️ 정규식 리터럴(`/\/\//`)과 중첩 템플릿은 구분하지 않는다. 완전한 토크나이저를
  *    쓰자는 뜻이 되고, 이 검사가 보는 것(TODO 형식·선언 위 `//`)에는 영향이 없다.
  */
-export function scanLine(raw: string, st: ScanState): { comment: string | null; next: ScanState } {
+export function scanLine(
+  raw: string,
+  st: ScanState,
+): { comment: string | null; next: ScanState } {
   let { tpl, blk } = st
   let comment = ''
   let i = 0

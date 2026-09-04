@@ -38,7 +38,12 @@ import {
   type SpeciesLog,
 } from '@/domain/species'
 
-import { useSaveSpecies, useSetSpeciesHidden, useSpecies, type SpeciesDetail } from '@/api/species'
+import {
+  useSaveSpecies,
+  useSetSpeciesHidden,
+  useSpecies,
+  type SpeciesDetail,
+} from '@/api/species'
 
 import { useUnsavedGuard } from '@/stores/dirtyStore'
 
@@ -154,49 +159,102 @@ function Detail({ detail, speciesId }: { detail: SpeciesDetail; speciesId: strin
       {save.error && <ErrorBanner message={save.error.message} />}
       {toggle.error && <ErrorBanner message={toggle.error.message} />}
 
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '18px', alignItems: 'flex-start' })}>
-        <Card className={css({ flex: '1 1 300px', minWidth: '260px', maxWidth: '380px', p: '15px' })}>
+      <div
+        className={css({
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '18px',
+          alignItems: 'flex-start',
+        })}
+      >
+        <Card
+          className={css({
+            flex: '1 1 300px',
+            minWidth: '260px',
+            maxWidth: '380px',
+            p: '15px',
+          })}
+        >
           <div
-            className={css({ borderRadius: 'lg', overflow: 'hidden', border: '1px solid token(colors.ln)' })}
+            className={css({
+              borderRadius: 'lg',
+              overflow: 'hidden',
+              border: '1px solid token(colors.ln)',
+            })}
             style={{ background: speciesTint(species.tone) }}
           >
-            <AssetThumb assetId="rg" fluid alt={`${species.name} 미리보기`} className={css({ bg: 'transparent!' })} />
+            <AssetThumb
+              assetId="rg"
+              fluid
+              alt={`${species.name} 미리보기`}
+              className={css({ bg: 'transparent!' })}
+            />
           </div>
 
           <CardTitle title="정보" />
           <dl className={css({ m: '0', display: 'flex', flexDirection: 'column', gap: '9px' })}>
             <Row k="코드" v={species.code} mono />
-            <Row k="희귀도" v={<Badge tone={RARITY_TONE[species.rarity]}>{species.rarity}</Badge>} />
-            <Row k="상태" v={<Badge tone={appearanceTone(species.hidden)}>{appearanceLabel(species.hidden)}</Badge>} />
+            <Row
+              k="희귀도"
+              v={<Badge tone={RARITY_TONE[species.rarity]}>{species.rarity}</Badge>}
+            />
+            <Row
+              k="상태"
+              v={
+                <Badge tone={appearanceTone(species.hidden)}>
+                  {appearanceLabel(species.hidden)}
+                </Badge>
+              }
+            />
             <Row k="보유 유저" v={`${num(species.owners)}명`} />
             <Row k="등록일" v={date(species.madeAt)} />
             <Row k="아트 담당" v={species.by} />
           </dl>
         </Card>
 
-        <div className={css({ flex: '3 1 460px', minWidth: '0', display: 'flex', flexDirection: 'column', gap: '14px' })}>
+        <div
+          className={css({
+            flex: '3 1 460px',
+            minWidth: '0',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '14px',
+          })}
+        >
           <Card className={css({ p: '17px 20px' })}>
             <div className={css({ display: 'flex', alignItems: 'flex-start', gap: '12px' })}>
               <div className={css({ flex: '1', minWidth: '0' })}>
-                <CardTitle title="출현 설정" sub="뽑기에 얼마나 자주 나오는지와 얻는 조건입니다." />
+                <CardTitle
+                  title="출현 설정"
+                  sub="뽑기에 얼마나 자주 나오는지와 얻는 조건입니다."
+                />
               </div>
               {draft ? (
                 <div className={css({ display: 'flex', gap: '7px', flex: 'none' })}>
                   <Button onClick={() => setDraft(null)} disabled={save.isPending}>
                     취소
                   </Button>
-                  <Button variant="primary" onClick={submit} disabled={blocked || save.isPending}>
+                  <Button
+                    variant="primary"
+                    onClick={submit}
+                    disabled={blocked || save.isPending}
+                  >
                     {save.isPending ? '저장 중…' : '저장'}
                   </Button>
                 </div>
               ) : (
-                <Button onClick={() => setDraft(toSpeciesInput(species))} className={css({ flex: 'none' })}>
+                <Button
+                  onClick={() => setDraft(toSpeciesInput(species))}
+                  className={css({ flex: 'none' })}
+                >
                   설정 수정
                 </Button>
               )}
             </div>
 
-            <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '14px', mt: '14px' })}>
+            <div
+              className={css({ display: 'flex', flexWrap: 'wrap', gap: '14px', mt: '14px' })}
+            >
               {draft ? (
                 <>
                   <Input
@@ -237,10 +295,33 @@ function Detail({ detail, speciesId }: { detail: SpeciesDetail; speciesId: strin
 
           <Card className={css({ p: '17px 20px' })}>
             <CardTitle title="슬롯 기본값" sub="아이템으로 덮어쓰면 그대로 교체됩니다." />
-            <div className={css({ mt: '12px', display: 'flex', flexDirection: 'column', gap: '10px' })}>
+            <div
+              className={css({
+                mt: '12px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px',
+              })}
+            >
               {RIG_SLOTS.map((slot) => (
-                <div key={slot} className={css({ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' })}>
-                  <span className={css({ width: '64px', flex: 'none', textStyle: 'label', fontWeight: '700', color: 'sub' })}>
+                <div
+                  key={slot}
+                  className={css({
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    flexWrap: 'wrap',
+                  })}
+                >
+                  <span
+                    className={css({
+                      width: '64px',
+                      flex: 'none',
+                      textStyle: 'label',
+                      fontWeight: '700',
+                      color: 'sub',
+                    })}
+                  >
                     {slot}
                   </span>
                   {draft ? (
@@ -252,21 +333,27 @@ function Detail({ detail, speciesId }: { detail: SpeciesDetail; speciesId: strin
                       className={css({ flex: '1 1 180px', maxWidth: '220px' })}
                     />
                   ) : (
-                    <span className={css({ flex: '1 1 180px', textStyle: 'body', color: 'ink' })}>
+                    <span
+                      className={css({ flex: '1 1 180px', textStyle: 'body', color: 'ink' })}
+                    >
                       {species.slots[slot]}
                     </span>
                   )}
                   <Badge tone={slot === NO_OVERWRITE ? 'neutral' : 'success'}>
                     {slot === NO_OVERWRITE ? '덮어쓰기 불가' : '덮어쓰기 가능'}
                   </Badge>
-                  <span className={css({ flex: '2 1 200px', textStyle: 'caption', color: 'faint' })}>
+                  <span
+                    className={css({ flex: '2 1 200px', textStyle: 'caption', color: 'faint' })}
+                  >
                     {SLOT_NOTE[slot]}
                   </span>
                 </div>
               ))}
             </div>
             {errors.slots && (
-              <p className={css({ m: '10px 0 0', textStyle: 'micro', color: 'rFg' })}>{errors.slots}</p>
+              <p className={css({ m: '10px 0 0', textStyle: 'micro', color: 'rFg' })}>
+                {errors.slots}
+              </p>
             )}
           </Card>
 
@@ -274,7 +361,12 @@ function Detail({ detail, speciesId }: { detail: SpeciesDetail; speciesId: strin
             <div className={css({ p: '17px 20px 0' })}>
               <CardTitle title="변경 이력" />
             </div>
-            <Table columns={LOG_COLUMNS} rows={logs} minWidth={620} className={css({ border: '0' })} />
+            <Table
+              columns={LOG_COLUMNS}
+              rows={logs}
+              minWidth={620}
+              className={css({ border: '0' })}
+            />
           </Card>
         </div>
       </div>
@@ -292,7 +384,11 @@ const LOG_COLUMNS: Column<SpeciesLog>[] = [
 function Row({ k, v, mono }: { k: string; v: React.ReactNode; mono?: boolean }) {
   return (
     <div className={css({ display: 'flex', alignItems: 'center', gap: '10px' })}>
-      <dt className={css({ flex: 'none', width: '72px', textStyle: 'caption', color: 'faint' })}>{k}</dt>
+      <dt
+        className={css({ flex: 'none', width: '72px', textStyle: 'caption', color: 'faint' })}
+      >
+        {k}
+      </dt>
       <dd
         className={css({
           m: '0',
@@ -303,7 +399,9 @@ function Row({ k, v, mono }: { k: string; v: React.ReactNode; mono?: boolean }) 
           fontWeight: '600',
           color: 'ink',
         })}
-        style={mono ? { fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' } : undefined}
+        style={
+          mono ? { fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' } : undefined
+        }
       >
         {v}
       </dd>
@@ -315,7 +413,9 @@ function Field({ k, v }: { k: string; v: string }) {
   return (
     <div className={css({ flex: '1 1 160px' })}>
       <div className={css({ textStyle: 'caption', color: 'faint' })}>{k}</div>
-      <div className={css({ mt: '3px', textStyle: 'body', fontWeight: '700', color: 'ink' })}>{v}</div>
+      <div className={css({ mt: '3px', textStyle: 'body', fontWeight: '700', color: 'ink' })}>
+        {v}
+      </div>
     </div>
   )
 }

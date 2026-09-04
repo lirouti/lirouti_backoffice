@@ -304,7 +304,9 @@ describe('validateGrant', () => {
   // 아이템일 때 수량은 안 쓰는 값이라 0 이어도 막으면 안 된다.
   it('⚠️ 아이템은 수량 대신 아이템 선택을 본다', () => {
     expect(validateGrant(grant({ asset: '아이템', qty: 0, itemKey: 3 })).qty).toBeUndefined()
-    expect(validateGrant(grant({ asset: '아이템', qty: 0, itemKey: null })).itemKey).toBeTruthy()
+    expect(
+      validateGrant(grant({ asset: '아이템', qty: 0, itemKey: null })).itemKey,
+    ).toBeTruthy()
   })
 })
 

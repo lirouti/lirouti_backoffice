@@ -74,12 +74,16 @@ export default function NoticeFormPage() {
     )
   }
   if (notices.error || !notices.data) {
-    return <ErrorBanner message={notices.error?.message ?? '공지 현황을 불러오지 못했습니다.'} />
+    return (
+      <ErrorBanner message={notices.error?.message ?? '공지 현황을 불러오지 못했습니다.'} />
+    )
   }
 
   const errors = validateNotice(form)
   const activePinned =
-    !errors.startAt && !errors.endAt && form.pinned &&
+    !errors.startAt &&
+    !errors.endAt &&
+    form.pinned &&
     periodStatusOf(form.startAt, form.endAt, today()) === 'ACTIVE'
   const overPinned = activePinned && notices.data.summary.pinned >= PIN_LIMIT
   const busy = save.isPending
@@ -151,7 +155,14 @@ export default function NoticeFormPage() {
       <form id={FORM_ID} ref={formRef} onSubmit={submit} noValidate>
         <Card className={css({ maxWidth: '760px', p: '18px' })}>
           <CardTitle title="공지 내용" sub="작성한 본문은 앱에서 줄바꿈을 유지합니다." />
-          <div className={css({ display: 'flex', flexDirection: 'column', gap: '15px', mt: '16px' })}>
+          <div
+            className={css({
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '15px',
+              mt: '16px',
+            })}
+          >
             <Input
               value={form.title}
               onChange={(value) => set('title', value)}
@@ -181,7 +192,13 @@ export default function NoticeFormPage() {
               required
             />
 
-            <div className={css({ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '12px' })}>
+            <div
+              className={css({
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                gap: '12px',
+              })}
+            >
               <Input
                 type="date"
                 value={form.startAt}

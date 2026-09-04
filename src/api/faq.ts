@@ -47,7 +47,11 @@ export async function getFaq(faqId: string): Promise<Faq> {
 
 /** ⚠️ 빈 id 면 부르지 않는다 — 등록 화면이 같은 컴포넌트다 (§20.6) */
 export function useFaq(faqId: string) {
-  return useQuery({ queryKey: ['faq', 'detail', faqId], queryFn: () => getFaq(faqId), enabled: faqId !== '' })
+  return useQuery({
+    queryKey: ['faq', 'detail', faqId],
+    queryFn: () => getFaq(faqId),
+    enabled: faqId !== '',
+  })
 }
 
 export type SaveFaqVars = { input: FaqInput; faqId?: number }
@@ -60,7 +64,12 @@ export async function saveFaq({ input, faqId }: SaveFaqVars): Promise<Faq> {
     if (!input.answer.trim()) throw apiError('http', '답변을 입력하세요.', 400)
     const saved = upsertFaq(input, faqId)
     // 열어 둔 사이에 지워졌을 수 있다. 조용히 새로 만들면 안 지운 것처럼 보인다.
-    if (!saved) throw apiError('http', `FAQ #${faqId} 을(를) 찾을 수 없습니다. 목록에서 다시 여세요.`, 404)
+    if (!saved)
+      throw apiError(
+        'http',
+        `FAQ #${faqId} 을(를) 찾을 수 없습니다. 목록에서 다시 여세요.`,
+        404,
+      )
     return saved
   }
 

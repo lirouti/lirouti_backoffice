@@ -6,7 +6,12 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { flushSync } from 'react-dom'
 
-import { useForm, type FieldPath, type FieldPathValue, type UseFormReturn } from 'react-hook-form'
+import {
+  useForm,
+  type FieldPath,
+  type FieldPathValue,
+  type UseFormReturn,
+} from 'react-hook-form'
 import { useNavigate, useParams } from 'react-router'
 
 import { css } from 'styled-system/css'
@@ -28,7 +33,8 @@ import { SkeletonForm } from '@/shared/ui/Skeleton'
 import { Switch } from '@/shared/ui/Switch'
 import { Textarea } from '@/shared/ui/Textarea'
 
-import { kindOfSlot,
+import {
+  kindOfSlot,
   emptyItemInput,
   isKnownSlot,
   ITEM_SOURCE_LABEL,
@@ -52,7 +58,6 @@ import { useItem, useSaveItem } from '@/api/items'
 import { useUnsavedGuard } from '@/stores/dirtyStore'
 
 import { AssetPicker } from '@/entities/asset'
-
 
 const SLOT_OPTIONS: { value: Slot; label: string }[] = SLOT_ORDER.map((s) => ({
   value: s,
@@ -226,7 +231,11 @@ function ItemForm({ itemId, initial }: { itemId?: string; initial: ItemInput }) 
     let assetId = input.assetId
     if (pending) {
       try {
-        const asset = await upload.mutateAsync({ kind: kindOfSlot(input.slot), file: pending.file, name: input.name })
+        const asset = await upload.mutateAsync({
+          kind: kindOfSlot(input.slot),
+          file: pending.file,
+          name: input.name,
+        })
         assetId = asset.assetId
       } catch {
         // 오류는 `upload.error` 로 화면에 나온다.
@@ -311,8 +320,23 @@ function ItemForm({ itemId, initial }: { itemId?: string; initial: ItemInput }) 
         />
       )}
 
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '18px', alignItems: 'flex-start' })}>
-        <div className={css({ flex: '3 1 520px', minWidth: '0', display: 'flex', flexDirection: 'column', gap: '14px' })}>
+      <div
+        className={css({
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '18px',
+          alignItems: 'flex-start',
+        })}
+      >
+        <div
+          className={css({
+            flex: '3 1 520px',
+            minWidth: '0',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '14px',
+          })}
+        >
           <BasicsCard form={form} errors={shown} />
           <VisibilityCard form={form} errors={shown} />
         </div>
@@ -330,7 +354,9 @@ function ItemForm({ itemId, initial }: { itemId?: string; initial: ItemInput }) 
         />
       </div>
 
-      <div className={css({ display: 'flex', justifyContent: 'flex-end', gap: '8px', mt: '16px' })}>
+      <div
+        className={css({ display: 'flex', justifyContent: 'flex-end', gap: '8px', mt: '16px' })}
+      >
         <Button onClick={() => navigate(SCREENS.items.path)}>취소</Button>
         <Button onClick={draft.saveNow} disabled={!form.formState.isDirty}>
           임시 저장
@@ -345,14 +371,22 @@ function ItemForm({ itemId, initial }: { itemId?: string; initial: ItemInput }) 
   )
 }
 
-function BasicsCard({ form, errors }: { form: UseFormReturn<ItemInput>; errors: ReturnType<typeof validateItem> }) {
+function BasicsCard({
+  form,
+  errors,
+}: {
+  form: UseFormReturn<ItemInput>
+  errors: ReturnType<typeof validateItem>
+}) {
   const v = form.watch()
   const set = setter(form)
 
   return (
     <Card className={css({ p: '17px 20px' })}>
       <CardTitle title="기본 정보" />
-      <div className={css({ display: 'flex', flexDirection: 'column', gap: '14px', mt: '14px' })}>
+      <div
+        className={css({ display: 'flex', flexDirection: 'column', gap: '14px', mt: '14px' })}
+      >
         <Input
           value={v.name}
           onChange={(name) => set('name', name)}
@@ -421,7 +455,13 @@ function BasicsCard({ form, errors }: { form: UseFormReturn<ItemInput>; errors: 
   )
 }
 
-function VisibilityCard({ form, errors }: { form: UseFormReturn<ItemInput>; errors: ReturnType<typeof validateItem> }) {
+function VisibilityCard({
+  form,
+  errors,
+}: {
+  form: UseFormReturn<ItemInput>
+  errors: ReturnType<typeof validateItem>
+}) {
   const v = form.watch()
   const set = setter(form)
 
@@ -446,7 +486,9 @@ function VisibilityCard({ form, errors }: { form: UseFormReturn<ItemInput>; erro
         />
       </div>
 
-      <div className={css({ display: 'flex', flexDirection: 'column', gap: '13px', mt: '16px' })}>
+      <div
+        className={css({ display: 'flex', flexDirection: 'column', gap: '13px', mt: '16px' })}
+      >
         {FLAGS.map((f) => (
           <Switch
             key={f.key}
@@ -493,15 +535,26 @@ function SideCard({
   ]
 
   return (
-    <Card className={css({ flex: '1 1 300px', minWidth: '260px', maxWidth: '380px', p: '15px' })}>
+    <Card
+      className={css({ flex: '1 1 300px', minWidth: '260px', maxWidth: '380px', p: '15px' })}
+    >
       <CardTitle title="착용 미리보기" />
       <div className={css({ mt: '12px' })}>
         {pending ? (
           <AssetThumb assetId="" src={pending.preview} fluid paid={input.tier === 'PAID'} />
         ) : input.assetId ? (
-          <AssetThumb assetId={input.assetId} src={current?.src} fluid paid={input.tier === 'PAID'} />
+          <AssetThumb
+            assetId={input.assetId}
+            src={current?.src}
+            fluid
+            paid={input.tier === 'PAID'}
+          />
         ) : (
-          <EmptyState title="에셋 없음" body="아래에서 고르거나 올려 주세요." className={css({ border: '0' })} />
+          <EmptyState
+            title="에셋 없음"
+            body="아래에서 고르거나 올려 주세요."
+            className={css({ border: '0' })}
+          />
         )}
       </div>
 
@@ -537,12 +590,34 @@ function SideCard({
         onPickFile={onPickFile}
       />
 
-      <ul className={css({ listStyle: 'none', m: '14px 0 0', p: '0', display: 'flex', flexDirection: 'column', gap: '7px' })}>
+      <ul
+        className={css({
+          listStyle: 'none',
+          m: '14px 0 0',
+          p: '0',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '7px',
+        })}
+      >
         {checks.map((c) => (
-          <li key={c.label} className={css({ display: 'flex', alignItems: 'center', gap: '8px', textStyle: 'caption' })}>
+          <li
+            key={c.label}
+            className={css({
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              textStyle: 'caption',
+            })}
+          >
             <span
               aria-hidden="true"
-              className={css({ width: '7px', height: '7px', flex: 'none', borderRadius: '50%' })}
+              className={css({
+                width: '7px',
+                height: '7px',
+                flex: 'none',
+                borderRadius: '50%',
+              })}
               style={{ background: c.ok ? 'var(--colors-g-fg)' : 'var(--colors-faint2)' }}
             />
             <span className={css({ color: c.ok ? 'sub' : 'faint' })}>{c.label}</span>

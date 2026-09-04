@@ -63,7 +63,10 @@ export function useAchievement(achId: string) {
 
 export type SaveAchievementVars = { achId?: string; input: AchievementInput }
 
-export async function saveAchievement({ achId, input }: SaveAchievementVars): Promise<Achievement> {
+export async function saveAchievement({
+  achId,
+  input,
+}: SaveAchievementVars): Promise<Achievement> {
   if (USE_MOCK) {
     await mockDelay()
     return upsertAchievement(input, achId == null ? undefined : Number(achId))

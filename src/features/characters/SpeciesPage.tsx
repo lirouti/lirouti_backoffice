@@ -33,7 +33,8 @@ const VIEWS = [
   { value: 'list' as const, label: '목록' },
 ]
 
-const isTab = (v: string | null): v is Tab => v != null && (TABS as readonly string[]).includes(v)
+const isTab = (v: string | null): v is Tab =>
+  v != null && (TABS as readonly string[]).includes(v)
 
 /**
  * 캐릭터 종류 — 13종.
@@ -75,7 +76,15 @@ export default function SpeciesPage() {
         }
       />
 
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', mb: '14px' })}>
+      <div
+        className={css({
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '8px',
+          alignItems: 'center',
+          mb: '14px',
+        })}
+      >
         <Segmented
           value={tab}
           onChange={(v) => patch('rarity', v)}
@@ -83,7 +92,12 @@ export default function SpeciesPage() {
           aria-label="희귀도"
         />
         <div className={css({ ml: 'auto' })}>
-          <Segmented value={view} onChange={(v) => patch('view', v)} options={VIEWS} aria-label="보기 방식" />
+          <Segmented
+            value={view}
+            onChange={(v) => patch('view', v)}
+            options={VIEWS}
+            aria-label="보기 방식"
+          />
         </div>
       </div>
 
@@ -153,7 +167,9 @@ const COLUMNS: Column<Species>[] = [
     key: 'status',
     label: '상태',
     width: '96px',
-    render: (sp) => <Badge tone={appearanceTone(sp.hidden)}>{appearanceLabel(sp.hidden)}</Badge>,
+    render: (sp) => (
+      <Badge tone={appearanceTone(sp.hidden)}>{appearanceLabel(sp.hidden)}</Badge>
+    ),
   },
 ]
 
@@ -166,15 +182,15 @@ const COLUMNS: Column<Species>[] = [
 function SpeciesThumb({ species, size }: { species: Species; size?: number }) {
   return (
     <div
-      className={css({ flex: 'none', borderRadius: 'md', overflow: 'hidden', border: '1px solid token(colors.ln)' })}
+      className={css({
+        flex: 'none',
+        borderRadius: 'md',
+        overflow: 'hidden',
+        border: '1px solid token(colors.ln)',
+      })}
       style={{ background: speciesTint(species.tone), width: size, height: size }}
     >
-      <AssetThumb
-        assetId="rg"
-        fluid
-        alt=""
-        className={css({ bg: 'transparent!' })}
-      />
+      <AssetThumb assetId="rg" fluid alt="" className={css({ bg: 'transparent!' })} />
     </div>
   )
 }
@@ -207,16 +223,39 @@ function Tile({ species, onOpen }: { species: Species; onOpen: () => void }) {
         <AssetThumb assetId="rg" fluid alt="" className={css({ bg: 'transparent!' })} />
       </div>
       <div className={css({ p: '11px 13px 13px' })}>
-        <div className={css({ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' })}>
+        <div
+          className={css({
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            flexWrap: 'wrap',
+          })}
+        >
           <span
             aria-hidden="true"
-            className={css({ width: '10px', height: '10px', flex: 'none', borderRadius: 'xs', border: '1px solid token(colors.ln)' })}
+            className={css({
+              width: '10px',
+              height: '10px',
+              flex: 'none',
+              borderRadius: 'xs',
+              border: '1px solid token(colors.ln)',
+            })}
             style={{ background: species.tone }}
           />
-          <span className={css({ textStyle: 'body', fontWeight: '700', color: 'ink' })}>{species.name}</span>
+          <span className={css({ textStyle: 'body', fontWeight: '700', color: 'ink' })}>
+            {species.name}
+          </span>
         </div>
         <Code className={css({ display: 'block', mt: '3px' })}>{species.code}</Code>
-        <div className={css({ mt: '8px', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' })}>
+        <div
+          className={css({
+            mt: '8px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            flexWrap: 'wrap',
+          })}
+        >
           <Badge tone={RARITY_TONE[species.rarity]}>{species.rarity}</Badge>
           <Badge tone={appearanceTone(species.hidden)}>{appearanceLabel(species.hidden)}</Badge>
         </div>
@@ -228,7 +267,9 @@ function Tile({ species, onOpen }: { species: Species; onOpen: () => void }) {
 /** 코드는 **등폭**으로. 한 글자씩 옮겨 적는 값이라 자리를 셀 수 있어야 한다 */
 function Code({ children, className }: { children: string; className?: string }) {
   return (
-    <span className={`${css({ fontFamily: 'mono', textStyle: 'caption', color: 'faint' })} ${className ?? ''}`}>
+    <span
+      className={`${css({ fontFamily: 'mono', textStyle: 'caption', color: 'faint' })} ${className ?? ''}`}
+    >
       {children}
     </span>
   )

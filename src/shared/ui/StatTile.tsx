@@ -33,7 +33,14 @@ export function StatTile({ label, value, alert }: StatTileProps) {
       })}
     >
       <div className={css({ textStyle: 'caption', color: 'sub' })}>{label}</div>
-      <div className={css({ mt: '4px', textStyle: 'h3', fontWeight: '700', color: alert ? 'rFg' : 'ink' })}>
+      <div
+        className={css({
+          mt: '4px',
+          textStyle: 'h3',
+          fontWeight: '700',
+          color: alert ? 'rFg' : 'ink',
+        })}
+      >
         {value}
       </div>
     </div>

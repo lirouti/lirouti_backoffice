@@ -67,7 +67,8 @@ export async function decide({ key, next }: DecideVars): Promise<Report> {
     const target = allReports().find((r) => r.key === key)
     if (!target) throw apiError('http', `신고 #${key} 을(를) 찾을 수 없습니다.`, 404)
     // 같은 결정을 다시 누르면 아무 일도 안 일어나는데 버튼은 반응한 것처럼 보인다.
-    if (!canDecide(target, next)) throw apiError('http', `이미 「${next}」 로 처리된 건입니다.`, 409)
+    if (!canDecide(target, next))
+      throw apiError('http', `이미 「${next}」 로 처리된 건입니다.`, 409)
 
     const saved = decideReport(key, next)
     if (!saved) throw apiError('http', `신고 #${key} 을(를) 찾을 수 없습니다.`, 404)
@@ -97,7 +98,12 @@ export async function getAi(): Promise<AiResult> {
     await mockDelay()
     const days = allAiDays()
     const reviews = allAiReviews()
-    return { days, reviews, summary: summarizeAi(days, reviews, today()), enabled: isAiEnabled() }
+    return {
+      days,
+      reviews,
+      summary: summarizeAi(days, reviews, today()),
+      enabled: isAiEnabled(),
+    }
   }
 
   throw new Error('모더레이션 API 가 아직 연결되지 않았습니다. VITE_USE_MOCK=1 로 두세요.')

@@ -29,7 +29,8 @@ export default function AchievementsPage() {
   const navigate = useNavigate()
   const { data, isPending, error } = useAchievements()
 
-  const edit = (a: Achievement) => navigate(SCREENS.achedit.path.replace(':achId', String(a.key)))
+  const edit = (a: Achievement) =>
+    navigate(SCREENS.achedit.path.replace(':achId', String(a.key)))
 
   return (
     <>
@@ -65,7 +66,13 @@ export default function AchievementsPage() {
             ))}
           </div>
 
-          <Table columns={COLUMNS} rows={data} rowKey={(a) => String(a.key)} minWidth={720} onRowClick={edit} />
+          <Table
+            columns={COLUMNS}
+            rows={data}
+            rowKey={(a) => String(a.key)}
+            minWidth={720}
+            onRowClick={edit}
+          />
         </>
       )}
     </>
@@ -88,7 +95,9 @@ function AchievementCard({ achievement: a }: { achievement: Achievement }) {
       <div className={css({ width: '74px', m: '0 auto' })}>
         <AssetThumb assetId={a.assetId} src={a.assetSrc} alt={a.name} fluid plate={false} />
       </div>
-      <div className={css({ mt: '11px', textStyle: 'label', fontWeight: '700', color: 'ink' })}>{a.name}</div>
+      <div className={css({ mt: '11px', textStyle: 'label', fontWeight: '700', color: 'ink' })}>
+        {a.name}
+      </div>
       <div className={css({ mt: '3px', textStyle: 'micro', color: 'faint' })}>{a.sub}</div>
       <div
         className={css({
@@ -101,7 +110,9 @@ function AchievementCard({ achievement: a }: { achievement: Achievement }) {
           gap: '6px',
         })}
       >
-        <span className={css({ textStyle: 'micro', fontWeight: '700', color: 'priD' })}>{a.rate}%</span>
+        <span className={css({ textStyle: 'micro', fontWeight: '700', color: 'priD' })}>
+          {a.rate}%
+        </span>
         <span className={css({ textStyle: 'micro', color: 'faint' })}>달성</span>
       </div>
     </Card>
@@ -116,9 +127,17 @@ const COLUMNS: Column<Achievement>[] = [
     label: '보상',
     width: '130px',
     // 보상은 젬과 아이템이 섞여 있어 눈에 띄어야 한다 — 운영자가 이 열만 훑는다.
-    render: (a) => <span className={css({ fontWeight: '600', color: 'priD' })}>{a.reward}</span>,
+    render: (a) => (
+      <span className={css({ fontWeight: '600', color: 'priD' })}>{a.reward}</span>
+    ),
   },
-  { key: 'earned', label: '달성자', width: '100px', align: 'right', render: (a) => num(a.earned) },
+  {
+    key: 'earned',
+    label: '달성자',
+    width: '100px',
+    align: 'right',
+    render: (a) => num(a.earned),
+  },
   {
     key: 'rate',
     label: '달성률',
@@ -131,7 +150,15 @@ const COLUMNS: Column<Achievement>[] = [
         <div className={css({ flex: '1', minWidth: '0' })}>
           <ProgressBar rate={a.rate} label={`${a.name} 달성률`} tone="plain" />
         </div>
-        <span className={css({ textStyle: 'micro', fontWeight: '700', color: 'sub', width: '32px', textAlign: 'right' })}>
+        <span
+          className={css({
+            textStyle: 'micro',
+            fontWeight: '700',
+            color: 'sub',
+            width: '32px',
+            textAlign: 'right',
+          })}
+        >
           {a.rate}%
         </span>
       </div>

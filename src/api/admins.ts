@@ -228,7 +228,8 @@ export async function setScopes(v: { adminId: number; scopes: ScopeId[] }): Prom
     await mockDelay()
     const admin = findAdmin(v.adminId)
     if (!admin) throw apiError('http', `관리자 #${v.adminId} 을(를) 찾을 수 없습니다.`, 404)
-    if (admin.role === 'top') throw apiError('http', '최고 관리자는 전체 모듈에 접근합니다.', 409)
+    if (admin.role === 'top')
+      throw apiError('http', '최고 관리자는 전체 모듈에 접근합니다.', 409)
     // 화면이 `ASSIGNABLE_SCOPES` 만 그리지만 파사드는 그 화면만 부르는 게 아니다 —
     // 목록에 없는 스코프가 저장되면 아무도 못 보는 권한이 계정에 붙는다.
     setAdminScopes(v.adminId, assignableOnly(v.scopes))

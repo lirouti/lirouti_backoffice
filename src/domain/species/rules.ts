@@ -15,7 +15,8 @@ import { RIG_SLOTS, SLOT_PARTS, type Species, type SpeciesInput } from './types'
  *    `scripts/check-contrast.ts` 는 토큰만 보므로 이 값은 검사되지 않는다.
  *    16% 로 옅게 깔아야 어떤 색이 와도 그 위의 `ink` 가 읽힌다.
  */
-export const speciesTint = (tone: string): string => `color-mix(in srgb, ${tone} 16%, var(--surf))`
+export const speciesTint = (tone: string): string =>
+  `color-mix(in srgb, ${tone} 16%, var(--surf))`
 
 /**
  * 저장 전에 다듬는다.
@@ -49,7 +50,8 @@ export function validateSpecies(input: SpeciesInput, taken: string[] = []): Spec
 
   const code = v.code
   if (!code) errors.code = '코드를 입력하세요.'
-  else if (!/^SP-[A-Z0-9]+$/.test(code)) errors.code = '`SP-` 로 시작하는 대문자 코드여야 합니다.'
+  else if (!/^SP-[A-Z0-9]+$/.test(code))
+    errors.code = '`SP-` 로 시작하는 대문자 코드여야 합니다.'
   // 이미 저장된 값에도 공백이 섞여 있을 수 있다 — 양쪽을 같은 자로 잰다.
   else if (taken.some((t) => t.trim() === code)) errors.code = '이미 쓰고 있는 코드입니다.'
 

@@ -86,7 +86,6 @@ export default function SpeciesFormPage() {
    */
   const sending = useRef(false)
 
-
   const markSaved = useUnsavedGuard(touched)
   const draft = useFormDraft(draftScope(), input, touched)
 
@@ -161,14 +160,38 @@ export default function SpeciesFormPage() {
 
       {save.error && <ErrorBanner message={save.error.message} />}
       {list.isError && (
-        <ErrorBanner message={`종 목록을 불러오지 못해 코드 중복을 확인할 수 없습니다. ${list.error.message}`} />
+        <ErrorBanner
+          message={`종 목록을 불러오지 못해 코드 중복을 확인할 수 없습니다. ${list.error.message}`}
+        />
       )}
 
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '18px', alignItems: 'flex-start' })}>
-        <div className={css({ flex: '3 1 520px', minWidth: '0', display: 'flex', flexDirection: 'column', gap: '14px' })}>
+      <div
+        className={css({
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '18px',
+          alignItems: 'flex-start',
+        })}
+      >
+        <div
+          className={css({
+            flex: '3 1 520px',
+            minWidth: '0',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '14px',
+          })}
+        >
           <Card className={css({ p: '17px 20px' })}>
             <CardTitle title="기본 정보" />
-            <div className={css({ display: 'flex', flexDirection: 'column', gap: '14px', mt: '14px' })}>
+            <div
+              className={css({
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '14px',
+                mt: '14px',
+              })}
+            >
               <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '14px' })}>
                 <Input
                   value={input.name}
@@ -198,7 +221,11 @@ export default function SpeciesFormPage() {
                 aria-label="희귀도"
               />
 
-              <ToneField value={input.tone} onChange={(v) => set('tone', v)} error={shown.tone} />
+              <ToneField
+                value={input.tone}
+                onChange={(v) => set('tone', v)}
+                error={shown.tone}
+              />
 
               <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '14px' })}>
                 <Input
@@ -221,8 +248,13 @@ export default function SpeciesFormPage() {
           </Card>
 
           <Card className={css({ p: '17px 20px' })}>
-            <CardTitle title="출현 설정" sub="가중치는 같은 희귀도끼리 견준 비율이 확률이 됩니다." />
-            <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '14px', mt: '14px' })}>
+            <CardTitle
+              title="출현 설정"
+              sub="가중치는 같은 희귀도끼리 견준 비율이 확률이 됩니다."
+            />
+            <div
+              className={css({ display: 'flex', flexWrap: 'wrap', gap: '14px', mt: '14px' })}
+            >
               <Input
                 value={String(input.weight)}
                 onChange={(v) => set('weight', Number(v.replace(/\D/g, '')) || 0)}
@@ -251,7 +283,9 @@ export default function SpeciesFormPage() {
 
           <Card className={css({ p: '17px 20px' })}>
             <CardTitle title="슬롯 기본값" sub="아이템으로 덮어쓰면 그대로 교체됩니다." />
-            <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '14px', mt: '14px' })}>
+            <div
+              className={css({ display: 'flex', flexWrap: 'wrap', gap: '14px', mt: '14px' })}
+            >
               {RIG_SLOTS.map((slot) => (
                 <Select
                   key={slot}
@@ -263,14 +297,20 @@ export default function SpeciesFormPage() {
                 />
               ))}
             </div>
-            {shown.slots && <p className={css({ m: '10px 0 0', textStyle: 'micro', color: 'rFg' })}>{shown.slots}</p>}
+            {shown.slots && (
+              <p className={css({ m: '10px 0 0', textStyle: 'micro', color: 'rFg' })}>
+                {shown.slots}
+              </p>
+            )}
           </Card>
         </div>
 
         <SideCard input={input} errors={errors} />
       </div>
 
-      <div className={css({ display: 'flex', justifyContent: 'flex-end', gap: '8px', mt: '18px' })}>
+      <div
+        className={css({ display: 'flex', justifyContent: 'flex-end', gap: '8px', mt: '18px' })}
+      >
         <Button type="button" onClick={() => navigate(SCREENS.species.path)}>
           취소
         </Button>
@@ -335,7 +375,13 @@ function ToneField({
 }
 
 /** 미리보기 + 체크리스트. 체크는 `validateSpecies` 의 결과로 그린다 */
-function SideCard({ input, errors }: { input: SpeciesInput; errors: ReturnType<typeof validateSpecies> }) {
+function SideCard({
+  input,
+  errors,
+}: {
+  input: SpeciesInput
+  errors: ReturnType<typeof validateSpecies>
+}) {
   const checks = [
     { ok: !errors.name, label: errors.name ?? '종 이름 입력됨' },
     { ok: !errors.code, label: errors.code ?? '코드 확인됨' },
@@ -345,22 +391,46 @@ function SideCard({ input, errors }: { input: SpeciesInput; errors: ReturnType<t
   ]
 
   return (
-    <Card className={css({ flex: '1 1 300px', minWidth: '260px', maxWidth: '380px', p: '15px' })}>
+    <Card
+      className={css({ flex: '1 1 300px', minWidth: '260px', maxWidth: '380px', p: '15px' })}
+    >
       <CardTitle title="미리보기" />
       <div
-        className={css({ mt: '12px', borderRadius: 'lg', overflow: 'hidden', border: '1px solid token(colors.ln)' })}
+        className={css({
+          mt: '12px',
+          borderRadius: 'lg',
+          overflow: 'hidden',
+          border: '1px solid token(colors.ln)',
+        })}
         style={{ background: errors.tone ? undefined : speciesTint(input.tone) }}
       >
         <AssetThumb assetId="rg" fluid alt="" className={css({ bg: 'transparent!' })} />
       </div>
 
-      <ul className={css({ listStyle: 'none', m: '14px 0 0', p: '0', display: 'flex', flexDirection: 'column', gap: '7px' })}>
+      <ul
+        className={css({
+          listStyle: 'none',
+          m: '14px 0 0',
+          p: '0',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '7px',
+        })}
+      >
         {checks.map((c) => (
-          <li key={c.label} className={css({ display: 'flex', alignItems: 'center', gap: '7px' })}>
-            <span aria-hidden="true" className={css({ flex: 'none', color: c.ok ? 'gFg' : 'faint2' })}>
+          <li
+            key={c.label}
+            className={css({ display: 'flex', alignItems: 'center', gap: '7px' })}
+          >
+            <span
+              aria-hidden="true"
+              className={css({ flex: 'none', color: c.ok ? 'gFg' : 'faint2' })}
+            >
               {c.ok ? '●' : '○'}
             </span>
-            <span className={css({ textStyle: 'caption', color: c.ok ? 'sub' : 'faint' })}>{c.label}</span>
+            <span className={css({ textStyle: 'caption', color: c.ok ? 'sub' : 'faint' })}>
+              {c.label}
+            </span>
           </li>
         ))}
       </ul>
@@ -376,8 +446,8 @@ function SideCard({ input, errors }: { input: SpeciesInput; errors: ReturnType<t
           color: 'warnFg',
         })}
       >
-        등록한 종은 <strong>미출현</strong> 상태로 만들어집니다. 아트가 붙은 뒤 상세에서
-        「출현 재개」를 눌러 주세요.
+        등록한 종은 <strong>미출현</strong> 상태로 만들어집니다. 아트가 붙은 뒤 상세에서 「출현
+        재개」를 눌러 주세요.
       </p>
     </Card>
   )

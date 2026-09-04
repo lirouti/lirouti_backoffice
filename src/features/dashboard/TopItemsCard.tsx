@@ -18,7 +18,9 @@ export function TopItemsCard({ items }: { items: Item[] }) {
   return (
     <Card className={css({ flex: '1 1 340px', p: '17px 19px 19px' })}>
       <CardTitle title="인기 아이템 TOP 5" />
-      <div className={css({ display: 'flex', flexDirection: 'column', gap: '9px', mt: '13px' })}>
+      <div
+        className={css({ display: 'flex', flexDirection: 'column', gap: '9px', mt: '13px' })}
+      >
         {items.map((it) => (
           <Link
             key={it.key}

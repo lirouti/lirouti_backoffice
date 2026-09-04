@@ -1,7 +1,7 @@
 name: Bug Report
 description: Create a report to help us improve
-title: "[Bug]: "
-labels: ["버그"]
+title: '[Bug]: '
+labels: ['버그']
 body:
   - type: markdown
     attributes:
@@ -39,7 +39,7 @@ body:
     attributes:
       label: 환경
       description: 브라우저와 테마를 적어주세요. 탭을 여러 개 열어둔 상태였는지도 도움이 됩니다.
-      placeholder: "Chrome 141 · 다크 모드 · 탭 5개 열림"
+      placeholder: 'Chrome 141 · 다크 모드 · 탭 5개 열림'
     validations:
       required: false
   - type: textarea

@@ -78,7 +78,11 @@ describe('canRefund', () => {
 describe('stuckPayments', () => {
   // 「준비」 가 전체에 섞여 있으면 돈이 나갔는데 재화가 안 들어간 건을 아무도 못 본다.
   it('⚠️ 준비 상태만 모은다', () => {
-    const list = [pay({ key: 0 }), pay({ key: 1, status: 'READY' }), pay({ key: 2, status: 'FAILED' })]
+    const list = [
+      pay({ key: 0 }),
+      pay({ key: 1, status: 'READY' }),
+      pay({ key: 2, status: 'FAILED' }),
+    ]
     expect(stuckPayments(list).map((p) => p.key)).toEqual([1])
   })
 })
@@ -109,8 +113,22 @@ describe('summarizePayments', () => {
 
 describe('filterPayments', () => {
   const list = [
-    pay({ key: 0, who: '소이', orderNo: 'ord_A', product: '파란보석 100개', status: 'DONE', pg: 'TOSS' }),
-    pay({ key: 1, who: '밤톨', orderNo: 'ord_B', product: '시즌 패스', status: 'READY', pg: 'KAKAOPAY' }),
+    pay({
+      key: 0,
+      who: '소이',
+      orderNo: 'ord_A',
+      product: '파란보석 100개',
+      status: 'DONE',
+      pg: 'TOSS',
+    }),
+    pay({
+      key: 1,
+      who: '밤톨',
+      orderNo: 'ord_B',
+      product: '시즌 패스',
+      status: 'READY',
+      pg: 'KAKAOPAY',
+    }),
   ]
 
   it('주문번호 · 회원 · 상품 셋으로 찾는다', () => {
@@ -120,7 +138,9 @@ describe('filterPayments', () => {
   })
 
   it('상태·결제사를 함께 건다', () => {
-    expect(filterPayments(list, { status: 'READY', pg: 'KAKAOPAY' }).map((p) => p.key)).toEqual([1])
+    expect(filterPayments(list, { status: 'READY', pg: 'KAKAOPAY' }).map((p) => p.key)).toEqual(
+      [1],
+    )
     expect(filterPayments(list, { status: 'READY', pg: 'TOSS' })).toEqual([])
   })
 

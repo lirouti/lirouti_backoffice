@@ -190,7 +190,8 @@ export function Select({
    */
   const jump = (char: string) => {
     const now = Date.now()
-    const text = (now - typed.current.at < TYPEAHEAD_MS ? typed.current.text : '') + char.toLowerCase()
+    const text =
+      (now - typed.current.at < TYPEAHEAD_MS ? typed.current.text : '') + char.toLowerCase()
     typed.current = { text, at: now }
 
     const hit = items.findIndex((o) => !o.disabled && o.label.toLowerCase().startsWith(text))
@@ -249,7 +250,13 @@ export function Select({
       {label && (
         <span
           id={`${id}-label`}
-          className={css({ display: 'block', textStyle: 'label', fontWeight: '700', color: 'sub', mb: '6px' })}
+          className={css({
+            display: 'block',
+            textStyle: 'label',
+            fontWeight: '700',
+            color: 'sub',
+            mb: '6px',
+          })}
         >
           {label}
           {required && (
@@ -314,7 +321,13 @@ export function Select({
       >
         <span
           className={cx(
-            css({ flex: '1', minWidth: '0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }),
+            css({
+              flex: '1',
+              minWidth: '0',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }),
             !current && css({ color: 'faint' }),
           )}
         >
@@ -393,16 +406,30 @@ export function Select({
             color: 'rFg',
           })}
         >
-          <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true" className={css({ flex: 'none' })}>
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 16 16"
+            aria-hidden="true"
+            className={css({ flex: 'none' })}
+          >
             <circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" strokeWidth="1.6" />
-            <path d="M8,4.6 V8.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+            <path
+              d="M8,4.6 V8.6"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+            />
             <circle cx="8" cy="11.1" r="0.9" fill="currentColor" />
           </svg>
           <span>{error}</span>
         </div>
       ) : (
         hint && (
-          <div id={`${id}-hint`} className={css({ mt: '5px', textStyle: 'caption', color: 'faint' })}>
+          <div
+            id={`${id}-hint`}
+            className={css({ mt: '5px', textStyle: 'caption', color: 'faint' })}
+          >
             {hint}
           </div>
         )
@@ -461,11 +488,25 @@ function Option({
         '&[aria-disabled]': { color: 'faint2', cursor: 'not-allowed', bg: 'transparent' },
       })}
     >
-      <span className={css({ flex: '1', minWidth: '0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' })}>
+      <span
+        className={css({
+          flex: '1',
+          minWidth: '0',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        })}
+      >
         {option.label}
       </span>
       {selected && (
-        <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" className={css({ flex: 'none' })}>
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 12 12"
+          aria-hidden="true"
+          className={css({ flex: 'none' })}
+        >
           <path
             d="M2.6,6.2 L4.9,8.5 L9.4,3.9"
             fill="none"

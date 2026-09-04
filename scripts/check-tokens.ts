@@ -28,13 +28,35 @@ const STYLE_FNS = new Set(['css', 'cva', 'sva', 'styled'])
  */
 const GROUP_OF: Record<string, 'colors' | 'radii' | 'fonts'> = {}
 for (const p of [
-  'color', 'bg', 'background', 'backgroundColor', 'borderColor', 'borderTopColor',
-  'borderRightColor', 'borderBottomColor', 'borderLeftColor', 'borderBlockColor',
-  'borderInlineColor', 'fill', 'stroke', 'accentColor', 'outlineColor', 'caretColor',
-  'textDecorationColor', 'columnRuleColor',
-]) GROUP_OF[p] = 'colors'
-for (const p of ['borderRadius', 'rounded', 'borderTopLeftRadius', 'borderTopRightRadius',
-  'borderBottomLeftRadius', 'borderBottomRightRadius']) GROUP_OF[p] = 'radii'
+  'color',
+  'bg',
+  'background',
+  'backgroundColor',
+  'borderColor',
+  'borderTopColor',
+  'borderRightColor',
+  'borderBottomColor',
+  'borderLeftColor',
+  'borderBlockColor',
+  'borderInlineColor',
+  'fill',
+  'stroke',
+  'accentColor',
+  'outlineColor',
+  'caretColor',
+  'textDecorationColor',
+  'columnRuleColor',
+])
+  GROUP_OF[p] = 'colors'
+for (const p of [
+  'borderRadius',
+  'rounded',
+  'borderTopLeftRadius',
+  'borderTopRightRadius',
+  'borderBottomLeftRadius',
+  'borderBottomRightRadius',
+])
+  GROUP_OF[p] = 'radii'
 for (const p of ['fontFamily']) GROUP_OF[p] = 'fonts'
 
 const theme = config.theme?.extend
@@ -46,7 +68,15 @@ const TOKENS: Record<string, Set<string>> = {
 
 /** 토큰이 아니어도 CSS 가 아는 말들 */
 const KEYWORDS = new Set([
-  'transparent', 'currentColor', 'inherit', 'initial', 'unset', 'revert', 'none', 'auto', 'full',
+  'transparent',
+  'currentColor',
+  'inherit',
+  'initial',
+  'unset',
+  'revert',
+  'none',
+  'auto',
+  'full',
 ])
 
 /**
@@ -56,8 +86,9 @@ const KEYWORDS = new Set([
  * QR 의 `#FFFFFF` 처럼 **일부러 토큰을 안 쓰는 자리**가 있어서 막지 않는다 (§39.1).
  */
 const isRaw = (v: string): boolean =>
-  /^(#|rgb|hsl|oklch|var\(|color-mix\(|calc\(|linear-gradient|radial-gradient|light-dark)/.test(v) ||
-  /^-?[\d.]+(px|rem|em|%|vh|vw|ch)?$/.test(v)
+  /^(#|rgb|hsl|oklch|var\(|color-mix\(|calc\(|linear-gradient|radial-gradient|light-dark)/.test(
+    v,
+  ) || /^-?[\d.]+(px|rem|em|%|vh|vw|ch)?$/.test(v)
 
 function sources(dir: string): string[] {
   return readdirSync(dir).flatMap((name) => {
@@ -82,7 +113,9 @@ function values(n: ts.Node): ts.StringLiteral[] {
   if (ts.isBinaryExpression(n)) return [...values(n.left), ...values(n.right)]
   if (ts.isParenthesizedExpression(n)) return values(n.expression)
   if (ts.isObjectLiteralExpression(n)) {
-    return n.properties.flatMap((p) => (ts.isPropertyAssignment(p) ? values(p.initializer) : []))
+    return n.properties.flatMap((p) =>
+      ts.isPropertyAssignment(p) ? values(p.initializer) : [],
+    )
   }
   if (ts.isArrayLiteralExpression(n)) return n.elements.flatMap((e) => values(e))
   return []
@@ -106,10 +139,16 @@ for (const file of sources('src')) {
       if (prop === 'defaultVariants') return
       if (prop === 'compoundVariants') {
         // 여기서 스타일인 것은 `css` 뿐이고 나머지 키는 전부 고르는 조건이다
-        for (const el of ts.isArrayLiteralExpression(n.initializer) ? n.initializer.elements : []) {
+        for (const el of ts.isArrayLiteralExpression(n.initializer)
+          ? n.initializer.elements
+          : []) {
           if (!ts.isObjectLiteralExpression(el)) continue
           for (const p of el.properties) {
-            if (ts.isPropertyAssignment(p) && ts.isIdentifier(p.name) && p.name.text === 'css') {
+            if (
+              ts.isPropertyAssignment(p) &&
+              ts.isIdentifier(p.name) &&
+              p.name.text === 'css'
+            ) {
               inStyle(p.initializer)
             }
           }
@@ -122,7 +161,12 @@ for (const file of sources('src')) {
         for (const s of values(n.initializer)) {
           // Panda 의 `!` 는 `!important` 다 — 값의 일부가 아니다
           const value = s.text.replace(/\s*!$/, '')
-          if (value !== '' && !TOKENS[group]!.has(value) && !KEYWORDS.has(value) && !isRaw(value)) {
+          if (
+            value !== '' &&
+            !TOKENS[group]!.has(value) &&
+            !KEYWORDS.has(value) &&
+            !isRaw(value)
+          ) {
             issues.push({
               file,
               line: sf.getLineAndCharacterOfPosition(s.getStart(sf)).line + 1,
@@ -143,7 +187,11 @@ for (const file of sources('src')) {
     // ⚠️ **스타일 함수 안에서만 본다.** 밖에서는 `bg` 가 스코프 id 이기도 하다
     //    (`domain/admin/labels.ts` 의 `bg: '배경 · 둥지'`).
     if (ts.isCallExpression(n)) {
-      const fn = ts.isPropertyAccessExpression(n.expression) ? n.expression.name.text : ts.isIdentifier(n.expression) ? n.expression.text : ''
+      const fn = ts.isPropertyAccessExpression(n.expression)
+        ? n.expression.name.text
+        : ts.isIdentifier(n.expression)
+          ? n.expression.text
+          : ''
       if (STYLE_FNS.has(fn)) {
         for (const arg of n.arguments) inStyle(arg)
         return
@@ -157,7 +205,9 @@ for (const file of sources('src')) {
 if (issues.length > 0) {
   for (const i of issues) {
     console.error(`${i.file.replace(/^src\//, '')}:${i.line}`)
-    console.error(`  ${i.prop}: '${i.value}' — ${i.group} 토큰에 없습니다. 잘못된 CSS 가 그대로 나갑니다`)
+    console.error(
+      `  ${i.prop}: '${i.value}' — ${i.group} 토큰에 없습니다. 잘못된 CSS 가 그대로 나갑니다`,
+    )
   }
   console.error(`\n토큰 규약 위반 ${issues.length}건 — docs/ARCHITECTURE.md §39`)
   process.exit(1)

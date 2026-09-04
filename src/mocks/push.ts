@@ -8,7 +8,15 @@
  */
 import { daysAgo } from '@/shared/lib/today'
 
-import { reachOf, type Push, type PushAudience, type PushConsent, type PushKind, type PushLink, type PushStatus } from '@/domain/push'
+import {
+  reachOf,
+  type Push,
+  type PushAudience,
+  type PushConsent,
+  type PushKind,
+  type PushLink,
+  type PushStatus,
+} from '@/domain/push'
 
 /** 서버가 집계해 주는 수신 동의 모수. 원본의 41,200 / 38,940 / 28,600 그대로 */
 const CONSENT: PushConsent = {
@@ -43,6 +51,9 @@ type Row = [
   openRate: number,
 ]
 
+// ⚠️ **한 줄이 한 레코드다.** 표처럼 읽는 것이 이 파일의 목적이라 자동 포맷을 끈다 —
+//    풀어 놓으면 12칸짜리 한 줄이 14줄이 되어 무엇이 무엇인지 보이지 않는다.
+// prettier-ignore
 const ROWS: Row[] = [
   ['여름 이벤트가 시작됐어요', '8월 한 달간 출석만 해도 노란보석을 드려요', 'marketing', '전체', '상점', 30, '10:00', '발송 완료', '박서준', 0.967, 0.306],
   ['8/14 점검 안내', '오늘 02시부터 04시까지 접속이 어렵습니다', 'service', '전체', '앱 열기', 1, '18:00', '발송 완료', '김하늘', 0.993, 0.598],

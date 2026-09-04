@@ -60,7 +60,13 @@ export function FilePicker({
     <div className={className}>
       <label
         htmlFor={id}
-        className={css({ display: 'block', textStyle: 'label', fontWeight: '700', color: 'sub', mb: '6px' })}
+        className={css({
+          display: 'block',
+          textStyle: 'label',
+          fontWeight: '700',
+          color: 'sub',
+          mb: '6px',
+        })}
       >
         {label}
         {required && (
@@ -124,8 +130,14 @@ export function FilePicker({
           >
             {fileName ?? '파일을 끌어다 놓거나 눌러서 고르세요'}
           </span>
-          <span className={css({ display: 'block', mt: '2px', textStyle: 'micro', color: 'faint' })}>
-            {fileName ? '누르면 다른 파일로 바꿉니다' : accept.includes('svg') ? 'SVG 를 권합니다 — 확대해도 흐려지지 않습니다' : ' '}
+          <span
+            className={css({ display: 'block', mt: '2px', textStyle: 'micro', color: 'faint' })}
+          >
+            {fileName
+              ? '누르면 다른 파일로 바꿉니다'
+              : accept.includes('svg')
+                ? 'SVG 를 권합니다 — 확대해도 흐려지지 않습니다'
+                : ' '}
           </span>
         </span>
 
@@ -215,7 +227,13 @@ function UploadIcon() {
           strokeLinecap="round"
           strokeLinejoin="round"
         />
-        <path d="M2.6,10.6 V12.4 A1,1 0 0,0 3.6,13.4 H12.4 A1,1 0 0,0 13.4,12.4 V10.6" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <path
+          d="M2.6,10.6 V12.4 A1,1 0 0,0 3.6,13.4 H12.4 A1,1 0 0,0 13.4,12.4 V10.6"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
       </svg>
     </span>
   )

@@ -4,10 +4,28 @@ import type { Kpi, SeriesPoint } from '@/domain/dashboard'
 export const KPIS: Kpi[] = [
   { label: 'DAU', value: '24,180', delta: '+6.2%', direction: 'up', note: '전주 대비' },
   { label: '신규 부화', value: '1,342', delta: '+11.4%', direction: 'up', note: '전주 대비' },
-  { label: '챌린지 달성률', value: '68.4%', delta: '+2.1%p', direction: 'up', note: '전주 대비' },
+  {
+    label: '챌린지 달성률',
+    value: '68.4%',
+    delta: '+2.1%p',
+    direction: 'up',
+    note: '전주 대비',
+  },
   { label: '젬 소비', value: '8.4M', delta: '-3.5%', direction: 'down', note: '전주 대비' },
-  { label: '아이템 판매', value: '2,916건', delta: '+14.8%', direction: 'up', note: '전주 대비' },
-  { label: '평균 접속', value: '18분 42초', delta: '+1분 07초', direction: 'up', note: '전주 대비' },
+  {
+    label: '아이템 판매',
+    value: '2,916건',
+    delta: '+14.8%',
+    direction: 'up',
+    note: '전주 대비',
+  },
+  {
+    label: '평균 접속',
+    value: '18분 42초',
+    delta: '+1분 07초',
+    direction: 'up',
+    note: '전주 대비',
+  },
 ]
 
 /** 최근 14일 DAU (천 명). 원본 폴리라인 좌표에서 역산한 값. */

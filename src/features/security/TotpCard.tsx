@@ -69,7 +69,14 @@ export function TotpCard() {
 
   return (
     <Card className={css({ p: '18px 20px 20px' })}>
-      <div className={css({ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '10px' })}>
+      <div
+        className={css({
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          gap: '10px',
+        })}
+      >
         <Icon name="ic_shield" className={css({ color: data.enabled ? 'gFg' : 'faint' })} />
         <div className={css({ textStyle: 'h3', color: 'ink' })}>2단계 인증</div>
         <Badge tone={data.enabled ? 'success' : 'warn'} size="md">
@@ -114,7 +121,9 @@ export function TotpCard() {
       )}
 
       {panel.kind !== 'none' && (
-        <div className={css({ mt: '18px', pt: '18px', borderTop: '1px solid token(colors.ln)' })}>
+        <div
+          className={css({ mt: '18px', pt: '18px', borderTop: '1px solid token(colors.ln)' })}
+        >
           {panel.kind === 'enroll' && (
             <EnrollWizard
               enrollment={panel.enrollment}
@@ -132,7 +141,9 @@ export function TotpCard() {
             />
           )}
 
-          {panel.kind === 'disable' && <DisablePanel onClose={() => setPanel({ kind: 'none' })} />}
+          {panel.kind === 'disable' && (
+            <DisablePanel onClose={() => setPanel({ kind: 'none' })} />
+          )}
         </div>
       )}
     </Card>
@@ -159,8 +170,8 @@ function DisablePanel({ onClose }: { onClose: () => void }) {
     <form onSubmit={submit} noValidate>
       <h3 className={css({ m: '0 0 6px', textStyle: 'h3', color: 'ink' })}>2단계 인증 끄기</h3>
       <p className={css({ m: '0 0 14px', textStyle: 'body', color: 'sub' })}>
-        본인 확인을 위해 인증 앱에 표시된 코드를 입력하세요. 끄면 남은 백업 코드도 모두
-        무효가 됩니다.
+        본인 확인을 위해 인증 앱에 표시된 코드를 입력하세요. 끄면 남은 백업 코드도 모두 무효가
+        됩니다.
       </p>
 
       {error && <ErrorBanner message={error.message} />}

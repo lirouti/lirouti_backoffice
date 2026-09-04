@@ -100,14 +100,26 @@ export default function CodeFormPage() {
     setForm((f) => ({ ...f, [k]: v }))
 
   const setValue = (i: number, patch: Partial<CodeGroupInput['values'][number]>) =>
-    set('values', form.values.map((v, at) => (at === i ? { ...v, ...patch } : v)))
+    set(
+      'values',
+      form.values.map((v, at) => (at === i ? { ...v, ...patch } : v)),
+    )
 
   const back = () => navigate(SCREENS.codes.path)
 
   const commit = () => {
     setTried(true)
     if (Object.keys(errors).length > 0) return
-    create.mutate({ input: form, by: viewer.name }, { onSuccess: () => { draft.clear(); markSaved(); back() } })
+    create.mutate(
+      { input: form, by: viewer.name },
+      {
+        onSuccess: () => {
+          draft.clear()
+          markSaved()
+          back()
+        },
+      },
+    )
   }
 
   return (
@@ -141,11 +153,33 @@ export default function CodeFormPage() {
 
       {create.error && <ErrorBanner message={create.error.message} />}
 
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '18px', alignItems: 'flex-start' })}>
-        <div className={css({ flex: '2 1 420px', minWidth: '0', display: 'flex', flexDirection: 'column', gap: '18px' })}>
+      <div
+        className={css({
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '18px',
+          alignItems: 'flex-start',
+        })}
+      >
+        <div
+          className={css({
+            flex: '2 1 420px',
+            minWidth: '0',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '18px',
+          })}
+        >
           <Card className={css({ p: '15px 17px' })}>
             <CardTitle title="그룹 정보" />
-            <div className={css({ display: 'flex', flexDirection: 'column', gap: '13px', mt: '13px' })}>
+            <div
+              className={css({
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '13px',
+                mt: '13px',
+              })}
+            >
               <Input
                 value={form.name}
                 onChange={(v) => set('name', v)}
@@ -169,12 +203,23 @@ export default function CodeFormPage() {
                     />
                   </div>
                   {/* 자동은 제안일 뿐이다 — 채운 뒤 고칠 수 있다 */}
-                  <Button onClick={() => set('codeKey', suggestCodeKey(form.name))}>자동</Button>
+                  <Button onClick={() => set('codeKey', suggestCodeKey(form.name))}>
+                    자동
+                  </Button>
                 </div>
               </div>
 
               <div>
-                <div className={css({ mb: '6px', textStyle: 'label', fontWeight: '600', color: 'ink' })}>분류</div>
+                <div
+                  className={css({
+                    mb: '6px',
+                    textStyle: 'label',
+                    fontWeight: '600',
+                    color: 'ink',
+                  })}
+                >
+                  분류
+                </div>
                 <Segmented
                   value={form.category}
                   onChange={(v) => set('category', v)}
@@ -194,21 +239,55 @@ export default function CodeFormPage() {
           </Card>
 
           <Card className={css({ p: '15px 17px' })}>
-            <div className={css({ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' })}>
+            <div
+              className={css({
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                flexWrap: 'wrap',
+              })}
+            >
               <div className={css({ flex: '1 1 160px', minWidth: '0' })}>
                 <CardTitle title="초기 값" sub="순서는 등록 후 상세에서 바꿉니다." />
               </div>
-              <Button onClick={() => set('values', [...form.values, emptyValue()])}>값 추가</Button>
+              <Button onClick={() => set('values', [...form.values, emptyValue()])}>
+                값 추가
+              </Button>
             </div>
 
             {tried && errors.values && (
-              <p className={css({ m: '10px 0 0', textStyle: 'caption', color: 'rFg' })}>{errors.values}</p>
+              <p className={css({ m: '10px 0 0', textStyle: 'caption', color: 'rFg' })}>
+                {errors.values}
+              </p>
             )}
 
-            <div className={css({ display: 'flex', flexDirection: 'column', gap: '10px', mt: '13px' })}>
+            <div
+              className={css({
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px',
+                mt: '13px',
+              })}
+            >
               {form.values.map((v, i) => (
-                <div key={i} className={css({ display: 'flex', alignItems: 'flex-end', gap: '8px', flexWrap: 'wrap' })}>
-                  <span className={css({ flex: 'none', width: '20px', pb: '9px', textStyle: 'caption', color: 'faint' })}>
+                <div
+                  key={i}
+                  className={css({
+                    display: 'flex',
+                    alignItems: 'flex-end',
+                    gap: '8px',
+                    flexWrap: 'wrap',
+                  })}
+                >
+                  <span
+                    className={css({
+                      flex: 'none',
+                      width: '20px',
+                      pb: '9px',
+                      textStyle: 'caption',
+                      color: 'faint',
+                    })}
+                  >
                     {i + 1}
                   </span>
                   <div className={css({ flex: '1 1 120px', minWidth: '0' })}>
@@ -243,7 +322,12 @@ export default function CodeFormPage() {
                     variant="danger"
                     // 마지막 한 줄은 지우지 않는다 — 값이 하나도 없는 폼은 만들 수 없다.
                     disabled={form.values.length <= 1}
-                    onClick={() => set('values', form.values.filter((_, at) => at !== i))}
+                    onClick={() =>
+                      set(
+                        'values',
+                        form.values.filter((_, at) => at !== i),
+                      )
+                    }
                     aria-label={`${i + 1}번 값 삭제`}
                   >
                     삭제
@@ -265,11 +349,27 @@ export default function CodeFormPage() {
               overflow: 'hidden',
             })}
           >
-            <div className={css({ p: '9px 12px', borderBottom: '1px solid token(colors.bd)', textStyle: 'caption', fontWeight: '700', color: 'ink' })}>
+            <div
+              className={css({
+                p: '9px 12px',
+                borderBottom: '1px solid token(colors.bd)',
+                textStyle: 'caption',
+                fontWeight: '700',
+                color: 'ink',
+              })}
+            >
               {form.name.trim() || '그룹명'}
             </div>
             {rows.length === 0 ? (
-              <p className={css({ m: '0', p: '16px 12px', textAlign: 'center', textStyle: 'caption', color: 'faint' })}>
+              <p
+                className={css({
+                  m: '0',
+                  p: '16px 12px',
+                  textAlign: 'center',
+                  textStyle: 'caption',
+                  color: 'faint',
+                })}
+              >
                 값을 넣으면 여기에 보입니다.
               </p>
             ) : (
@@ -289,7 +389,13 @@ export default function CodeFormPage() {
                       {v.label.trim() || '표시 이름'}
                     </Badge>
                     <span className={css({ flex: '1' })} />
-                    <span className={css({ fontFamily: 'mono', textStyle: 'micro', color: 'faint' })}>
+                    <span
+                      className={css({
+                        fontFamily: 'mono',
+                        textStyle: 'micro',
+                        color: 'faint',
+                      })}
+                    >
                       {v.code.trim() || 'CODE'}
                     </span>
                   </li>
@@ -298,7 +404,14 @@ export default function CodeFormPage() {
             )}
           </div>
 
-          <dl className={css({ m: '13px 0 0', display: 'flex', flexDirection: 'column', gap: '9px' })}>
+          <dl
+            className={css({
+              m: '13px 0 0',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '9px',
+            })}
+          >
             <Row k="코드 키" v={form.codeKey.trim() || '—'} mono />
             <Row k="분류" v={form.category} />
             <Row k="값 개수" v={`${num(rows.length)}개`} />
@@ -312,7 +425,11 @@ export default function CodeFormPage() {
 function Row({ k, v, mono }: { k: string; v: string; mono?: boolean }) {
   return (
     <div className={css({ display: 'flex', alignItems: 'center', gap: '10px' })}>
-      <dt className={css({ flex: 'none', width: '64px', textStyle: 'caption', color: 'faint' })}>{k}</dt>
+      <dt
+        className={css({ flex: 'none', width: '64px', textStyle: 'caption', color: 'faint' })}
+      >
+        {k}
+      </dt>
       <dd
         className={css({
           m: '0',

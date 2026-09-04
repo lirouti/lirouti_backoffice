@@ -79,14 +79,29 @@ export default function AdminsPage() {
         >
           <StatTile label="전체 관리자" value={num(data.summary.total)} />
           <StatTile label="활성" value={num(data.summary.active)} />
-          <StatTile label="생체 등록" value={`${data.summary.passkey} / ${data.summary.total}`} />
-          <StatTile label="대기 · 정지" value={num(data.summary.pending)} alert={data.summary.pending > 0} />
+          <StatTile
+            label="생체 등록"
+            value={`${data.summary.passkey} / ${data.summary.total}`}
+          />
+          <StatTile
+            label="대기 · 정지"
+            value={num(data.summary.pending)}
+            alert={data.summary.pending > 0}
+          />
         </div>
       ) : isPending ? (
         <SkeletonStats count={4} min={150} silent className={css({ mb: '16px' })} />
       ) : null}
 
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center', mb: '14px' })}>
+      <div
+        className={css({
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '10px',
+          alignItems: 'center',
+          mb: '14px',
+        })}
+      >
         <Segmented
           value={f.tab ?? '전체'}
           onChange={(v) => patch('tab', v)}
@@ -120,10 +135,19 @@ const COLUMNS: Column<AdminEntry>[] = [
     width: '210px',
     render: ({ admin }) => (
       <span className={css({ display: 'block', minWidth: '0' })}>
-        <span className={css({ display: 'block', textStyle: 'label', fontWeight: '600', color: 'ink' })}>
+        <span
+          className={css({
+            display: 'block',
+            textStyle: 'label',
+            fontWeight: '600',
+            color: 'ink',
+          })}
+        >
           {admin.name}
         </span>
-        <span className={css({ display: 'block', textStyle: 'micro', color: 'faint' })}>{admin.email}</span>
+        <span className={css({ display: 'block', textStyle: 'micro', color: 'faint' })}>
+          {admin.email}
+        </span>
       </span>
     ),
   },
@@ -131,7 +155,9 @@ const COLUMNS: Column<AdminEntry>[] = [
     key: 'role',
     label: '역할',
     width: '108px',
-    render: ({ admin }) => <Badge tone={ADMIN_ROLE_TONE[admin.role]}>{ADMIN_ROLE_LABEL[admin.role]}</Badge>,
+    render: ({ admin }) => (
+      <Badge tone={ADMIN_ROLE_TONE[admin.role]}>{ADMIN_ROLE_LABEL[admin.role]}</Badge>
+    ),
   },
   {
     key: 'scopes',
@@ -140,11 +166,13 @@ const COLUMNS: Column<AdminEntry>[] = [
     // 최고 관리자에게 14개 이름을 늘어놓으면 「전체」 라는 사실이 오히려 안 보인다.
     render: ({ admin }) => (
       <span className={css({ display: 'flex', flexWrap: 'wrap', gap: '4px' })}>
-        {(admin.role === 'top' ? ['전체 권한'] : admin.scopes.map((s) => SCOPE_LABEL[s])).map((label) => (
-          <Badge key={label} tone={admin.role === 'top' ? 'purple' : 'neutral'} size="sm">
-            {label}
-          </Badge>
-        ))}
+        {(admin.role === 'top' ? ['전체 권한'] : admin.scopes.map((s) => SCOPE_LABEL[s])).map(
+          (label) => (
+            <Badge key={label} tone={admin.role === 'top' ? 'purple' : 'neutral'} size="sm">
+              {label}
+            </Badge>
+          ),
+        )}
       </span>
     ),
   },
@@ -153,7 +181,9 @@ const COLUMNS: Column<AdminEntry>[] = [
     label: '생체',
     width: '82px',
     render: ({ admin }) => (
-      <Badge tone={admin.passkey ? 'teal' : 'neutral'}>{admin.passkey ? '등록' : '미등록'}</Badge>
+      <Badge tone={admin.passkey ? 'teal' : 'neutral'}>
+        {admin.passkey ? '등록' : '미등록'}
+      </Badge>
     ),
   },
   {

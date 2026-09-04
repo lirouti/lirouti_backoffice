@@ -68,7 +68,8 @@ export default function EventFormPage() {
   if (formData.dataUpdatedAt !== normalizedAt) {
     setNormalizedAt(formData.dataUpdatedAt)
     if (
-      formData.data && form.rewardItemKey !== null &&
+      formData.data &&
+      form.rewardItemKey !== null &&
       !formData.data.itemOptions.some((item) => item.key === form.rewardItemKey)
     ) {
       setForm((current) => ({ ...current, rewardItemKey: null }))
@@ -84,12 +85,17 @@ export default function EventFormPage() {
     )
   }
   if (formData.error || !formData.data) {
-    return <ErrorBanner message={formData.error?.message ?? '보상 아이템을 불러오지 못했습니다.'} />
+    return (
+      <ErrorBanner message={formData.error?.message ?? '보상 아이템을 불러오지 못했습니다.'} />
+    )
   }
 
   const reward = formData.data.itemOptions.find((item) => item.key === form.rewardItemKey)
   const errors = validateEvent(form)
-  const itemOptions = formData.data.itemOptions.map((item) => ({ value: String(item.key), label: item.name }))
+  const itemOptions = formData.data.itemOptions.map((item) => ({
+    value: String(item.key),
+    label: item.name,
+  }))
   const busy = save.isPending
 
   const set = <K extends keyof EventInput>(key: K, value: EventInput[K]) =>
@@ -160,10 +166,24 @@ export default function EventFormPage() {
       )}
 
       <form id={FORM_ID} ref={formRef} onSubmit={submit} noValidate>
-        <div className={css({ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '760px' })}>
+        <div
+          className={css({
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+            maxWidth: '760px',
+          })}
+        >
           <Card className={css({ p: '18px' })}>
             <CardTitle title="기본 정보" sub="이벤트 카드에 표시할 내용을 입력합니다." />
-            <div className={css({ display: 'flex', flexDirection: 'column', gap: '15px', mt: '16px' })}>
+            <div
+              className={css({
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '15px',
+                mt: '16px',
+              })}
+            >
               <Input
                 value={form.title}
                 onChange={(value) => set('title', value)}
@@ -186,8 +206,21 @@ export default function EventFormPage() {
 
           <Card className={css({ p: '18px' })}>
             <CardTitle title="운영 기간" sub="종료일을 비우면 상시 이벤트입니다." />
-            <div className={css({ display: 'flex', flexDirection: 'column', gap: '15px', mt: '16px' })}>
-              <div className={css({ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '12px' })}>
+            <div
+              className={css({
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '15px',
+                mt: '16px',
+              })}
+            >
+              <div
+                className={css({
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                  gap: '12px',
+                })}
+              >
                 <Input
                   type="date"
                   value={form.startAt}
@@ -205,7 +238,14 @@ export default function EventFormPage() {
                   error={tried ? errors.endAt : undefined}
                 />
               </div>
-              <div className={css({ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 120px', gap: '12px', alignItems: 'end' })}>
+              <div
+                className={css({
+                  display: 'grid',
+                  gridTemplateColumns: 'minmax(0, 1fr) 120px',
+                  gap: '12px',
+                  alignItems: 'end',
+                })}
+              >
                 <Input
                   value={form.accent}
                   onChange={(value) => set('accent', value)}
@@ -216,8 +256,17 @@ export default function EventFormPage() {
                   required
                 />
                 <div
-                  aria-label={isHexColor(form.accent) ? `강조색 미리보기 ${form.accent}` : '강조색 미리보기'}
-                  className={css({ height: '46px', border: '1px solid token(colors.bd)', borderRadius: 'lg', bg: 'surf2' })}
+                  aria-label={
+                    isHexColor(form.accent)
+                      ? `강조색 미리보기 ${form.accent}`
+                      : '강조색 미리보기'
+                  }
+                  className={css({
+                    height: '46px',
+                    border: '1px solid token(colors.bd)',
+                    borderRadius: 'lg',
+                    bg: 'surf2',
+                  })}
                   style={isHexColor(form.accent) ? { background: form.accent } : undefined}
                 />
               </div>
@@ -226,11 +275,21 @@ export default function EventFormPage() {
 
           <Card className={css({ p: '18px' })}>
             <CardTitle title="보상" sub="아이템 모듈에 등록된 항목 중 하나를 고릅니다." />
-            <div className={css({ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 210px', gap: '16px', mt: '16px', alignItems: 'start' })}>
+            <div
+              className={css({
+                display: 'grid',
+                gridTemplateColumns: 'minmax(0, 1fr) 210px',
+                gap: '16px',
+                mt: '16px',
+                alignItems: 'start',
+              })}
+            >
               <Select
                 value={reward ? String(reward.key) : ''}
                 onChange={(value) => {
-                  const selected = formData.data.itemOptions.find((item) => String(item.key) === value)
+                  const selected = formData.data.itemOptions.find(
+                    (item) => String(item.key) === value,
+                  )
                   set('rewardItemKey', selected?.key ?? null)
                 }}
                 options={itemOptions}
@@ -240,11 +299,28 @@ export default function EventFormPage() {
                 required
                 size="lg"
               />
-              <div className={css({ display: 'flex', alignItems: 'center', gap: '12px', minHeight: '70px', p: '12px', bg: 'surf2', borderRadius: 'lg' })}>
+              <div
+                className={css({
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  minHeight: '70px',
+                  p: '12px',
+                  bg: 'surf2',
+                  borderRadius: 'lg',
+                })}
+              >
                 {reward ? <AssetThumb assetId={reward.assetId} alt="" size={46} /> : null}
                 <div>
                   <div className={css({ textStyle: 'micro', color: 'faint' })}>선택한 보상</div>
-                  <div className={css({ mt: '2px', textStyle: 'label', fontWeight: '600', color: reward ? 'ink' : 'faint' })}>
+                  <div
+                    className={css({
+                      mt: '2px',
+                      textStyle: 'label',
+                      fontWeight: '600',
+                      color: reward ? 'ink' : 'faint',
+                    })}
+                  >
                     {reward?.name ?? '아직 선택하지 않음'}
                   </div>
                 </div>

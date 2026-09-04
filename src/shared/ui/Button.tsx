@@ -71,5 +71,11 @@ type ButtonProps = {
 } & ButtonHTMLAttributes<HTMLButtonElement>
 
 export function Button({ variant, size, className, type = 'button', ...rest }: ButtonProps) {
-  return <button type={type} className={cx(css(button.raw({ variant, size })), className)} {...rest} />
+  return (
+    <button
+      type={type}
+      className={cx(css(button.raw({ variant, size })), className)}
+      {...rest}
+    />
+  )
 }

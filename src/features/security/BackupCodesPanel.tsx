@@ -59,7 +59,9 @@ export function BackupCodesPanel({
       <p className={css({ m: '0 0 14px', textStyle: 'body', color: 'sub' })}>
         {reason === 'regenerated' && '이전 백업 코드는 모두 무효가 되었습니다. '}
         아래 코드를 안전한 곳에 보관하세요.{' '}
-        <strong className={css({ color: 'ink' })}>이 화면을 벗어나면 다시 볼 수 없습니다.</strong>
+        <strong className={css({ color: 'ink' })}>
+          이 화면을 벗어나면 다시 볼 수 없습니다.
+        </strong>
       </p>
 
       <div

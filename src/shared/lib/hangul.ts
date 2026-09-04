@@ -12,8 +12,25 @@ const LAST = 0xd7a3
 const PER_CHO = 21 * 28
 
 const CHO = [
-  'ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ',
-  'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ',
+  'ㄱ',
+  'ㄲ',
+  'ㄴ',
+  'ㄷ',
+  'ㄸ',
+  'ㄹ',
+  'ㅁ',
+  'ㅂ',
+  'ㅃ',
+  'ㅅ',
+  'ㅆ',
+  'ㅇ',
+  'ㅈ',
+  'ㅉ',
+  'ㅊ',
+  'ㅋ',
+  'ㅌ',
+  'ㅍ',
+  'ㅎ',
 ]
 
 /**
@@ -26,8 +43,7 @@ export function chosung(text: string): string {
   let out = ''
   for (const ch of text) {
     const code = ch.codePointAt(0)!
-    out +=
-      code >= BASE && code <= LAST ? CHO[Math.floor((code - BASE) / PER_CHO)]! : ch
+    out += code >= BASE && code <= LAST ? CHO[Math.floor((code - BASE) / PER_CHO)]! : ch
   }
   return out
 }

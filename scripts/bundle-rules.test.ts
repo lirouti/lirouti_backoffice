@@ -51,7 +51,9 @@ describe('entryAssets', () => {
 
   // `rel` 은 공백으로 여러 개가 올 수 있다.
   it('`rel="preload stylesheet"` 처럼 여러 값이어도 잡는다', () => {
-    expect(entryAssets('<link rel="preload stylesheet" href="/assets/a.css">')).toEqual(['a.css'])
+    expect(entryAssets('<link rel="preload stylesheet" href="/assets/a.css">')).toEqual([
+      'a.css',
+    ])
   })
 
   // `stylesheet` 를 부분 문자열로 찾으면 `rel="not-stylesheet"` 도 걸린다.

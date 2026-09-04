@@ -57,7 +57,15 @@ type SwitchProps = SwitchBase &
  *    (`label-content-name-mismatch`). 밖으로 빼면 버튼의 글자가 곧 이름이라
  *    `aria-label` 자체가 필요 없다 (docs/ARCHITECTURE.md §37).
  */
-export function Switch({ checked, onChange, label, hint, disabled, labelHidden, className }: SwitchProps) {
+export function Switch({
+  checked,
+  onChange,
+  label,
+  hint,
+  disabled,
+  labelHidden,
+  className,
+}: SwitchProps) {
   const hintId = useId()
 
   return (
@@ -105,7 +113,10 @@ export function Switch({ checked, onChange, label, hint, disabled, labelHidden, 
             borderColor: checked ? 'pri' : 'faint2',
             bg: checked ? 'pri' : 'surf',
             transition: 'background .15s, border-color .15s',
-            _groupFocusVisible: { boxShadow: '0 0 0 3px token(colors.ring)', borderColor: 'ringBd' },
+            _groupFocusVisible: {
+              boxShadow: '0 0 0 3px token(colors.ring)',
+              borderColor: 'ringBd',
+            },
           })}
         >
           <span
@@ -123,7 +134,14 @@ export function Switch({ checked, onChange, label, hint, disabled, labelHidden, 
         </span>
 
         {!labelHidden && (
-          <span className={css({ minWidth: '0', textStyle: 'body', fontWeight: '600', color: 'ink' })}>
+          <span
+            className={css({
+              minWidth: '0',
+              textStyle: 'body',
+              fontWeight: '600',
+              color: 'ink',
+            })}
+          >
             {label}
           </span>
         )}
@@ -136,7 +154,12 @@ export function Switch({ checked, onChange, label, hint, disabled, labelHidden, 
       {hint && !labelHidden && (
         <span
           id={hintId}
-          className={css({ display: 'block', pl: '48px', textStyle: 'caption', color: 'faint' })}
+          className={css({
+            display: 'block',
+            pl: '48px',
+            textStyle: 'caption',
+            color: 'faint',
+          })}
         >
           {hint}
         </span>

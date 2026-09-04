@@ -18,7 +18,10 @@ import { parseItemsQuery, patchQuery, toSearchParams, type ItemsScreenQuery } fr
  *
  * 검색어는 매 타건에 오지 않는다 — `useSearchDraft` 가 조용해질 때까지 모은다.
  */
-export function useItemsQuery(): [ItemsScreenQuery, (patch: Partial<ItemsScreenQuery>) => void] {
+export function useItemsQuery(): [
+  ItemsScreenQuery,
+  (patch: Partial<ItemsScreenQuery>) => void,
+] {
   const [params, setParams] = useSearchParams()
 
   const query = parseItemsQuery(params)

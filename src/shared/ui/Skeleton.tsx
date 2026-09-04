@@ -47,7 +47,9 @@ const bar = css({
  *    안쪽 전부가 `aria-hidden` 이고, 상태는 이 한 줄로만 말한다.
  */
 const region = (silent: boolean) =>
-  silent ? ({ 'aria-hidden': true } as const) : ({ role: 'status', 'aria-label': '불러오는 중' } as const)
+  silent
+    ? ({ 'aria-hidden': true } as const)
+    : ({ role: 'status', 'aria-label': '불러오는 중' } as const)
 
 type Common = {
   /**
@@ -59,7 +61,11 @@ type Common = {
 }
 
 /** 목록·표의 행. 아바타 자리 + 글줄 둘 */
-export function SkeletonRows({ rows = 4, silent = false, className }: Common & { rows?: number }) {
+export function SkeletonRows({
+  rows = 4,
+  silent = false,
+  className,
+}: Common & { rows?: number }) {
   return (
     <div
       {...region(silent)}
@@ -68,8 +74,17 @@ export function SkeletonRows({ rows = 4, silent = false, className }: Common & {
       {Array.from({ length: rows }, (_, i) => {
         const [w1, w2] = WIDTHS[i % WIDTHS.length]!
         return (
-          <div key={i} className={css({ display: 'flex', alignItems: 'center', gap: '12px' })} aria-hidden="true">
-            <div className={cx(bar, css({ width: '34px', height: '34px', flex: 'none', borderRadius: 'lg' }))} />
+          <div
+            key={i}
+            className={css({ display: 'flex', alignItems: 'center', gap: '12px' })}
+            aria-hidden="true"
+          >
+            <div
+              className={cx(
+                bar,
+                css({ width: '34px', height: '34px', flex: 'none', borderRadius: 'lg' }),
+              )}
+            />
             <div className={css({ flex: '1', minWidth: '0' })}>
               <div className={bar} style={{ height: 10, width: w1 }} />
               <div className={bar} style={{ height: 9, width: w2, marginTop: 6 }} />
@@ -121,11 +136,19 @@ export function SkeletonCards({
           <div
             key={i}
             aria-hidden="true"
-            className={css({ border: '1px solid token(colors.bd)', borderRadius: 'xl', overflow: 'hidden' })}
+            className={css({
+              border: '1px solid token(colors.bd)',
+              borderRadius: 'xl',
+              overflow: 'hidden',
+            })}
           >
-            <div className={cx(bar, css({ width: 'full', aspectRatio: '1', borderRadius: '0' }))} />
+            <div
+              className={cx(bar, css({ width: 'full', aspectRatio: '1', borderRadius: '0' }))}
+            />
             {/* 여백은 실제 카드와 같은 값이고, 막대만 글줄 높이에 맞췄다 — 실측 249px */}
-            <div className={css({ p: '10px 12px 12px', borderTop: '1px solid token(colors.ln)' })}>
+            <div
+              className={css({ p: '10px 12px 12px', borderTop: '1px solid token(colors.ln)' })}
+            >
               {Array.from({ length: lines }, (_, j) => (
                 <div
                   key={j}
@@ -150,16 +173,34 @@ export function SkeletonCards({
               p: '15px 13px 14px',
             })}
           >
-            <div className={cx(bar, css({ aspectRatio: '1', m: '0 auto' }))} style={{ width: thumb }} />
+            <div
+              className={cx(bar, css({ aspectRatio: '1', m: '0 auto' }))}
+              style={{ width: thumb }}
+            />
             {/*
               ⚠️ **막대 높이 ≠ 글줄 높이.** 막대는 글자보다 얇게 그리는 게 보통이라 그대로
                  쌓으면 카드가 짧아진다. 모자란 만큼을 여백으로 되돌려 실측 185px 를 맞췄다.
             */}
-            <div className={cx(bar, css({ m: '13px auto 0' }))} style={{ height: 14, width: '58%' }} />
-            <div className={cx(bar, css({ m: '5px auto 0' }))} style={{ height: 11, width: '42%' }} />
+            <div
+              className={cx(bar, css({ m: '13px auto 0' }))}
+              style={{ height: 14, width: '58%' }}
+            />
+            <div
+              className={cx(bar, css({ m: '5px auto 0' }))}
+              style={{ height: 11, width: '42%' }}
+            />
             {/* 카드에 구분선과 달성률 줄이 있다 — 빼면 높이가 25px 짧아진다 */}
-            <div className={css({ mt: '12px', pt: '12px', borderTop: '1px solid token(colors.ln)' })}>
-              <div className={cx(bar, css({ m: '0 auto' }))} style={{ height: 12, width: '34%' }} />
+            <div
+              className={css({
+                mt: '12px',
+                pt: '12px',
+                borderTop: '1px solid token(colors.ln)',
+              })}
+            >
+              <div
+                className={cx(bar, css({ m: '0 auto' }))}
+                style={{ height: 12, width: '34%' }}
+              />
             </div>
           </div>
         ),
@@ -217,9 +258,14 @@ export function SkeletonStats({
         >
           {/* 값은 실측으로 맞췄다 — `StatTile` 67px · `StatCard` 110px (§43.2.1) */}
           <div className={bar} style={{ height: tile ? 11 : 14, width: '42%' }} />
-          <div className={bar} style={{ height: tile ? 23 : 30, width: '60%', marginTop: tile ? 5 : 10 }} />
+          <div
+            className={bar}
+            style={{ height: tile ? 23 : 30, width: '60%', marginTop: tile ? 5 : 10 }}
+          />
           {/* `StatCard` 만 세 줄이다 — 라벨 · 큰 숫자 · **증감**. `StatTile` 에는 증감이 없다 */}
-          {tile ? null : <div className={bar} style={{ height: 13, width: '52%', marginTop: 9 }} />}
+          {tile ? null : (
+            <div className={bar} style={{ height: 13, width: '52%', marginTop: 9 }} />
+          )}
         </div>
       ))}
     </div>
@@ -240,7 +286,10 @@ export function SkeletonForm({
   return (
     <div
       {...region(silent)}
-      className={cx(css({ display: 'flex', flexWrap: 'wrap', gap: '18px', alignItems: 'flex-start' }), className)}
+      className={cx(
+        css({ display: 'flex', flexWrap: 'wrap', gap: '18px', alignItems: 'flex-start' }),
+        className,
+      )}
     >
       <div
         aria-hidden="true"
@@ -254,11 +303,16 @@ export function SkeletonForm({
         })}
       >
         <div className={bar} style={{ height: 12, width: '22%' }} />
-        <div className={css({ display: 'flex', flexDirection: 'column', gap: '18px', mt: '18px' })}>
+        <div
+          className={css({ display: 'flex', flexDirection: 'column', gap: '18px', mt: '18px' })}
+        >
           {Array.from({ length: fields }, (_, i) => (
             <div key={i}>
               <div className={bar} style={{ height: 9, width: '18%' }} />
-              <div className={cx(bar, css({ borderRadius: 'lg' }))} style={{ height: 38, marginTop: 7 }} />
+              <div
+                className={cx(bar, css({ borderRadius: 'lg' }))}
+                style={{ height: 38, marginTop: 7 }}
+              />
             </div>
           ))}
         </div>
@@ -279,7 +333,10 @@ export function SkeletonForm({
         >
           <div className={bar} style={{ height: 12, width: '40%' }} />
           <div className={cx(bar, css({ width: 'full', aspectRatio: '1', mt: '12px' }))} />
-          <div className={cx(bar, css({ borderRadius: 'lg' }))} style={{ height: 34, marginTop: 12 }} />
+          <div
+            className={cx(bar, css({ borderRadius: 'lg' }))}
+            style={{ height: 34, marginTop: 12 }}
+          />
         </div>
       )}
     </div>
@@ -292,10 +349,18 @@ export function SkeletonForm({
  * 차트처럼 **안이 어떻게 생겼는지 흉내 낼 수 없는 것**의 자리를 잡는다. 축과 선을 그리면
  * 실제 차트와 다른 그림이 되어 오히려 튄다 — 원칙 ③(모르는 것은 흉내 내지 않는다).
  */
-export function SkeletonBlock({ height = 120, silent = false, className }: Common & { height?: number }) {
+export function SkeletonBlock({
+  height = 120,
+  silent = false,
+  className,
+}: Common & { height?: number }) {
   return (
     <div {...region(silent)} className={className}>
-      <div className={cx(bar, css({ width: 'full', borderRadius: 'lg' }))} style={{ height }} aria-hidden="true" />
+      <div
+        className={cx(bar, css({ width: 'full', borderRadius: 'lg' }))}
+        style={{ height }}
+        aria-hidden="true"
+      />
     </div>
   )
 }

@@ -81,12 +81,15 @@ export function validateChallenge(input: ChallengeInput): ChallengeInputErrors {
   if (!CHALLENGE_CONDS.includes(input.cond)) errors.cond = '조건을 목록에서 고르세요.'
 
   // 0 이면 조건을 걸어 놓고 아무것도 세지 않는 챌린지가 된다.
-  if (!Number.isFinite(input.goal) || input.goal <= 0) errors.goal = '목표치는 1 이상이어야 합니다.'
+  if (!Number.isFinite(input.goal) || input.goal <= 0)
+    errors.goal = '목표치는 1 이상이어야 합니다.'
 
   // 보상이 아예 없으면 달성해도 받는 게 없다. 젬이 0 이면 아이템이라도 있어야 한다.
   // ⚠️ `NaN`·`Infinity` 는 `< 0` 도 `=== 0` 도 아니라 두 검사를 **모두 빠져나간다.**
-  if (!Number.isFinite(input.gem) || input.gem < 0) errors.gem = '젬 보상은 0 이상인 수여야 합니다.'
-  else if (input.gem === 0 && !input.rewardItem) errors.gem = '젬이 0 이면 보상 아이템을 골라야 합니다.'
+  if (!Number.isFinite(input.gem) || input.gem < 0)
+    errors.gem = '젬 보상은 0 이상인 수여야 합니다.'
+  else if (input.gem === 0 && !input.rewardItem)
+    errors.gem = '젬이 0 이면 보상 아이템을 골라야 합니다.'
 
   // 둘 다 있을 때만 본다 — 빈 값은 「제한 없음」 이라 비교 대상이 아니다.
   if (input.startAt && input.endAt && input.endAt < input.startAt) {

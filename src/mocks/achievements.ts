@@ -10,6 +10,9 @@
 import type { Achievement, AchievementInput } from '@/domain/achievement'
 
 /** `[이름, 조건, 보상, 달성자, 달성률]` — 원본 `achRows` 그대로 */
+// ⚠️ **한 줄이 한 레코드다.** 표처럼 읽는 것이 이 파일의 목적이라 자동 포맷을 끈다 —
+//    풀어 놓으면 12칸짜리 한 줄이 14줄이 되어 무엇이 무엇인지 보이지 않는다.
+// prettier-ignore
 const ROWS: [string, string, string, number, number][] = [
   ['첫 알', '계정 생성', '젬 50', 24180, 96],
   ['첫 부화', '알 부화 완료', '젬 100', 23640, 94],

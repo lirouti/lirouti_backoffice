@@ -21,7 +21,16 @@ import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import ts from 'typescript'
 
-import { badCalls, bareFences, callExamples, danglingSections, duplicateSections, filePathRefs, type Arity, type DocIssue } from './doc-rules'
+import {
+  badCalls,
+  bareFences,
+  callExamples,
+  danglingSections,
+  duplicateSections,
+  filePathRefs,
+  type Arity,
+  type DocIssue,
+} from './doc-rules'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const DOCS = ['docs/ARCHITECTURE.md']
@@ -51,7 +60,9 @@ function collectArities(): Map<string, Arity> {
   const found = new Map<string, Arity | null>()
 
   const add = (name: string, params: readonly ts.ParameterDeclaration[]) => {
-    const req = params.filter((p) => !p.questionToken && !p.initializer && !p.dotDotDotToken).length
+    const req = params.filter(
+      (p) => !p.questionToken && !p.initializer && !p.dotDotDotToken,
+    ).length
     const max = params.some((p) => p.dotDotDotToken) ? Infinity : params.length
     const prev = found.get(name)
     if (prev === undefined) found.set(name, { req, max })
@@ -59,10 +70,16 @@ function collectArities(): Map<string, Arity> {
   }
 
   const exported = (n: ts.Node): boolean =>
-    ts.canHaveModifiers(n) && !!ts.getModifiers(n)?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword)
+    ts.canHaveModifiers(n) &&
+    !!ts.getModifiers(n)?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword)
 
   for (const file of [...sources(join(ROOT, 'src')), ...sources(join(ROOT, 'scripts'))]) {
-    const sf = ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true)
+    const sf = ts.createSourceFile(
+      file,
+      readFileSync(file, 'utf8'),
+      ts.ScriptTarget.Latest,
+      true,
+    )
     const visit = (n: ts.Node) => {
       if (ts.isFunctionDeclaration(n) && n.name && exported(n)) add(n.name.text, n.parameters)
       if (ts.isVariableStatement(n) && exported(n)) {

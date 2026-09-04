@@ -14,7 +14,10 @@ type TextareaProps = {
   required?: boolean
   rows?: number
   className?: string
-} & Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'value' | 'onChange' | 'rows' | 'className'>
+} & Omit<
+  TextareaHTMLAttributes<HTMLTextAreaElement>,
+  'value' | 'onChange' | 'rows' | 'className'
+>
 
 /**
  * 여러 줄 입력.
@@ -50,7 +53,13 @@ export function Textarea({
       {label && (
         <label
           htmlFor={id}
-          className={css({ display: 'block', textStyle: 'label', fontWeight: '700', color: 'sub', mb: '6px' })}
+          className={css({
+            display: 'block',
+            textStyle: 'label',
+            fontWeight: '700',
+            color: 'sub',
+            mb: '6px',
+          })}
         >
           {label}
           {required && (
@@ -104,18 +113,39 @@ export function Textarea({
       {error ? (
         <div
           id={`${id}-error`}
-          className={css({ mt: '5px', display: 'flex', alignItems: 'center', gap: '5px', textStyle: 'caption', color: 'rFg' })}
+          className={css({
+            mt: '5px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '5px',
+            textStyle: 'caption',
+            color: 'rFg',
+          })}
         >
-          <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true" className={css({ flex: 'none' })}>
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 16 16"
+            aria-hidden="true"
+            className={css({ flex: 'none' })}
+          >
             <circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" strokeWidth="1.6" />
-            <path d="M8,4.6 V8.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+            <path
+              d="M8,4.6 V8.6"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+            />
             <circle cx="8" cy="11.1" r="0.9" fill="currentColor" />
           </svg>
           <span>{error}</span>
         </div>
       ) : (
         hint && (
-          <div id={`${id}-hint`} className={css({ mt: '5px', textStyle: 'caption', color: 'faint' })}>
+          <div
+            id={`${id}-hint`}
+            className={css({ mt: '5px', textStyle: 'caption', color: 'faint' })}
+          >
             {hint}
           </div>
         )

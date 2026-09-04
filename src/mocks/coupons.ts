@@ -33,6 +33,9 @@ type Row = [
   rewards: CouponReward[],
 ]
 
+// ⚠️ **한 줄이 한 레코드다.** 표처럼 읽는 것이 이 파일의 목적이라 자동 포맷을 끈다 —
+//    풀어 놓으면 12칸짜리 한 줄이 14줄이 되어 무엇이 무엇인지 보이지 않는다.
+// prettier-ignore
 const ROWS: Row[] = [
   ['여름 이벤트 보상', 'SUMMER2026', 'single', 8420, 12000, 30, -20, false, false, '김하늘',
     [{ kind: 'gem', label: '젬', note: '재화', qty: 500 }, { kind: 'item', label: '여름 튜브', note: '아이템 · 몸', qty: 1 }]],

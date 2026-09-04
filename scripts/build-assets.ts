@@ -49,8 +49,22 @@ const IMAGE_DIR = resolve(ROOT, 'src/assets/images')
  *    타일이 `?` 로 뜨는 게 정직하다.
  */
 const SCENES = [
-  'studio', 'nest', 'morning', 'night', 'bloom', 'sea', 'autumn', 'snow',
-  'forest', 'city', 'gym', 'desk', 'cafe', 'rain', 'party', 'space',
+  'studio',
+  'nest',
+  'morning',
+  'night',
+  'bloom',
+  'sea',
+  'autumn',
+  'snow',
+  'forest',
+  'city',
+  'gym',
+  'desk',
+  'cafe',
+  'rain',
+  'party',
+  'space',
 ]
 
 /** 그룹 접두사별 viewBox. 원본 Component.VB 를 그대로 옮겼다. */
@@ -74,7 +88,12 @@ function unescapeJs(s: string): string {
   return s.replace(/\\(u[0-9a-fA-F]{4}|.)/g, (_m, esc: string) => {
     if (esc[0] === 'u') return String.fromCharCode(parseInt(esc.slice(1), 16))
     const table: Record<string, string> = {
-      n: '\n', t: '\t', r: '\r', '\\': '\\', '"': '"', "'": "'",
+      n: '\n',
+      t: '\t',
+      r: '\r',
+      '\\': '\\',
+      '"': '"',
+      "'": "'",
     }
     return table[esc] ?? esc
   })
@@ -296,7 +315,11 @@ function findDefinition(markup: string, id: string): string | null {
 }
 
 /** 본문이 참조하는 id 들을 전이적으로 모아 <defs> 로 만든다. */
-function resolveDeps(markup: string, body: string, ownId: string): { defs: string; missing: string[] } {
+function resolveDeps(
+  markup: string,
+  body: string,
+  ownId: string,
+): { defs: string; missing: string[] } {
   const collected = new Map<string, string>()
   const missing: string[] = []
   const seen = new Set<string>([ownId])
@@ -345,7 +368,11 @@ const artSyms = [...extractAchievements(), ...extractSceneAssets()]
 // ⚠️ 참조 해석은 이 문자열에서 `id="X"` 를 찾는다. 새 소스를 빠뜨리면 배경의
 //    `url(#rvScene)` 이 안 풀려 **클립이 사라지고 그림이 카드 밖으로 번진다** —
 //    경고는 찍히지만 화면은 그럴듯해서 눈치채기 어렵다.
-const searchSpace = [markup, readFileSync(SHELL_HTML, 'utf8'), readFileSync(ART_RIG, 'utf8')].join('\n')
+const searchSpace = [
+  markup,
+  readFileSync(SHELL_HTML, 'utf8'),
+  readFileSync(ART_RIG, 'utf8'),
+].join('\n')
 
 // ⚠️ **순서가 곧 우선순위다** (`byId.set` 이라 나중 것이 이긴다). 원화에서 뽑은 것을 앞에 두어,
 //    나중에 온전한 riruti-assets.js 를 받으면 **그게 우리 것을 덮어쓰게** 한다. 뒤에 두면
@@ -409,7 +436,9 @@ console.log(`아이콘 ${icons.length}개 → src/assets/icons/`)
 console.log(`에셋   ${images.length}개 → src/assets/images/`)
 if (repaired.length) console.log(`\n원본에 </g> 가 빠져 복구: ${repaired.join(', ')}`)
 if (unresolved.length) {
-  console.warn(`\n⚠️  정의를 찾지 못한 참조 ${unresolved.length}건 (해당 부분은 렌더되지 않습니다):`)
+  console.warn(
+    `\n⚠️  정의를 찾지 못한 참조 ${unresolved.length}건 (해당 부분은 렌더되지 않습니다):`,
+  )
   unresolved.forEach((u) => console.warn(`     ${u}`))
 }
 if (truncated || dropped.length) {

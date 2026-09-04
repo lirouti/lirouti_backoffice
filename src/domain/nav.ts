@@ -37,15 +37,28 @@ export const NAV: NavGroup[] = [
     scope: 'char',
     children: [{ screen: 'rig' }, { screen: 'growth' }, { screen: 'species', count: 13 }],
   },
-  { label: '아이템', icon: 'ic_shirt', scope: 'items', children: [{ screen: 'items', count: 50 }] },
+  {
+    label: '아이템',
+    icon: 'ic_shirt',
+    scope: 'items',
+    children: [{ screen: 'items', count: 50 }],
+  },
   {
     label: '배경 · 둥지',
     icon: 'ic_image',
     scope: 'bg',
-    children: [{ screen: 'bg', count: 20 }, { screen: 'nest', count: 3 }],
+    children: [
+      { screen: 'bg', count: 20 },
+      { screen: 'nest', count: 3 },
+    ],
   },
   { label: '성장 · 레벨', icon: 'ic_up', scope: 'levels', children: [{ screen: 'levels' }] },
-  { label: '챌린지', icon: 'ic_flag', scope: 'chal', children: [{ screen: 'chal', count: 18 }] },
+  {
+    label: '챌린지',
+    icon: 'ic_flag',
+    scope: 'chal',
+    children: [{ screen: 'chal', count: 18 }],
+  },
   { label: '업적', icon: 'ic_medal', scope: 'ach', children: [{ screen: 'ach', count: 12 }] },
   { label: '결제', icon: 'ic_card', scope: 'pay', children: [{ screen: 'pay', count: 12 }] },
   {
@@ -69,13 +82,19 @@ export const NAV: NavGroup[] = [
     label: '고객 소통',
     icon: 'ic_chat',
     scope: 'cs',
-    children: [{ screen: 'qna', count: 4 }, { screen: 'faq', count: 17 }],
+    children: [
+      { screen: 'qna', count: 4 },
+      { screen: 'faq', count: 17 },
+    ],
   },
   {
     label: '코드',
     icon: 'ic_code',
     scope: 'code',
-    children: [{ screen: 'codes', count: 9 }, { screen: 'coupons', count: 6 }],
+    children: [
+      { screen: 'codes', count: 9 },
+      { screen: 'coupons', count: 6 },
+    ],
   },
   {
     label: '관리자',

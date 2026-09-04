@@ -82,9 +82,27 @@ describe('isUnchanged', () => {
 describe('filterAuditLogs', () => {
   const list = [
     log({ logId: 'a', kind: '환불', by: '김하늘' }),
-    log({ logId: 'b', kind: '아이템 수정', by: '최지우', target: '성좌의 로브', why: '밑단 트림 색 조정' }),
-    log({ logId: 'c', kind: '관리자 초대', by: '김하늘', target: '한지민', why: '고객 소통 담당 신규' }),
-    log({ logId: 'd', kind: '쿠폰 발급', by: '박서준', target: '여름 이벤트 보상', why: '마케팅 요청 · 8월' }),
+    log({
+      logId: 'b',
+      kind: '아이템 수정',
+      by: '최지우',
+      target: '성좌의 로브',
+      why: '밑단 트림 색 조정',
+    }),
+    log({
+      logId: 'c',
+      kind: '관리자 초대',
+      by: '김하늘',
+      target: '한지민',
+      why: '고객 소통 담당 신규',
+    }),
+    log({
+      logId: 'd',
+      kind: '쿠폰 발급',
+      by: '박서준',
+      target: '여름 이벤트 보상',
+      why: '마케팅 요청 · 8월',
+    }),
   ]
 
   it('민감 조작만 거른다', () => {
@@ -97,7 +115,10 @@ describe('filterAuditLogs', () => {
 
   // 쿠폰 발급이 「콘텐츠」 로 잡히면 재화 탭을 보는 사람이 그 조작을 영영 못 본다.
   it('⚠️ 분류로 거른다 — 쿠폰 발급은 재화 · 결제다', () => {
-    expect(filterAuditLogs(list, { category: '재화 · 결제' }).map((l) => l.logId)).toEqual(['a', 'd'])
+    expect(filterAuditLogs(list, { category: '재화 · 결제' }).map((l) => l.logId)).toEqual([
+      'a',
+      'd',
+    ])
     expect(filterAuditLogs(list, { category: '콘텐츠' }).map((l) => l.logId)).toEqual(['b'])
     expect(filterAuditLogs(list, { category: '권한' }).map((l) => l.logId)).toEqual(['c'])
   })
@@ -110,7 +131,9 @@ describe('filterAuditLogs', () => {
   })
 
   it('여럿을 함께 건다', () => {
-    expect(filterAuditLogs(list, { by: '김하늘', category: '권한' }).map((l) => l.logId)).toEqual(['c'])
+    expect(
+      filterAuditLogs(list, { by: '김하늘', category: '권한' }).map((l) => l.logId),
+    ).toEqual(['c'])
   })
 
   it('공백만 있는 검색어는 무시한다', () => {

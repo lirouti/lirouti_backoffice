@@ -67,5 +67,14 @@ export const CHALLENGE_KINDS: ChallengeKind[] = ['DAILY', 'WEEKLY', 'SEASON']
  */
 export type ChallengeInput = Pick<
   Challenge,
-  'title' | 'kind' | 'cond' | 'goal' | 'gem' | 'startAt' | 'endAt' | 'target' | 'desc' | 'rewardItem'
+  | 'title'
+  | 'kind'
+  | 'cond'
+  | 'goal'
+  | 'gem'
+  | 'startAt'
+  | 'endAt'
+  | 'target'
+  | 'desc'
+  | 'rewardItem'
 >

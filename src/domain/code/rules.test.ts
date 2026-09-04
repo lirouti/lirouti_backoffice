@@ -182,7 +182,11 @@ describe('filterGroups', () => {
 
 describe('summarizeCodes', () => {
   const list = [
-    group({ key: 0, category: '고객 소통', values: [val({ code: 'A' }), val({ code: 'B', visible: false })] }),
+    group({
+      key: 0,
+      category: '고객 소통',
+      values: [val({ code: 'A' }), val({ code: 'B', visible: false })],
+    }),
     group({ key: 1, category: '아이템', values: [val({ code: 'C' })] }),
     group({ key: 2, category: '아이템', values: [] }),
   ]
@@ -215,7 +219,9 @@ describe('validateCodeGroup', () => {
   // 같은 키가 둘이면 어느 그룹을 가리키는지 알 수 없다.
   it('⚠️ 중복 코드 키는 대소문자 구분 없이 막는다', () => {
     expect(validateCodeGroup(input(), ['REPORT_KIND']).codeKey).toBeTruthy()
-    expect(validateCodeGroup(input({ codeKey: 'REPORT_KIND' }), ['report_kind']).codeKey).toBeTruthy()
+    expect(
+      validateCodeGroup(input({ codeKey: 'REPORT_KIND' }), ['report_kind']).codeKey,
+    ).toBeTruthy()
   })
 
   it('값이 하나도 없으면 막는다', () => {
@@ -225,7 +231,10 @@ describe('validateCodeGroup', () => {
   // 폼은 빈 줄을 들고 있을 수 있다 — 그걸 값으로 세면 안 된다.
   it('⚠️ 완전히 빈 줄은 값으로 세지 않는다', () => {
     const withBlank = input({
-      values: [{ code: 'SPAM', label: '스팸', tone: '빨강' }, { code: '', label: '', tone: '회색' }],
+      values: [
+        { code: 'SPAM', label: '스팸', tone: '빨강' },
+        { code: '', label: '', tone: '회색' },
+      ],
     })
     expect(validateCodeGroup(withBlank)).toEqual({})
     expect(usableValues(withBlank)).toHaveLength(1)

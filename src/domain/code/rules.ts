@@ -129,7 +129,8 @@ export function normalizeCodeGroupInput(input: CodeGroupInput): CodeGroupInput {
  * 코드가 겹치는가. **저장 경로도 이걸 본다** — 폼만 막으면 순서 저장으로 새어 든다
  * (§29.1).
  */
-export const hasDuplicateCodes = (codes: string[]): boolean => new Set(codes).size !== codes.length
+export const hasDuplicateCodes = (codes: string[]): boolean =>
+  new Set(codes).size !== codes.length
 
 /** 어느 칸이 왜 막혔는가 */
 export type CodeErrors = {
@@ -166,7 +167,8 @@ export function validateCodeGroup(input: CodeGroupInput, takenKeys: string[] = [
     // ⚠️ 같은 코드가 둘이면 저장된 데이터가 어느 쪽인지 알 수 없다.
     //    여기 오면 위에서 `isCodeKey` 를 통과해 **이미 전부 대문자**다 —
     //    `toUpperCase()` 를 한 번 더 하면 테스트가 증명할 수 없는 방어가 된다.
-    if (hasDuplicateCodes(values.map((v) => v.code.trim()))) errors.values = '코드가 중복됐습니다.'
+    if (hasDuplicateCodes(values.map((v) => v.code.trim())))
+      errors.values = '코드가 중복됐습니다.'
   }
 
   return errors

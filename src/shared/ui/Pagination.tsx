@@ -82,7 +82,13 @@ type PaginationProps = {
  * 계산은 `shared/lib/pagination` — 1부터 세는 페이지와 마지막 쪽의 나머지가
  * 겹치는 자리라 따로 테스트한다 (docs/ARCHITECTURE.md §17.6).
  */
-export function Pagination({ page, perPage, totalItems, onChange, className }: PaginationProps) {
+export function Pagination({
+  page,
+  perPage,
+  totalItems,
+  onChange,
+  className,
+}: PaginationProps) {
   const range = pageRange(page, perPage, totalItems)
   if (!range) return null
 
@@ -130,22 +136,39 @@ export function Pagination({ page, perPage, totalItems, onChange, className }: P
             style={{ minWidth: positionWidth }}
           >
             <span aria-hidden="true">
-              <b className={css({ color: 'ink', fontWeight: '700' })}>{current}</b> / {totalPages}
+              <b className={css({ color: 'ink', fontWeight: '700' })}>{current}</b> /{' '}
+              {totalPages}
             </span>
             <span className={css({ srOnly: true })}>
               {totalPages} 페이지 중 {current} 페이지
             </span>
           </span>
 
-          <Arrow dir="next" disabled={current >= totalPages} onClick={() => onChange(current + 1)} />
-          <Arrow dir="last" disabled={current >= totalPages} onClick={() => onChange(totalPages)} />
+          <Arrow
+            dir="next"
+            disabled={current >= totalPages}
+            onClick={() => onChange(current + 1)}
+          />
+          <Arrow
+            dir="last"
+            disabled={current >= totalPages}
+            onClick={() => onChange(totalPages)}
+          />
         </div>
       )}
     </nav>
   )
 }
 
-function Arrow({ dir, disabled, onClick }: { dir: Dir; disabled: boolean; onClick: () => void }) {
+function Arrow({
+  dir,
+  disabled,
+  onClick,
+}: {
+  dir: Dir
+  disabled: boolean
+  onClick: () => void
+}) {
   return (
     <button
       type="button"

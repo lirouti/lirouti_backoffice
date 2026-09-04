@@ -51,8 +51,21 @@ import { useViewer } from '@/stores/viewerStore'
 import { pushDraftScope, pushEditorKey, pushSourceFrom } from './query'
 
 const KINDS: PushKind[] = ['service', 'marketing', 'routine']
-const AUDIENCES: PushAudience[] = ['전체', '30일 내 접속', '미인증 회원', '휴면 회원', '직접 지정']
-const LINKS: PushLink[] = ['앱 열기', '오늘의 루틴', '상점', '내 캐릭터', '월간 리포트', '1:1 문의']
+const AUDIENCES: PushAudience[] = [
+  '전체',
+  '30일 내 접속',
+  '미인증 회원',
+  '휴면 회원',
+  '직접 지정',
+]
+const LINKS: PushLink[] = [
+  '앱 열기',
+  '오늘의 루틴',
+  '상점',
+  '내 캐릭터',
+  '월간 리포트',
+  '1:1 문의',
+]
 
 const EMPTY: PushInput = {
   kind: 'service',
@@ -122,12 +135,15 @@ function PushEditor({ sourceId }: { sourceId: string }) {
   if (error || !consent || (sourceId !== '' && (source.error || !source.data))) {
     return (
       <ErrorBanner
-        message={source.error?.message ?? error?.message ?? '알림 작성 정보를 불러오지 못했습니다.'}
+        message={
+          source.error?.message ?? error?.message ?? '알림 작성 정보를 불러오지 못했습니다.'
+        }
       />
     )
   }
 
-  const set = <K extends keyof PushInput>(k: K, v: PushInput[K]) => setForm((f) => ({ ...f, [k]: v }))
+  const set = <K extends keyof PushInput>(k: K, v: PushInput[K]) =>
+    setForm((f) => ({ ...f, [k]: v }))
 
   // 「지금 발송」 의 「지금」 은 누를 때가 아니라 그릴 때 기준으로 본다 — 야간 경계를
   // 넘어가면 경고가 바로 뜨는 것이 맞다.
@@ -197,17 +213,41 @@ function PushEditor({ sourceId }: { sourceId: string }) {
       {check.data && check.data.count === 0 && (
         <ErrorBanner
           message={`보낼 대상이 없습니다.${check.data.missing.length > 0 ? ` 못 찾은 ID — ${check.data.missing.join(', ')}` : ''}${
-            check.data.blocked.length > 0 ? ` 마케팅 미동의 — ${check.data.blocked.join(', ')}` : ''
+            check.data.blocked.length > 0
+              ? ` 마케팅 미동의 — ${check.data.blocked.join(', ')}`
+              : ''
           }`}
         />
       )}
       {tried && errors.kind && <ErrorBanner message={errors.kind} />}
 
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '18px', alignItems: 'flex-start' })}>
-        <div className={css({ flex: '2 1 420px', minWidth: '0', display: 'flex', flexDirection: 'column', gap: '18px' })}>
+      <div
+        className={css({
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '18px',
+          alignItems: 'flex-start',
+        })}
+      >
+        <div
+          className={css({
+            flex: '2 1 420px',
+            minWidth: '0',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '18px',
+          })}
+        >
           <Card className={css({ p: '15px 17px' })}>
             <CardTitle title="알림 종류" sub="수신 동의를 볼지 말지가 여기서 갈립니다." />
-            <div className={css({ display: 'flex', flexDirection: 'column', gap: '8px', mt: '13px' })}>
+            <div
+              className={css({
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+                mt: '13px',
+              })}
+            >
               {KINDS.map((k) => (
                 <KindOption key={k} kind={k} on={form.kind === k} pick={() => set('kind', k)} />
               ))}
@@ -224,15 +264,22 @@ function PushEditor({ sourceId }: { sourceId: string }) {
                   color: 'warnFg',
                 })}
               >
-                마케팅 알림은 <strong>수신 동의한 회원에게만</strong> 갑니다. 대상 수가 전체보다 적은
-                것이 정상이고, 야간({NIGHT_FROM}시–{NIGHT_TO}시) 발송은 막힙니다.
+                마케팅 알림은 <strong>수신 동의한 회원에게만</strong> 갑니다. 대상 수가 전체보다
+                적은 것이 정상이고, 야간({NIGHT_FROM}시–{NIGHT_TO}시) 발송은 막힙니다.
               </p>
             )}
           </Card>
 
           <Card className={css({ p: '15px 17px' })}>
             <CardTitle title="내용" />
-            <div className={css({ display: 'flex', flexDirection: 'column', gap: '13px', mt: '13px' })}>
+            <div
+              className={css({
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '13px',
+                mt: '13px',
+              })}
+            >
               <Input
                 value={form.title}
                 onChange={(v) => set('title', v)}
@@ -285,7 +332,9 @@ function PushEditor({ sourceId }: { sourceId: string }) {
               </div>
             )}
             {form.audience !== '직접 지정' && tried && errors.ids && (
-              <p className={css({ m: '10px 0 0', textStyle: 'caption', color: 'rFg' })}>{errors.ids}</p>
+              <p className={css({ m: '10px 0 0', textStyle: 'caption', color: 'rFg' })}>
+                {errors.ids}
+              </p>
             )}
           </Card>
 
@@ -314,14 +363,29 @@ function PushEditor({ sourceId }: { sourceId: string }) {
             )}
             {/* 누르기 전에도 보여 준다 — 시각을 고르는 중에 알아야 고칠 수 있다 */}
             {errors.kind && (
-              <p className={css({ m: '12px 0 0', textStyle: 'caption', color: 'rFg', fontWeight: '600' })}>
+              <p
+                className={css({
+                  m: '12px 0 0',
+                  textStyle: 'caption',
+                  color: 'rFg',
+                  fontWeight: '600',
+                })}
+              >
                 {errors.kind} 시각을 바꾸거나 종류를 서비스 알림으로 바꾸세요.
               </p>
             )}
           </Card>
         </div>
 
-        <div className={css({ flex: '1 1 280px', minWidth: '0', display: 'flex', flexDirection: 'column', gap: '18px' })}>
+        <div
+          className={css({
+            flex: '1 1 280px',
+            minWidth: '0',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '18px',
+          })}
+        >
           <Card className={css({ p: '15px 17px' })}>
             <CardTitle title="잠금화면 미리보기" />
             <LockScreen title={form.title} body={form.body} />
@@ -332,7 +396,14 @@ function PushEditor({ sourceId }: { sourceId: string }) {
 
           <Card className={css({ p: '15px 17px' })}>
             <CardTitle title="예상 대상" />
-            <div className={css({ mt: '10px', display: 'flex', alignItems: 'baseline', gap: '4px' })}>
+            <div
+              className={css({
+                mt: '10px',
+                display: 'flex',
+                alignItems: 'baseline',
+                gap: '4px',
+              })}
+            >
               <span className={css({ textStyle: 'display', color: reach > 0 ? 'ink' : 'rFg' })}>
                 {direct ? `최대 ${num(reach)}` : num(reach)}
               </span>
@@ -346,10 +417,23 @@ function PushEditor({ sourceId }: { sourceId: string }) {
                   : '없는 회원은 보낼 때 빠집니다.'}
               </p>
             )}
-            <dl className={css({ m: '13px 0 0', display: 'flex', flexDirection: 'column', gap: '8px' })}>
+            <dl
+              className={css({
+                m: '13px 0 0',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+              })}
+            >
               <Row k="전체 회원" v={`${num(consent.all)}명`} />
-              <Row k="푸시 허용" v={`${num(consent.push)}명 (${share(consent.push, consent.all)})`} />
-              <Row k="마케팅 동의" v={`${num(consent.marketing)}명 (${share(consent.marketing, consent.all)})`} />
+              <Row
+                k="푸시 허용"
+                v={`${num(consent.push)}명 (${share(consent.push, consent.all)})`}
+              />
+              <Row
+                k="마케팅 동의"
+                v={`${num(consent.marketing)}명 (${share(consent.marketing, consent.all)})`}
+              />
               <Row k="대상 조건" v={form.audience} />
             </dl>
           </Card>
@@ -362,17 +446,32 @@ function PushEditor({ sourceId }: { sourceId: string }) {
         onConfirm={commit}
         title={form.now ? '지금 발송' : '예약 저장'}
         tone="danger"
-        confirmLabel={send.isPending ? '보내는 중…' : form.now ? `${num(confirmed)}명에게 발송` : '예약 저장'}
+        confirmLabel={
+          send.isPending
+            ? '보내는 중…'
+            : form.now
+              ? `${num(confirmed)}명에게 발송`
+              : '예약 저장'
+        }
         body={
           <>
             <strong>{num(confirmed)}명</strong>에게 {PUSH_KIND_LABEL[form.kind]}을{' '}
             {form.now ? '지금 보냅니다' : `${form.at} 에 보냅니다`}.
             {form.now && ' 되돌릴 수 없습니다.'}
             {check.data && (check.data.missing.length > 0 || check.data.blocked.length > 0) && (
-              <span className={css({ display: 'block', mt: '9px', color: 'rFg', fontWeight: '600' })}>
-                {check.data.missing.length > 0 && `찾지 못한 회원 ${check.data.missing.length}명`}
+              <span
+                className={css({
+                  display: 'block',
+                  mt: '9px',
+                  color: 'rFg',
+                  fontWeight: '600',
+                })}
+              >
+                {check.data.missing.length > 0 &&
+                  `찾지 못한 회원 ${check.data.missing.length}명`}
                 {check.data.missing.length > 0 && check.data.blocked.length > 0 && ' · '}
-                {check.data.blocked.length > 0 && `마케팅 미동의 ${check.data.blocked.length}명`}
+                {check.data.blocked.length > 0 &&
+                  `마케팅 미동의 ${check.data.blocked.length}명`}
                 {' 은 제외됩니다.'}
               </span>
             )}
@@ -400,7 +499,14 @@ function KindOption({ kind, on, pick }: { kind: PushKind; on: boolean; pick: () 
         _focusVisible: { outline: '2px solid token(colors.ringBd)', outlineOffset: '2px' },
       })}
     >
-      <span className={css({ display: 'block', textStyle: 'label', fontWeight: '700', color: on ? 'priD' : 'ink' })}>
+      <span
+        className={css({
+          display: 'block',
+          textStyle: 'label',
+          fontWeight: '700',
+          color: on ? 'priD' : 'ink',
+        })}
+      >
         {PUSH_KIND_LABEL[kind]}
       </span>
       <span className={css({ display: 'block', mt: '2px', textStyle: 'micro', color: 'sub' })}>
@@ -440,7 +546,14 @@ function LockScreen({ title, body }: { title: string; body: string }) {
         <Icon name="ic_bird" size={16} />
       </span>
       <span className={css({ flex: '1', minWidth: '0' })}>
-        <span className={css({ display: 'flex', justifyContent: 'space-between', textStyle: 'micro', color: 'faint' })}>
+        <span
+          className={css({
+            display: 'flex',
+            justifyContent: 'space-between',
+            textStyle: 'micro',
+            color: 'faint',
+          })}
+        >
           <span>리루티</span>
           <span>지금</span>
         </span>
@@ -462,7 +575,12 @@ function LockScreen({ title, body }: { title: string; body: string }) {
         <span
           // 두 줄에서 자른다. Panda 가 `WebkitBoxOrient` 를 모르므로 인라인으로 준다 —
           // 값이 고정이라 정적 추출이 필요 없다.
-          className={css({ display: '-webkit-box', overflow: 'hidden', textStyle: 'caption', color: 'sub' })}
+          className={css({
+            display: '-webkit-box',
+            overflow: 'hidden',
+            textStyle: 'caption',
+            color: 'sub',
+          })}
           style={{ WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}
         >
           {body.trim() || '본문이 여기에 보입니다. 두 줄까지 노출됩니다.'}
@@ -475,8 +593,22 @@ function LockScreen({ title, body }: { title: string; body: string }) {
 function Row({ k, v }: { k: string; v: string }) {
   return (
     <div className={css({ display: 'flex', alignItems: 'center', gap: '10px' })}>
-      <dt className={css({ flex: 'none', width: '78px', textStyle: 'caption', color: 'faint' })}>{k}</dt>
-      <dd className={css({ m: '0', flex: '1', minWidth: '0', textAlign: 'right', textStyle: 'label', fontWeight: '600', color: 'ink' })}>
+      <dt
+        className={css({ flex: 'none', width: '78px', textStyle: 'caption', color: 'faint' })}
+      >
+        {k}
+      </dt>
+      <dd
+        className={css({
+          m: '0',
+          flex: '1',
+          minWidth: '0',
+          textAlign: 'right',
+          textStyle: 'label',
+          fontWeight: '600',
+          color: 'ink',
+        })}
+      >
         {v}
       </dd>
     </div>

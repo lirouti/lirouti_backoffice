@@ -27,7 +27,13 @@ import { Breadcrumbs } from './Breadcrumbs'
  */
 const SHORTCUT = navigator.userAgent.includes('Mac') ? '⌘K' : 'Ctrl K'
 
-export function Topbar({ current, onSearch }: { current: ScreenId | null; onSearch: () => void }) {
+export function Topbar({
+  current,
+  onSearch,
+}: {
+  current: ScreenId | null
+  onSearch: () => void
+}) {
   const theme = useThemeStore((s) => s.theme)
   const toggle = useThemeStore((s) => s.toggle)
   const dark = theme === 'dark'
@@ -73,11 +79,31 @@ export function Topbar({ current, onSearch }: { current: ScreenId | null; onSear
           _hover: { bg: 'hov', borderColor: 'faint2' },
         })}
       >
-        <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" className={css({ flex: 'none' })}>
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 16 16"
+          aria-hidden="true"
+          className={css({ flex: 'none' })}
+        >
           <circle cx="7" cy="7" r="4.4" fill="none" stroke="currentColor" strokeWidth="1.7" />
-          <path d="M10.4,10.4 L13.5,13.5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+          <path
+            d="M10.4,10.4 L13.5,13.5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+          />
         </svg>
-        <span className={css({ flex: '1', minWidth: '0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' })}>
+        <span
+          className={css({
+            flex: '1',
+            minWidth: '0',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          })}
+        >
           화면 검색
         </span>
         <kbd

@@ -43,6 +43,9 @@ type Row = [
   answeredInMin: number,
 ]
 
+// ⚠️ **한 줄이 한 레코드다.** 표처럼 읽는 것이 이 파일의 목적이라 자동 포맷을 끈다 —
+//    풀어 놓으면 12칸짜리 한 줄이 14줄이 되어 무엇이 무엇인지 보이지 않는다.
+// prettier-ignore
 const ROWS: Row[] = [
   ['버그', '알이 3일째 부화하지 않아요', 0, '09:14', '대기', '', false, 0],
   ['결제', '젬 1800개 결제했는데 안 들어왔어요', 0, '08:02', '대기', '', false, 0],
@@ -84,11 +87,22 @@ const INQUIRIES: Inquiry[] = ROWS.map(
       //    씨앗 데이터에도 똑같이 건다 — 한쪽만 지키면 화면이 스스로 모순된다.
       //    탈퇴 **전에** 답한 것은 갔다. 그래서 상태가 아니라 시점을 비교한다.
       const notified = user.leftAt === '' || answeredAt < user.leftAt
-      messages.push({ from: 'admin', name: `${assignee} · 운영팀`, at: answeredAt, text: ANSWER, notified })
+      messages.push({
+        from: 'admin',
+        name: `${assignee} · 운영팀`,
+        at: answeredAt,
+        text: ANSWER,
+        notified,
+      })
     }
     if (reopened && answeredAt) {
       // ⚠️ **재문의는 답변 뒤 · 지금 앞**이어야 한다. 미래 시각이면 대기 시간이 0 이 된다.
-      messages.push({ from: 'user', name: user.nick, at: addMinutes(answeredAt, 180), text: REOPEN })
+      messages.push({
+        from: 'user',
+        name: user.nick,
+        at: addMinutes(answeredAt, 180),
+        text: REOPEN,
+      })
     }
     return {
       key,
@@ -123,7 +137,10 @@ export function replyToInquiry(
 ): Inquiry | undefined {
   const found = INQUIRIES.find((i) => i.key === key)
   if (!found) return undefined
-  found.messages = [...found.messages, { from: 'admin', name: `${by} · 운영팀`, at, text, notified }]
+  found.messages = [
+    ...found.messages,
+    { from: 'admin', name: `${by} · 운영팀`, at, text, notified },
+  ]
   found.status = '답변완료'
   found.assignee = by
   if (!found.answeredAt) found.answeredAt = at

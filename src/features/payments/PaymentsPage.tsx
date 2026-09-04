@@ -103,7 +103,11 @@ export default function PaymentsPage() {
         >
           <StatTile label="오늘 결제" value={won(data.summary.today)} />
           <StatTile label="전체 결제" value={won(data.summary.total)} />
-          <StatTile label="확인 필요" value={num(data.summary.stuck)} alert={data.summary.stuck > 0} />
+          <StatTile
+            label="확인 필요"
+            value={num(data.summary.stuck)}
+            alert={data.summary.stuck > 0}
+          />
           <StatTile label="실패" value={num(data.summary.failed)} />
         </div>
       ) : isPending ? (
@@ -128,7 +132,15 @@ export default function PaymentsPage() {
         </Card>
       )}
 
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center', mb: '14px' })}>
+      <div
+        className={css({
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '10px',
+          alignItems: 'center',
+          mb: '14px',
+        })}
+      >
         <Input
           value={f.q ?? ''}
           onChange={(v) => patch('q', v)}
@@ -136,8 +148,18 @@ export default function PaymentsPage() {
           aria-label="결제 검색"
           className={css({ flex: '1 1 220px', maxWidth: '300px' })}
         />
-        <Segmented value={f.status ?? '전체'} onChange={(v) => patch('status', v)} options={STATES} aria-label="상태" />
-        <Segmented value={f.pg ?? '전체'} onChange={(v) => patch('pg', v)} options={PGS} aria-label="결제사" />
+        <Segmented
+          value={f.status ?? '전체'}
+          onChange={(v) => patch('status', v)}
+          options={STATES}
+          aria-label="상태"
+        />
+        <Segmented
+          value={f.pg ?? '전체'}
+          onChange={(v) => patch('pg', v)}
+          options={PGS}
+          aria-label="결제사"
+        />
       </div>
 
       {isPending ? (
@@ -155,14 +177,22 @@ const STUCK_COLUMNS: Column<Payment>[] = [
   { key: 'at', label: '일시', width: '150px', nowrap: true },
   { key: 'who', label: '회원', width: '120px', strong: true },
   { key: 'product', label: '상품', truncate: true },
-  { key: 'amount', label: '금액', width: '110px', align: 'right', render: (p) => won(p.amount) },
+  {
+    key: 'amount',
+    label: '금액',
+    width: '110px',
+    align: 'right',
+    render: (p) => won(p.amount),
+  },
   {
     key: 'issue',
     label: '문제',
     width: '200px',
     // 무엇이 문제인지 한 줄로 말한다 — 「준비」 배지만으로는 왜 위험한지 모른다.
     render: () => (
-      <span className={css({ color: 'rFg', fontWeight: '600' })}>재화 지급이 확인되지 않음</span>
+      <span className={css({ color: 'rFg', fontWeight: '600' })}>
+        재화 지급이 확인되지 않음
+      </span>
     ),
   },
 ]
@@ -174,11 +204,19 @@ const COLUMNS: Column<Payment>[] = [
     label: '주문번호',
     width: '190px',
     // 결제사와 맞춰 보는 값이라 등폭으로 — 한 글자씩 옮겨 적는다.
-    render: (p) => <span className={css({ fontFamily: 'mono', textStyle: 'caption' })}>{p.orderNo}</span>,
+    render: (p) => (
+      <span className={css({ fontFamily: 'mono', textStyle: 'caption' })}>{p.orderNo}</span>
+    ),
   },
   { key: 'who', label: '회원', width: '110px', strong: true },
   { key: 'product', label: '상품', truncate: true },
-  { key: 'amount', label: '금액', width: '110px', align: 'right', render: (p) => won(p.amount) },
+  {
+    key: 'amount',
+    label: '금액',
+    width: '110px',
+    align: 'right',
+    render: (p) => won(p.amount),
+  },
   { key: 'pg', label: '결제사', width: '100px', render: (p) => PG_LABEL[p.pg] },
   {
     key: 'status',
@@ -187,4 +225,3 @@ const COLUMNS: Column<Payment>[] = [
     render: (p) => <Badge tone={PAY_STATUS_TONE[p.status]}>{PAY_STATUS_LABEL[p.status]}</Badge>,
   },
 ]
-

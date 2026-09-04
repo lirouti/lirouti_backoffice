@@ -14,7 +14,12 @@ import {
   type ChallengeKind,
 } from '@/domain/challenge'
 
-import { allChallenges, endChallenge, trendOfChallenge, upsertChallenge } from '@/mocks/challenges'
+import {
+  allChallenges,
+  endChallenge,
+  trendOfChallenge,
+  upsertChallenge,
+} from '@/mocks/challenges'
 
 import { mockDelay, qk, queryClient, today, USE_MOCK } from './core'
 import { apiError } from './error'
@@ -30,7 +35,10 @@ export async function getChallenges(kind?: ChallengeKind): Promise<Challenge[]> 
 }
 
 export function useChallenges(kind?: ChallengeKind) {
-  return useQuery({ queryKey: qk.challenges.list({ kind }), queryFn: () => getChallenges(kind) })
+  return useQuery({
+    queryKey: qk.challenges.list({ kind }),
+    queryFn: () => getChallenges(kind),
+  })
 }
 
 export type ChallengeDetail = {
@@ -87,7 +95,8 @@ export async function saveChallenge({ chalId, input }: SaveChallengeVars): Promi
     await mockDelay()
     const key = chalId == null ? undefined : Number(chalId)
     // 「중단」 한 것만 되살아나지 않는다. 자동 만료는 날짜를 고치면 풀린다.
-    const stopped = key == null ? false : (allChallenges().find((c) => c.key === key)?.stopped ?? false)
+    const stopped =
+      key == null ? false : (allChallenges().find((c) => c.key === key)?.stopped ?? false)
     // 상태는 기간이 정한다 — 등록과 수정이 같은 규칙을 쓴다.
     return upsertChallenge(input, challengeStatusOf(input, today(), stopped), key)
   }

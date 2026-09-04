@@ -88,7 +88,9 @@ export function BarChart({ groups, max, legend, height = 170 }: BarChartProps) {
               color: 'sub',
             })}
           >
-            <span className={css({ width: '9px', height: '9px', borderRadius: '2px', bg: tone })} />
+            <span
+              className={css({ width: '9px', height: '9px', borderRadius: '2px', bg: tone })}
+            />
             {text}
           </div>
         ))}

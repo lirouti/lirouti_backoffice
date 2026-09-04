@@ -72,7 +72,12 @@ export const SCREENS = {
   items: { path: '/items', label: '아이템 목록', scope: 'items' },
   itemnew: { path: '/items/new', label: '아이템 등록', scope: 'items', section: 'items' },
   item: { path: '/items/:itemId', label: '아이템 상세', scope: 'items', section: 'items' },
-  itemedit: { path: '/items/:itemId/edit', label: '아이템 수정', scope: 'items', section: 'items' },
+  itemedit: {
+    path: '/items/:itemId/edit',
+    label: '아이템 수정',
+    scope: 'items',
+    section: 'items',
+  },
 
   bg: { path: '/backgrounds', label: '배경', scope: 'bg' },
   bgnew: { path: '/backgrounds/new', label: '배경 등록', scope: 'bg', section: 'bg' },
@@ -98,7 +103,12 @@ export const SCREENS = {
 
   ach: { path: '/achievements', label: '업적 목록', scope: 'ach' },
   achnew: { path: '/achievements/new', label: '업적 등록', scope: 'ach', section: 'ach' },
-  achedit: { path: '/achievements/:achId/edit', label: '업적 수정', scope: 'ach', section: 'ach' },
+  achedit: {
+    path: '/achievements/:achId/edit',
+    label: '업적 수정',
+    scope: 'ach',
+    section: 'ach',
+  },
 
   pay: { path: '/payments', label: '결제 내역', scope: 'pay' },
   paydet: { path: '/payments/:payId', label: '결제 상세', scope: 'pay', section: 'pay' },

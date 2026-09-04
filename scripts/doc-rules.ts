@@ -65,7 +65,8 @@ export function duplicateSections(md: string): DocIssue[] {
   for (const m of md.matchAll(/^#{2,4}\s+([0-9]+(?:\.[0-9]+)*)\.?\s.*$/gm)) {
     const n = m[1]!
     const line = lineOf(md, m.index)
-    if (seen.has(n)) out.push({ line, why: `§${n} 이 ${seen.get(n)}행에도 있습니다`, code: m[0]!.trim() })
+    if (seen.has(n))
+      out.push({ line, why: `§${n} 이 ${seen.get(n)}행에도 있습니다`, code: m[0]!.trim() })
     else seen.set(n, line)
   }
   return out
@@ -152,8 +153,17 @@ export function badCalls(calls: CallExample[], sigs: Map<string, Arity>): DocIss
     const s = sigs.get(c.name)
     if (!s) continue
     if (c.args >= s.req && c.args <= s.max) continue
-    const want = s.max === Infinity ? `${s.req}개 이상` : s.req === s.max ? `${s.req}개` : `${s.req}~${s.max}개`
-    out.push({ line: c.line, why: `${c.name} 은 인자 ${want}를 받습니다 (문서는 ${c.args}개)`, code: c.code })
+    const want =
+      s.max === Infinity
+        ? `${s.req}개 이상`
+        : s.req === s.max
+          ? `${s.req}개`
+          : `${s.req}~${s.max}개`
+    out.push({
+      line: c.line,
+      why: `${c.name} 은 인자 ${want}를 받습니다 (문서는 ${c.args}개)`,
+      code: c.code,
+    })
   }
   return out
 }
@@ -218,7 +228,11 @@ export function bareFences(md: string): DocIssue[] {
 
     open = { char, len: marker.length }
     if (blank(rest)) {
-      out.push({ line: i + 1, why: '코드 펜스에 언어를 적으세요 — 코드가 아니면 `text`', code: raw })
+      out.push({
+        line: i + 1,
+        why: '코드 펜스에 언어를 적으세요 — 코드가 아니면 `text`',
+        code: raw,
+      })
     }
   }
   return out

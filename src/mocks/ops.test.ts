@@ -17,7 +17,12 @@ describe('공지 목 저장소', () => {
       pinned: true,
     })
 
-    expect(added).toMatchObject({ key: before.length, title: '새 공지', body: '본문입니다.', views: 0 })
+    expect(added).toMatchObject({
+      key: before.length,
+      title: '새 공지',
+      body: '본문입니다.',
+      views: 0,
+    })
     expect(allNotices()[0]).toEqual(added)
   })
 

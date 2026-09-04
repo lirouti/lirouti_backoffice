@@ -15,7 +15,8 @@
 export type AssetExt = 'svg' | 'png'
 
 /** 에셋 종류. 규격이 이것으로 갈린다. */
-export type AssetKind = 'head' | 'body' | 'hand' | 'face' | 'bg' | 'nest' | 'growth' | 'ach' | 'emoji'
+export type AssetKind =
+  'head' | 'body' | 'hand' | 'face' | 'bg' | 'nest' | 'growth' | 'ach' | 'emoji'
 
 export type Asset = {
   assetId: string
@@ -121,7 +122,8 @@ export function validateAssetFile(file: AssetFileInfo, spec: AssetSpec): string 
 }
 
 /** 올린 파일의 형식. MIME 이 비어 있으면 확장자로 짐작한다 (`mimeOf` 와 같은 규칙). */
-export const extOfFile = (file: AssetFileInfo): AssetExt => (mimeOf(file) === 'image/png' ? 'png' : 'svg')
+export const extOfFile = (file: AssetFileInfo): AssetExt =>
+  mimeOf(file) === 'image/png' ? 'png' : 'svg'
 
 /** `<input accept>` 에 넣을 값 */
 export const acceptAttr = (spec: AssetSpec): string => spec.accept.join(',')

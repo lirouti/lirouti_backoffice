@@ -16,12 +16,7 @@ import { SkeletonRows, SkeletonStats } from '@/shared/ui/Skeleton'
 import { StatTile } from '@/shared/ui/StatTile'
 import { Table, type Column } from '@/shared/ui/Table'
 
-import {
-  GEM_STATUS_TONE,
-  orderShares,
-  pricePerGem,
-  type GemProduct,
-} from '@/domain/shop'
+import { GEM_STATUS_TONE, orderShares, pricePerGem, type GemProduct } from '@/domain/shop'
 
 import { useGems } from '@/api/shop'
 
@@ -45,7 +40,9 @@ export default function GemsPage() {
       label: '젬',
       width: '90px',
       align: 'right',
-      render: (p) => <span className={css({ color: 'priD', fontWeight: '700' })}>{num(p.gem)}</span>,
+      render: (p) => (
+        <span className={css({ color: 'priD', fontWeight: '700' })}>{num(p.gem)}</span>
+      ),
     },
     {
       key: 'bonus',
@@ -55,14 +52,22 @@ export default function GemsPage() {
       // 0 을 그대로 찍으면 「0개를 준다」 로 읽힌다. 없는 것은 없다고 쓴다.
       render: (p) => (p.bonus > 0 ? `+${num(p.bonus)}` : '—'),
     },
-    { key: 'price', label: '가격', width: '110px', align: 'right', render: (p) => won(p.price) },
+    {
+      key: 'price',
+      label: '가격',
+      width: '110px',
+      align: 'right',
+      render: (p) => won(p.price),
+    },
     {
       key: 'per',
       label: '젬당',
       width: '90px',
       align: 'right',
       // 보너스를 포함해 나눈 값. 큰 팩이 실제로 유리한지가 여기서 보인다.
-      render: (p) => <span className={css({ color: 'sub' })}>{pricePerGem(p).toFixed(1)}원</span>,
+      render: (p) => (
+        <span className={css({ color: 'sub' })}>{pricePerGem(p).toFixed(1)}원</span>
+      ),
     },
     {
       key: 'share',
@@ -75,14 +80,28 @@ export default function GemsPage() {
             <div className={css({ flex: '1', minWidth: '60px' })}>
               <ProgressBar rate={share} label={`${p.name} 판매 비중`} tone="plain" />
             </div>
-            <span className={css({ flex: 'none', textStyle: 'caption', color: 'sub', width: '32px', textAlign: 'right' })}>
+            <span
+              className={css({
+                flex: 'none',
+                textStyle: 'caption',
+                color: 'sub',
+                width: '32px',
+                textAlign: 'right',
+              })}
+            >
               {share}%
             </span>
           </div>
         )
       },
     },
-    { key: 'revenue', label: '주간 매출', width: '110px', align: 'right', render: (p) => mil(p.revenue) },
+    {
+      key: 'revenue',
+      label: '주간 매출',
+      width: '110px',
+      align: 'right',
+      render: (p) => mil(p.revenue),
+    },
     {
       key: 'status',
       label: '상태',

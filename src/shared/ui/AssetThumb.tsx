@@ -50,7 +50,16 @@ type PlateProps =
  * 파일 단위로 캐시되고, 화면에 실제로 보이는 것만 내려받는다 — 50개를 한 덩어리로
  * 받던 예전 스프라이트 방식과 다른 점이다. (docs/ARCHITECTURE.md §8)
  */
-export function AssetThumb({ assetId, src: given, size = 42, fluid = false, plate = true, paid = false, alt, className }: AssetThumbProps) {
+export function AssetThumb({
+  assetId,
+  src: given,
+  size = 42,
+  fluid = false,
+  plate = true,
+  paid = false,
+  alt,
+  className,
+}: AssetThumbProps) {
   const src = given ?? (isAssetId(assetId) ? IMAGES[assetId] : null)
 
   return (

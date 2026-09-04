@@ -32,6 +32,9 @@ type NoticeRow = [
   pinned: boolean,
 ]
 
+// ⚠️ **한 줄이 한 레코드다.** 표처럼 읽는 것이 이 파일의 목적이라 자동 포맷을 끈다 —
+//    풀어 놓으면 12칸짜리 한 줄이 14줄이 되어 무엇이 무엇인지 보이지 않는다.
+// prettier-ignore
 const NOTICES: NoticeRow[] = [
   ['시즌 3 오픈 안내', '새 시즌의 주요 변경 내용을 안내합니다.', '시즌', 12, -1, 24180, true],
   ['8월 정기 점검 안내', '안정적인 서비스를 위해 정기 점검을 진행합니다.', '점검', 1, 0, 8420, true],
@@ -94,6 +97,9 @@ type EventRow = [
   joined: number,
 ]
 
+// ⚠️ **한 줄이 한 레코드다.** 표처럼 읽는 것이 이 파일의 목적이라 자동 포맷을 끈다 —
+//    풀어 놓으면 12칸짜리 한 줄이 14줄이 되어 무엇이 무엇인지 보이지 않는다.
+// prettier-ignore
 const EVENTS: EventRow[] = [
   ['별빛 축제', '성좌 세트를 모으는 시즌 이벤트', 12, -18, '#2F7CEF', 6, 8400],
   ['여름 바다 주간', '바다 배경과 튜브를 해금합니다', 8, -5, '#1FB8A6', 8, 9410],
@@ -141,7 +147,13 @@ export function resetEvents(): void {
   nextEventKey = EVENTS.length
 }
 
-const WHYS = ['서버 점검 보상', '시즌 오픈 기념', '오류 지급 회수', 'CS 보상', '이벤트 미지급 보정']
+const WHYS = [
+  '서버 점검 보상',
+  '시즌 오픈 기념',
+  '오류 지급 회수',
+  'CS 보상',
+  '이벤트 미지급 보정',
+]
 const BYS = ['김운영', '박라이브', '이CS']
 
 /**
@@ -176,7 +188,8 @@ let nextKey = LOGS.length
 
 /** 처리 한 건을 이력 맨 앞에 쌓는다 */
 export function addGrantLog(input: GrantInput, targetLabel: string, by: string): GrantLog {
-  const item = input.itemKey === null ? undefined : allItems().find((it) => it.key === input.itemKey)
+  const item =
+    input.itemKey === null ? undefined : allItems().find((it) => it.key === input.itemKey)
   const row: GrantLog = {
     key: nextKey,
     // 목이라 초 단위가 없다. 서버는 처리 시각을 자기가 찍는다.
