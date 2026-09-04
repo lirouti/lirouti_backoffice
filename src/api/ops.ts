@@ -11,13 +11,16 @@ import {
   activeUserCount,
   checkGrantItem,
   checkTargets,
+  isEventAccent,
   isNoticeCategory,
   periodStatusOf,
   sortEvents,
   summarizeGrants,
   summarizeNotices,
   validateGrant,
+  validateEvent,
   validateNotice,
+  type EventInput,
   type GrantInput,
   type GrantLog,
   type GrantSummary,
@@ -30,7 +33,7 @@ import {
 import { parseUserIds } from '@/domain/user'
 
 import { allItems } from '@/mocks/items'
-import { addGrantLog, addNotice, allEvents, allGrantLogs, allNotices } from '@/mocks/ops'
+import { addEvent, addGrantLog, addNotice, allEvents, allGrantLogs, allNotices } from '@/mocks/ops'
 import { allUsers } from '@/mocks/users'
 
 import { mockDelay, qk, queryClient, today, USE_MOCK } from './core'
@@ -113,6 +116,57 @@ export async function getEvents(): Promise<EventEntry[]> {
 
 export function useEvents() {
   return useQuery({ queryKey: qk.ops.events(), queryFn: getEvents })
+}
+
+/** 이벤트 보상 선택지. 목록 카드와 같은 에셋을 미리 본다 */
+export type EventItemOption = Pick<Item, 'key' | 'name' | 'assetId'>
+
+export type EventFormData = {
+  itemOptions: EventItemOption[]
+}
+
+export async function getEventFormData(): Promise<EventFormData> {
+  if (USE_MOCK) {
+    await mockDelay()
+    return {
+      itemOptions: allItems()
+        .map(({ key, name, assetId }) => ({ key, name, assetId }))
+        .sort((a, b) => a.name.localeCompare(b.name, 'ko')),
+    }
+  }
+
+  // TODO(백엔드 스펙 확정 후): http.get<EventFormDto>('/admin/ops/events/form')
+  throw new Error('운영 API 가 아직 연결되지 않았습니다. VITE_USE_MOCK=1 로 두세요.')
+}
+
+export function useEventFormData() {
+  return useQuery({ queryKey: qk.ops.eventForm(), queryFn: getEventFormData })
+}
+
+/** 이벤트 생성. `key`·참여자 수는 서버가 정한다 */
+export async function saveEvent(input: EventInput): Promise<OpsEvent> {
+  if (USE_MOCK) {
+    await mockDelay()
+    const errors = validateEvent(input)
+    const first = Object.values(errors)[0]
+    if (first) throw apiError('http', first, 400)
+    if (!isEventAccent(input.accent)) throw apiError('http', '#RRGGBB 형식의 색을 입력하세요.', 400)
+    if (input.rewardItemKey === null) throw apiError('http', '보상 아이템을 고르세요.', 400)
+    if (!allItems().some((item) => item.key === input.rewardItemKey)) {
+      throw apiError('http', '없는 아이템입니다. 목록에서 다시 고르세요.', 404)
+    }
+    return addEvent({ ...input, rewardItemKey: input.rewardItemKey })
+  }
+
+  // TODO(백엔드 스펙 확정 후): http.post<OpsEvent>('/admin/ops/events', input)
+  throw new Error('운영 API 가 아직 연결되지 않았습니다. VITE_USE_MOCK=1 로 두세요.')
+}
+
+export function useSaveEvent() {
+  return useMutation({
+    mutationFn: saveEvent,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.ops.events() }),
+  })
 }
 
 /**

@@ -11,6 +11,7 @@ import {
   activeUserCount,
   checkGrantItem,
   checkTargets,
+  isEventAccent,
   isNoticeCategory,
   periodLabel,
   periodStatusOf,
@@ -20,9 +21,10 @@ import {
   summarizeGrants,
   summarizeNotices,
   validateGrant,
+  validateEvent,
   validateNotice,
 } from './rules'
-import type { GrantInput, GrantLog, Notice, NoticeInput, OpsEvent } from './types'
+import type { EventInput, GrantInput, GrantLog, Notice, NoticeInput, OpsEvent } from './types'
 
 const TODAY = '2026-08-13'
 
@@ -57,6 +59,16 @@ const event = (over: Partial<OpsEvent> = {}): OpsEvent => ({
   accent: '#2F7CEF',
   rewardItemKey: 6,
   joined: 8400,
+  ...over,
+})
+
+const eventInput = (over: Partial<EventInput> = {}): EventInput => ({
+  title: '별빛 축제',
+  desc: '성좌 세트를 모으는 시즌 이벤트',
+  startAt: '2026-08-01',
+  endAt: '2026-08-31',
+  accent: '#2F7CEF',
+  rewardItemKey: 6,
   ...over,
 })
 
@@ -203,6 +215,29 @@ describe('sortEvents', () => {
     const list = [event({ key: 0 }), event({ key: 1, startAt: '2026-08-10' })]
     sortEvents(list, TODAY)
     expect(list.map((e) => e.key)).toEqual([0, 1])
+  })
+})
+
+describe('validateEvent', () => {
+  it('제대로 채우거나 종료일을 비운 상시 이벤트는 통과', () => {
+    expect(validateEvent(eventInput())).toEqual({})
+    expect(validateEvent(eventInput({ endAt: '' }))).toEqual({})
+  })
+
+  it('필수 내용과 보상이 비면 막는다', () => {
+    const errors = validateEvent(eventInput({ title: ' ', desc: '', rewardItemKey: null }))
+    expect([errors.title, errors.desc, errors.rewardItemKey].every(Boolean)).toBe(true)
+  })
+
+  it('달력에 없는 날짜와 종료일 역전을 막는다', () => {
+    expect(validateEvent(eventInput({ startAt: '2026-02-30' })).startAt).toBeTruthy()
+    expect(validateEvent(eventInput({ endAt: '2026-07-31' })).endAt).toBeTruthy()
+  })
+
+  it('강조색은 6자리 RGB만 받는다', () => {
+    expect(isEventAccent('#2f7CEF')).toBe(true)
+    expect(validateEvent(eventInput({ accent: '#FFF' })).accent).toBeTruthy()
+    expect(validateEvent(eventInput({ accent: 'blue' })).accent).toBeTruthy()
   })
 })
 
