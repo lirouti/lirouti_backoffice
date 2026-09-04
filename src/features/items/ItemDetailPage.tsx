@@ -3,6 +3,8 @@
  *
  * 열 정의와 기본 정보 항목이 길어 파일 머리말을 따로 둔다 — 컴포넌트 주석이 30줄 밖이다.
  */
+import { useState } from 'react'
+
 import { useNavigate, useParams } from 'react-router'
 
 import { css } from 'styled-system/css'
@@ -15,6 +17,7 @@ import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
 import { LineChart } from '@/shared/ui/chart/LineChart'
+import { Dialog } from '@/shared/ui/Dialog'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { SkeletonHeader, SkeletonRows } from '@/shared/ui/Skeleton'
 import { Table, type Column } from '@/shared/ui/Table'
@@ -31,7 +34,7 @@ import {
 import { LEDGER_KIND_LABEL, LEDGER_KIND_TONE, type LedgerEntry } from '@/domain/ledger'
 import { SCREENS } from '@/domain/screens'
 
-import { useItem, type ItemDetail } from '@/api/items'
+import { useItem, useSetItemVisibility, type ItemDetail } from '@/api/items'
 
 import { trendAxis } from './trend'
 
@@ -206,7 +209,11 @@ function AssetCard({ item }: { item: Item }) {
 
 /** 배지·이름·설명 + 지표 4칸. */
 function HeadCard({ detail, onEdit }: { detail: ItemDetail; onEdit: () => void }) {
+  const visibility = useSetItemVisibility()
+  const [asking, setAsking] = useState(false)
+
   const { item } = detail
+  const hiding = item.status !== 'HIDDEN'
 
   const stats = [
     { k: '판매', v: count(item.sold) },
@@ -216,42 +223,78 @@ function HeadCard({ detail, onEdit }: { detail: ItemDetail; onEdit: () => void }
   ]
 
   return (
-    <Card className={css({ p: '19px 21px' })}>
-      <div className={css({ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: '12px' })}>
-        <div className={css({ flex: '1 1 300px', minWidth: '0' })}>
-          <div className={css({ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' })}>
-            <Badge tone={TIER_TONE[item.tier]}>{TIER_LABEL[item.tier]}</Badge>
-            <Badge tone={ITEM_STATUS_TONE[item.status]}>{ITEM_STATUS_LABEL[item.status]}</Badge>
-            <span className={css({ textStyle: 'caption', color: 'faint' })}>{item.code}</span>
+    <>
+      <Card className={css({ p: '19px 21px' })}>
+        <div className={css({ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: '12px' })}>
+          <div className={css({ flex: '1 1 300px', minWidth: '0' })}>
+            <div className={css({ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' })}>
+              <Badge tone={TIER_TONE[item.tier]}>{TIER_LABEL[item.tier]}</Badge>
+              <Badge tone={ITEM_STATUS_TONE[item.status]}>{ITEM_STATUS_LABEL[item.status]}</Badge>
+              <span className={css({ textStyle: 'caption', color: 'faint' })}>{item.code}</span>
+            </div>
+            <h2 className={css({ m: '6px 0 0', textStyle: 'h2', color: 'ink' })}>{item.name}</h2>
+            <p className={css({ m: '5px 0 0', textStyle: 'body', color: 'sub' })}>{item.sub}</p>
           </div>
-          <h2 className={css({ m: '6px 0 0', textStyle: 'h2', color: 'ink' })}>{item.name}</h2>
-          <p className={css({ m: '5px 0 0', textStyle: 'body', color: 'sub' })}>{item.sub}</p>
+
+          <div className={css({ display: 'flex', gap: '7px', flex: 'none' })}>
+            <Button
+              variant={hiding ? 'danger' : 'secondary'}
+              onClick={() => {
+                visibility.reset()
+                setAsking(true)
+              }}
+            >
+              {hiding ? '미노출로 전환' : '노출로 전환'}
+            </Button>
+            <Button variant="primary" onClick={onEdit}>
+              수정
+            </Button>
+          </div>
         </div>
 
-        <div className={css({ display: 'flex', gap: '7px', flex: 'none' })}>
-          {/* TODO(상태 변경 API 가 생기면): 미노출로 */}
-          <Button disabled>미노출로 · 준비 중</Button>
-          <Button variant="primary" onClick={onEdit}>
-            수정
-          </Button>
-        </div>
-      </div>
+        <dl
+          className={css({
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+            gap: '11px',
+            m: '16px 0 0',
+          })}
+        >
+          {stats.map(({ k, v }) => (
+            <div key={k} className={css({ bg: 'surf2', border: '1px solid token(colors.ln)', borderRadius: 'lg', p: '11px 13px' })}>
+              <dt className={css({ textStyle: 'micro', color: 'faint' })}>{k}</dt>
+              <dd className={css({ m: '3px 0 0', textStyle: 'h3', color: 'ink' })}>{v}</dd>
+            </div>
+          ))}
+        </dl>
+      </Card>
 
-      <dl
-        className={css({
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-          gap: '11px',
-          m: '16px 0 0',
-        })}
+      <Dialog
+        open={asking}
+        onCancel={() => setAsking(false)}
+        onConfirm={() =>
+          visibility.mutate(
+            { itemId: String(item.key), hidden: hiding },
+            { onSuccess: () => setAsking(false) },
+          )
+        }
+        title={hiding ? '아이템을 미노출로 전환합니다' : '아이템을 다시 노출합니다'}
+        body={
+          hiding
+            ? '상점과 앱에서 즉시 숨겨집니다. 보유 기록과 판매 이력은 그대로 남습니다.'
+            : item.visibleFrom
+              ? `${item.visibleFrom} 시작 예약으로 돌아갑니다.`
+              : '상점과 앱에 즉시 다시 노출됩니다.'
+        }
+        tone={hiding ? 'danger' : 'default'}
+        confirmLabel={visibility.isPending ? '변경 중…' : hiding ? '미노출로 전환' : '노출로 전환'}
       >
-        {stats.map(({ k, v }) => (
-          <div key={k} className={css({ bg: 'surf2', border: '1px solid token(colors.ln)', borderRadius: 'lg', p: '11px 13px' })}>
-            <dt className={css({ textStyle: 'micro', color: 'faint' })}>{k}</dt>
-            <dd className={css({ m: '3px 0 0', textStyle: 'h3', color: 'ink' })}>{v}</dd>
-          </div>
-        ))}
-      </dl>
-    </Card>
+        {visibility.error && (
+          <p role="alert" className={css({ m: '0', textStyle: 'label', color: 'rFg' })}>
+            {visibility.error.message}
+          </p>
+        )}
+      </Dialog>
+    </>
   )
 }

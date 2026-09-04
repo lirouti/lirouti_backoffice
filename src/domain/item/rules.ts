@@ -47,6 +47,16 @@ export const kindOfSlot = (slot: Slot): AssetKind =>
 /** 상점에 실제로 노출되는가 */
 export const isOnSale = (it: Item): boolean => it.status === 'VISIBLE'
 
+/**
+ * 운영자가 노출 상태를 직접 전환했을 때의 다음 상태.
+ *
+ * 다시 노출할 때는 저장된 시작일을 버리지 않는다. 시작일이 있으면 예약, 없으면 즉시 노출이다.
+ */
+export function visibilityStatusOf(item: Pick<Item, 'visibleFrom'>, hidden: boolean): ItemStatus {
+  if (hidden) return 'HIDDEN'
+  return item.visibleFrom ? 'SCHEDULED' : 'VISIBLE'
+}
+
 /** 어느 칸이 왜 막혔는가. 비어 있으면 저장할 수 있다. */
 export type ItemInputErrors = Partial<Record<keyof ItemInput, string>>
 

@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
-import { emptyItemInput, statusOf, toItemInput, topSelling, validateItem } from './rules'
+import {
+  emptyItemInput,
+  statusOf,
+  toItemInput,
+  topSelling,
+  validateItem,
+  visibilityStatusOf,
+} from './rules'
 import type { Item, ItemInput } from './types'
 
 const item = (key: number, sold: number): Item =>
@@ -110,5 +117,20 @@ describe('statusOf', () => {
   it('등록(이전 상태 없음)과 수정이 같은 결과를 낸다', () => {
     const input = { ...base(), visibleFrom: '2026-09-01' }
     expect(statusOf(input)).toBe(statusOf(input, 'VISIBLE'))
+  })
+})
+
+describe('visibilityStatusOf', () => {
+  it('노출·예약 아이템을 내리면 미노출이다', () => {
+    expect(visibilityStatusOf({ visibleFrom: '' }, true)).toBe('HIDDEN')
+    expect(visibilityStatusOf({ visibleFrom: '2026-09-10' }, true)).toBe('HIDDEN')
+  })
+
+  it('다시 올릴 때 저장된 시작일이 있으면 예약으로 복구한다', () => {
+    expect(visibilityStatusOf({ visibleFrom: '2026-09-10' }, false)).toBe('SCHEDULED')
+  })
+
+  it('다시 올릴 때 시작일이 없으면 즉시 노출한다', () => {
+    expect(visibilityStatusOf({ visibleFrom: '' }, false)).toBe('VISIBLE')
   })
 })

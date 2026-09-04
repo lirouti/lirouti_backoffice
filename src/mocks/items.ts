@@ -4,7 +4,14 @@
  */
 import { rng } from '@/shared/lib/rng'
 
-import { SLOT_ORDER, statusOf, type Item, type ItemInput, type ItemSource } from '@/domain/item'
+import {
+  SLOT_ORDER,
+  statusOf,
+  type Item,
+  type ItemInput,
+  type ItemSource,
+  type ItemStatus,
+} from '@/domain/item'
 
 import { ASSETS } from './assetTable'
 
@@ -93,4 +100,14 @@ export function upsertItem(input: ItemInput, key?: number): Item {
   // 새것이 위에 오는 게 아니라 뒤에 붙는다 — 목록 정렬은 화면이 정한다.
   items.push(created)
   return created
+}
+
+/** 노출 상태만 바꾼다. 날짜·판매량 같은 기록은 그대로 둔다. */
+export function setItemStatus(key: number, status: ItemStatus): Item {
+  const items = allItems()
+  const at = items.findIndex((item) => item.key === key)
+  if (at < 0) throw new Error(`상태를 바꿀 아이템이 없습니다: ${key}`)
+  const next: Item = { ...items[at]!, status }
+  items[at] = next
+  return next
 }

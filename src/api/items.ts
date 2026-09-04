@@ -10,11 +10,18 @@
  */
 import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query'
 
-import { filterItems, kindOfSlot, type Item, type ItemFilter, type ItemInput } from '@/domain/item'
+import {
+  filterItems,
+  kindOfSlot,
+  visibilityStatusOf,
+  type Item,
+  type ItemFilter,
+  type ItemInput,
+} from '@/domain/item'
 import type { LedgerEntry } from '@/domain/ledger'
 
 import { assetsOf } from '@/mocks/assets'
-import { allItems, upsertItem } from '@/mocks/items'
+import { allItems, setItemStatus, upsertItem } from '@/mocks/items'
 import { ledgerOf, trendOf } from '@/mocks/ledger'
 
 import { mockDelay, qk, queryClient, USE_MOCK } from './core'
@@ -150,6 +157,28 @@ export function useSaveItem() {
   return useMutation({
     mutationFn: saveItem,
     // 목록·상세가 모두 바뀔 수 있다. 접두사로 한 번에 턴다.
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.items.all }),
+  })
+}
+
+export type SetItemVisibilityVars = { itemId: string; hidden: boolean }
+
+/** 앱 노출 여부만 바꾼다. 미노출 해제 시 저장된 기간에 따라 노출 또는 예약으로 돌아간다. */
+export async function setItemVisibility({ itemId, hidden }: SetItemVisibilityVars): Promise<Item> {
+  if (USE_MOCK) {
+    await mockDelay()
+    const item = allItems().find((it) => String(it.key) === itemId)
+    if (!item) throw apiError('http', `아이템 #${itemId} 을(를) 찾을 수 없습니다.`, 404)
+    return withAssetSrc(setItemStatus(item.key, visibilityStatusOf(item, hidden)))
+  }
+
+  // TODO(백엔드 스펙 확정 후): PATCH /admin/items/{id}/visibility
+  throw new Error('아이템 API 가 아직 연결되지 않았습니다. VITE_USE_MOCK=1 로 두세요.')
+}
+
+export function useSetItemVisibility() {
+  return useMutation({
+    mutationFn: setItemVisibility,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.items.all }),
   })
 }
