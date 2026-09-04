@@ -16,6 +16,8 @@ type DialogProps = {
   tone?: 'default' | 'danger'
   confirmLabel?: string
   cancelLabel?: string
+  /** 확인 동작이 진행 중이거나 입력이 덜 됐을 때 잠근다 */
+  confirmDisabled?: boolean
   /** 확인 전에 받아야 하는 입력 (체크박스, 현재 코드 등) */
   children?: ReactNode
 }
@@ -44,6 +46,7 @@ export function Dialog({
   tone = 'default',
   confirmLabel = '확인',
   cancelLabel = '취소',
+  confirmDisabled = false,
   children,
 }: DialogProps) {
   const ref = useRef<HTMLDialogElement>(null)
@@ -141,7 +144,11 @@ export function Dialog({
 
         <div className={css({ display: 'flex', gap: '7px', justifyContent: 'flex-end', mt: '20px' })}>
           <Button onClick={onCancel}>{cancelLabel}</Button>
-          <Button variant={danger ? 'danger' : 'primary'} onClick={onConfirm}>
+          <Button
+            variant={danger ? 'danger' : 'primary'}
+            onClick={onConfirm}
+            disabled={confirmDisabled}
+          >
             {confirmLabel}
           </Button>
         </div>

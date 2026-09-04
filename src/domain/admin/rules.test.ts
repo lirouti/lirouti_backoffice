@@ -14,6 +14,7 @@ import {
   hasSignedIn,
   isAdminEmail,
   isPending,
+  mfaResetBlockReason,
   normalizeAdminInput,
   sameEmail,
   summarizeAdmins,
@@ -202,6 +203,24 @@ describe('suspendBlockReason', () => {
   // 이미 정지된 자기 계정은 있을 수 없지만, 해제까지 막으면 규칙이 상태를 굳힌다.
   it('정지 해제는 언제나 된다', () => {
     expect(canSuspend(adm({ email: me, suspended: true }), me)).toBe(true)
+  })
+})
+
+describe('mfaResetBlockReason', () => {
+  const me = 'sky@riruti.co'
+
+  it('⚠️ 자기 계정의 2단계 인증은 초기화할 수 없다', () => {
+    expect(mfaResetBlockReason(adm({ email: me }), me)).toContain('자기 계정')
+    expect(mfaResetBlockReason(adm({ email: 'SKY@Riruti.co' }), me)).toContain('자기 계정')
+  })
+
+  it('이미 미설정이면 초기화할 것이 없다', () => {
+    expect(mfaResetBlockReason(adm({ mfa: '미설정' }), me)).toContain('초기화할')
+  })
+
+  it('다른 등록 계정은 정지 상태여도 초기화할 수 있다', () => {
+    expect(mfaResetBlockReason(adm(), me)).toBeNull()
+    expect(mfaResetBlockReason(adm({ suspended: true }), me)).toBeNull()
   })
 })
 

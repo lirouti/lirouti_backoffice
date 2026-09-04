@@ -29,12 +29,19 @@ import {
   ADMIN_STATUS_TONE,
   DEVICE_LABEL,
   hasSignedIn,
+  mfaResetBlockReason,
   viewerOf,
   type AdminLog,
 } from '@/domain/admin'
 import { SCREENS, type ScopeId } from '@/domain/screens'
 
-import { useAdmin, useSetScopes, useSuspendAdmin, type AdminDetail } from '@/api/admins'
+import {
+  useAdmin,
+  useResetMfa,
+  useSetScopes,
+  useSuspendAdmin,
+  type AdminDetail,
+} from '@/api/admins'
 
 import { useViewer, useViewerStore } from '@/stores/viewerStore'
 
@@ -70,6 +77,7 @@ function Detail({ detail }: { detail: AdminDetail }) {
   const preview = useViewerStore((s) => s.preview)
   const setScopes = useSetScopes()
   const suspend = useSuspendAdmin()
+  const resetMfa = useResetMfa()
   /**
    * 서버 응답이 오기 전의 화면 값. `null` 이면 서버 값을 그대로 쓴다.
    *
@@ -78,6 +86,8 @@ function Detail({ detail }: { detail: AdminDetail }) {
    */
   const [draft, setDraft] = useState<ScopeId[] | null>(null)
   const [asking, setAsking] = useState(false)
+  const [askingMfaReset, setAskingMfaReset] = useState(false)
+  const mfaResetting = useRef(false)
   /**
    * 보낸 순서대로 서버에 닿게 하는 줄.
    *
@@ -92,6 +102,7 @@ function Detail({ detail }: { detail: AdminDetail }) {
   const scopes = draft ?? admin.scopes
   const top = admin.role === 'top'
   const suspended = status === '정지'
+  const mfaResetBlocked = mfaResetBlockReason(admin, me.email)
 
   const toggle = (scope: ScopeId) => {
     const next = scopes.includes(scope) ? scopes.filter((s) => s !== scope) : [...scopes, scope]
@@ -140,9 +151,9 @@ function Detail({ detail }: { detail: AdminDetail }) {
       {suspendBlocked && !suspended && (
         <p className={css({ m: '-6px 0 14px', textStyle: 'label', color: 'sub' })}>{suspendBlocked}</p>
       )}
-      {(setScopes.error || suspend.error) && (
-        <ErrorBanner message={(setScopes.error ?? suspend.error)!.message} />
-      )}
+      {setScopes.error && <ErrorBanner message={setScopes.error.message} />}
+      {suspend.error && <ErrorBanner message={suspend.error.message} />}
+      {resetMfa.error && <ErrorBanner message={resetMfa.error.message} />}
 
       <div className={css({ display: 'flex', alignItems: 'center', gap: '8px', mb: '16px', flexWrap: 'wrap' })}>
         <Badge tone={ADMIN_ROLE_TONE[admin.role]}>{ADMIN_ROLE_LABEL[admin.role]}</Badge>
@@ -203,6 +214,20 @@ function Detail({ detail }: { detail: AdminDetail }) {
               <Row k="담당 모듈" v={top ? '전체' : `${num(scopes.length)}개`} />
               <Row k="이번 달 활동" v={`${num(actions)}건`} />
             </dl>
+            <div className={css({ mt: '13px' })}>
+              <Button
+                variant="danger"
+                onClick={() => setAskingMfaReset(true)}
+                disabled={mfaResetBlocked !== null || resetMfa.isPending}
+              >
+                2단계 인증 초기화
+              </Button>
+              {mfaResetBlocked && (
+                <p className={css({ m: '7px 0 0', textStyle: 'micro', color: 'faint' })}>
+                  {mfaResetBlocked}
+                </p>
+              )}
+            </div>
           </Card>
 
           <Card className={css({ p: '18px 20px' })}>
@@ -231,6 +256,28 @@ function Detail({ detail }: { detail: AdminDetail }) {
         body={`${admin.name} 님이 즉시 로그인할 수 없게 됩니다. 담당 모듈과 기록은 그대로 남고, 정지는 언제든 풀 수 있습니다.`}
         tone="danger"
         confirmLabel="정지"
+      />
+      <Dialog
+        open={askingMfaReset}
+        onCancel={() => setAskingMfaReset(false)}
+        onConfirm={() => {
+          if (mfaResetting.current || resetMfa.isPending) return
+          mfaResetting.current = true
+          resetMfa.mutate(
+            { adminId: admin.adminId, meEmail: me.email },
+            {
+              onSuccess: () => setAskingMfaReset(false),
+              onSettled: () => {
+                mfaResetting.current = false
+              },
+            },
+          )
+        }}
+        title="2단계 인증 초기화"
+        body={`${admin.name} 님의 등록된 인증 앱과 백업 코드가 모두 무효가 됩니다. 다음 로그인에서 새 인증 앱을 등록해야 합니다.`}
+        tone="danger"
+        confirmLabel="초기화"
+        confirmDisabled={resetMfa.isPending}
       />
     </>
   )

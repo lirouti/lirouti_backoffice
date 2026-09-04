@@ -152,6 +152,18 @@ export const canSuspend = (target: Admin, meEmail: string): boolean =>
   suspendBlockReason(target, meEmail) === null
 
 /**
+ * 2단계 인증 초기화가 막히는 이유. 막히지 않으면 `null`.
+ *
+ * ⚠️ **자기 인증 수단은 초기화할 수 없다.** 열린 세션 하나만으로 자기 2차 인증을
+ * 없앨 수 있으면 복구가 아니라 잠금 해제가 된다 (docs/ARCHITECTURE.md §50.1).
+ */
+export function mfaResetBlockReason(target: Admin, meEmail: string): string | null {
+  if (sameEmail(target.email, meEmail)) return '자기 계정의 2단계 인증은 초기화할 수 없습니다.'
+  if (target.mfa === '미설정') return '초기화할 2단계 인증이 없습니다.'
+  return null
+}
+
+/**
  * 저장 직전에 다듬는다.
  *
  * ⚠️ **역할이 안 쓰는 칸은 지운다.** 운영자로 모듈을 고르다 최고 관리자로 바꾸면 검증은
