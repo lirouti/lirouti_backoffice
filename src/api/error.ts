@@ -81,7 +81,12 @@ export function toApiError(e: unknown): ApiError {
     const status = e.response?.status
     if (status == null) return apiError('network', '서버에 연결할 수 없습니다.')
 
-    return apiError('http', MESSAGE[status] ?? `요청에 실패했습니다. (${status})`, status, e.response?.data)
+    return apiError(
+      'http',
+      MESSAGE[status] ?? `요청에 실패했습니다. (${status})`,
+      status,
+      e.response?.data,
+    )
   }
 
   return apiError('unknown', e instanceof Error ? e.message : '알 수 없는 오류가 발생했습니다.')

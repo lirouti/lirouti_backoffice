@@ -6,7 +6,14 @@
  */
 import { describe, expect, it } from 'vitest'
 
-import { canBan, filterUsers, nextBanStatus, parseUserIds, summarize, walletTotal } from './rules'
+import {
+  canBan,
+  filterUsers,
+  nextBanStatus,
+  parseUserIds,
+  summarize,
+  walletTotal,
+} from './rules'
 import type { User } from './types'
 
 const user = (over: Partial<User> = {}): User => ({
@@ -28,9 +35,23 @@ const user = (over: Partial<User> = {}): User => ({
 
 const list = [
   user({ key: 0, nick: '소이', email: 'soi@kakao.com', status: 'ACTIVE', paid: 62000 }),
-  user({ key: 1, nick: '민트초코', email: 'mint@gmail.com', social: 'GOOGLE', status: 'BANNED', paid: 33000 }),
+  user({
+    key: 1,
+    nick: '민트초코',
+    email: 'mint@gmail.com',
+    social: 'GOOGLE',
+    status: 'BANNED',
+    paid: 33000,
+  }),
   user({ key: 2, nick: '콩순이', email: 'kong@kakao.com', status: 'DORMANT', paid: 1100 }),
-  user({ key: 3, nick: '라온', email: 'raon@kakao.com', status: 'LEFT', paid: 5500, leftAt: '2026-07-30' }),
+  user({
+    key: 3,
+    nick: '라온',
+    email: 'raon@kakao.com',
+    status: 'LEFT',
+    paid: 5500,
+    leftAt: '2026-07-30',
+  }),
 ]
 
 describe('filterUsers', () => {

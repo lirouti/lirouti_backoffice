@@ -86,7 +86,9 @@ describe('validateSpecies', () => {
 
   // 코드가 겹치면 어느 종을 가리키는지 서버도 사람도 알 수 없다.
   it('⚠️ 이미 쓰는 코드는 막는다', () => {
-    expect(validateSpecies(input({ code: 'SP-BLUE' }), ['SP-BLUE']).code).toBe('이미 쓰고 있는 코드입니다.')
+    expect(validateSpecies(input({ code: 'SP-BLUE' }), ['SP-BLUE']).code).toBe(
+      '이미 쓰고 있는 코드입니다.',
+    )
   })
 
   // 수정 화면에서 자기 코드를 그대로 두고 저장하면 자기와 부딪힌다.
@@ -98,12 +100,16 @@ describe('validateSpecies', () => {
   // 중복 검사를 빠져나가 종이 둘 생긴다. 검증과 저장이 같은 값을 봐야 한다.
   it('⚠️ 공백이 붙어도 다듬은 값으로 검증한다', () => {
     expect(validateSpecies(input({ code: '  SP-NEW  ' })).code).toBeUndefined()
-    expect(validateSpecies(input({ code: '  SP-BLUE  ' }), ['SP-BLUE']).code).toBe('이미 쓰고 있는 코드입니다.')
+    expect(validateSpecies(input({ code: '  SP-BLUE  ' }), ['SP-BLUE']).code).toBe(
+      '이미 쓰고 있는 코드입니다.',
+    )
   })
 
   // 이미 저장된 쪽에 공백이 섞여 있어도 같은 자로 재야 한다.
   it('⚠️ 저장된 코드에 공백이 있어도 중복으로 잡는다', () => {
-    expect(validateSpecies(input({ code: 'SP-BLUE' }), [' SP-BLUE ']).code).toBe('이미 쓰고 있는 코드입니다.')
+    expect(validateSpecies(input({ code: 'SP-BLUE' }), [' SP-BLUE ']).code).toBe(
+      '이미 쓰고 있는 코드입니다.',
+    )
   })
 
   it('대표 색은 #RRGGBB — 세 자리 축약은 막는다', () => {

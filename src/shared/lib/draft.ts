@@ -76,8 +76,11 @@ export function readDraft<T>(
 export const writeDraft = (value: unknown): string => JSON.stringify(value)
 
 /** 저장해 둔 초안을 꺼낸다. 없거나 모양이 안 맞으면 `null`. */
-export const restoreDraft = <T,>(scope: string, sample: T, refine?: (v: T) => boolean): T | null =>
-  readDraft(sessionStorage.getItem(draftKey(scope)), sample, refine)
+export const restoreDraft = <T>(
+  scope: string,
+  sample: T,
+  refine?: (v: T) => boolean,
+): T | null => readDraft(sessionStorage.getItem(draftKey(scope)), sample, refine)
 
 /**
  * 초기값에서 벗어났는가 — 폼이 「더러운지」 판정.

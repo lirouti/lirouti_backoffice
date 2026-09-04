@@ -41,7 +41,11 @@ describe('topSelling', () => {
 })
 
 describe('validateItem', () => {
-  const ok = (): ItemInput => ({ ...emptyItemInput(), name: '성좌의 로브', assetId: 'as_body_0' })
+  const ok = (): ItemInput => ({
+    ...emptyItemInput(),
+    name: '성좌의 로브',
+    assetId: 'as_body_0',
+  })
 
   // ⚠️ 309자리 이상을 붙여넣으면 `Number` 가 Infinity 가 된다. `Infinity > 0` 은 참이라
   //    등급·가격 규칙을 그냥 통과하고 목록에 「∞ 젬」 이 찍힌다.
@@ -75,19 +79,35 @@ describe('validateItem', () => {
   })
 
   it('노출 종료가 시작보다 빠르면 막는다', () => {
-    expect(validateItem({ ...ok(), visibleFrom: '2026-09-01', visibleTo: '2026-08-01' }).visibleTo).toBeTruthy()
-    expect(validateItem({ ...ok(), visibleFrom: '2026-08-01', visibleTo: '2026-09-01' }).visibleTo).toBeUndefined()
+    expect(
+      validateItem({ ...ok(), visibleFrom: '2026-09-01', visibleTo: '2026-08-01' }).visibleTo,
+    ).toBeTruthy()
+    expect(
+      validateItem({ ...ok(), visibleFrom: '2026-08-01', visibleTo: '2026-09-01' }).visibleTo,
+    ).toBeUndefined()
   })
 
   it('한쪽만 비어 있으면 기간 검사를 하지 않는다 — 빈 값은 "제한 없음" 이다', () => {
-    expect(validateItem({ ...ok(), visibleFrom: '2026-09-01', visibleTo: '' }).visibleTo).toBeUndefined()
-    expect(validateItem({ ...ok(), visibleFrom: '', visibleTo: '2026-01-01' }).visibleTo).toBeUndefined()
+    expect(
+      validateItem({ ...ok(), visibleFrom: '2026-09-01', visibleTo: '' }).visibleTo,
+    ).toBeUndefined()
+    expect(
+      validateItem({ ...ok(), visibleFrom: '', visibleTo: '2026-01-01' }).visibleTo,
+    ).toBeUndefined()
   })
 })
 
 describe('toItemInput', () => {
   it('서버가 소유한 필드는 떼어낸다', () => {
-    const item = { ...emptyItemInput(), key: 3, code: 'IT-1004', sold: 10, own: 5, status: 'VISIBLE', madeAt: '2026-01-01' } as never
+    const item = {
+      ...emptyItemInput(),
+      key: 3,
+      code: 'IT-1004',
+      sold: 10,
+      own: 5,
+      status: 'VISIBLE',
+      madeAt: '2026-01-01',
+    } as never
     expect(Object.keys(toItemInput(item)).sort()).toEqual(Object.keys(emptyItemInput()).sort())
   })
 })

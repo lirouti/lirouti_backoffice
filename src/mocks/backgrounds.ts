@@ -12,11 +12,28 @@ import type { Background, BackgroundInput } from '@/domain/background'
 
 /** 무료 16종. 순서가 `as_bg_0..15` 다 */
 const FREE = [
-  '스튜디오', '둥지', '아침 햇살', '밤하늘', '벚꽃길', '여름 바다', '가을 낙엽', '겨울 눈밭',
-  '숲 산책', '도시 야경', '체육관', '책상 앞', '카페', '비 오는 날', '축하 파티', '우주',
+  '스튜디오',
+  '둥지',
+  '아침 햇살',
+  '밤하늘',
+  '벚꽃길',
+  '여름 바다',
+  '가을 낙엽',
+  '겨울 눈밭',
+  '숲 산책',
+  '도시 야경',
+  '체육관',
+  '책상 앞',
+  '카페',
+  '비 오는 날',
+  '축하 파티',
+  '우주',
 ]
 
 /** 유료 4종. 가격은 원본의 `[900,1200,1500,1800][i % 4]` 를 그대로 편 값이다 */
+// ⚠️ **한 줄이 한 레코드다.** 표처럼 읽는 것이 이 파일의 목적이라 자동 포맷을 끈다 —
+//    풀어 놓으면 12칸짜리 한 줄이 14줄이 되어 무엇이 무엇인지 보이지 않는다.
+// prettier-ignore
 const PAID: [name: string, price: number][] = [
   ['은하', 900],
   ['마법진', 1200],
@@ -29,7 +46,13 @@ let cache: Background[] | null = null
 export function allBackgrounds(): Background[] {
   if (cache) return cache
   cache = [
-    ...FREE.map((name, i) => ({ key: i, assetId: `as_bg_${i}`, name, tier: 'FREE' as const, price: 0 })),
+    ...FREE.map((name, i) => ({
+      key: i,
+      assetId: `as_bg_${i}`,
+      name,
+      tier: 'FREE' as const,
+      price: 0,
+    })),
     ...PAID.map(([name, price], i) => ({
       key: FREE.length + i,
       assetId: `as_bg_${FREE.length + i}`,

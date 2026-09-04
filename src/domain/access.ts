@@ -49,8 +49,7 @@ export type Credentials = {
  * challenge 는 짧게 사는 일회용 토큰이라 **저장하지 않는다** (메모리에만).
  */
 export type LoginResult =
-  | { status: 'authenticated'; viewer: Viewer }
-  | { status: 'totp_required'; challenge: string }
+  { status: 'authenticated'; viewer: Viewer } | { status: 'totp_required'; challenge: string }
 
 /** 로그인 입력 오류. 다른 `validate*` 와 같은 모양이다 */
 export type CredentialErrors = Partial<Record<'email' | 'password', string>>
@@ -76,7 +75,8 @@ export function validateCredentials(c: Credentials): CredentialErrors {
   else if (!/\S+@\S+\.\S+/.test(email)) errors.email = '아이디는 회사 이메일 형식이어야 합니다.'
 
   if (!c.password) errors.password = '비밀번호를 입력해 주세요.'
-  else if (c.password.length < 8) errors.password = '비밀번호는 8자 이상입니다. 다시 확인해 주세요.'
+  else if (c.password.length < 8)
+    errors.password = '비밀번호는 8자 이상입니다. 다시 확인해 주세요.'
 
   return errors
 }

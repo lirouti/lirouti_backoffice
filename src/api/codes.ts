@@ -88,7 +88,10 @@ export type SaveValuesVars = { codeId: number; values: CodeValue[] }
  * ⚠️ **쓰이는 값이 빠졌으면 거부한다.** 화면이 지우기를 막고 있어도, 여기서 또 본다 —
  *    잠근 버튼은 검증이 아니다 (§22.2.3).
  */
-export async function saveCodeGroupValues({ codeId, values }: SaveValuesVars): Promise<CodeGroup> {
+export async function saveCodeGroupValues({
+  codeId,
+  values,
+}: SaveValuesVars): Promise<CodeGroup> {
   if (USE_MOCK) {
     await mockDelay()
     const before = allCodeGroups().find((g) => g.key === codeId)

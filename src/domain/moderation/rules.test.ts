@@ -108,7 +108,10 @@ describe('canDecide', () => {
 })
 
 describe('filterAiReviews', () => {
-  const list = [rev({ key: 0, verdict: '승인' }), rev({ key: 1, verdict: '대기', tookSec: null })]
+  const list = [
+    rev({ key: 0, verdict: '승인' }),
+    rev({ key: 1, verdict: '대기', tookSec: null }),
+  ]
 
   it('판정으로 거른다', () => {
     expect(filterAiReviews(list, '승인').map((r) => r.key)).toEqual([0])

@@ -15,7 +15,13 @@ import type {
   PeriodStatus,
 } from './types'
 
-const NOTICE_CATEGORY_SET = new Set<NoticeCategory>(['시즌', '점검', '업데이트', '밸런스', '재화'])
+const NOTICE_CATEGORY_SET = new Set<NoticeCategory>([
+  '시즌',
+  '점검',
+  '업데이트',
+  '밸런스',
+  '재화',
+])
 
 /** 날짜 문자열이 실제 달력에 있는 `YYYY-MM-DD` 인가 */
 function isDateValue(value: string): boolean {
@@ -23,7 +29,11 @@ function isDateValue(value: string): boolean {
   if (!m) return false
   const [year, month, day] = m.slice(1).map(Number) as [number, number, number]
   const date = new Date(Date.UTC(year, month - 1, day))
-  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
+  return (
+    date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day
+  )
 }
 
 /**
@@ -73,7 +83,12 @@ export function summarizeNotices(list: Notice[], today: string): NoticeSummary {
   const count = (s: PeriodStatus): number =>
     list.filter((n) => periodStatusOf(n.startAt, n.endAt, today) === s).length
   const pinned = pinnedCount(list, today)
-  return { active: count('ACTIVE'), scheduled: count('SCHEDULED'), pinned, overPinned: pinned > PIN_LIMIT }
+  return {
+    active: count('ACTIVE'),
+    scheduled: count('SCHEDULED'),
+    pinned,
+    overPinned: pinned > PIN_LIMIT,
+  }
 }
 
 /** 목록에서 온 값이 저장할 수 있는 공지 분류인가 */
@@ -81,7 +96,9 @@ export const isNoticeCategory = (value: string): value is NoticeCategory =>
   NOTICE_CATEGORY_SET.has(value as NoticeCategory)
 
 /** 공지 작성 오류 */
-export type NoticeErrors = Partial<Record<'title' | 'body' | 'category' | 'startAt' | 'endAt', string>>
+export type NoticeErrors = Partial<
+  Record<'title' | 'body' | 'category' | 'startAt' | 'endAt', string>
+>
 
 /** 공지 작성 폼 검증. 종료일을 비우면 상시다 */
 export function validateNotice(input: NoticeInput): NoticeErrors {
@@ -128,13 +145,13 @@ const EVENT_ORDER: Record<PeriodStatus, number> = { ACTIVE: 0, SCHEDULED: 1, END
  */
 export function sortEvents(list: OpsEvent[], today: string): OpsEvent[] {
   return [...list].sort((a, b) => {
-    const d = EVENT_ORDER[periodStatusOf(a.startAt, a.endAt, today)] -
+    const d =
+      EVENT_ORDER[periodStatusOf(a.startAt, a.endAt, today)] -
       EVENT_ORDER[periodStatusOf(b.startAt, b.endAt, today)]
     // 같은 상태 안에서는 최근 시작한 것이 위. 동률이면 key 로 고정한다.
     return d || b.startAt.localeCompare(a.startAt) || a.key - b.key
   })
 }
-
 
 /** 적어 낸 id 가 실제로 있는가 */
 export type TargetCheck = {
@@ -192,7 +209,10 @@ export function validateGrant(input: GrantInput): GrantErrors {
   if (input.target === '개별' && parseUserIds(input.who).length === 0) {
     errors.who = '대상 회원 ID 를 입력하세요.'
   }
-  if (isCoin(input.asset) && !(Number.isInteger(input.qty) && input.qty > 0 && input.qty <= QTY_MAX)) {
+  if (
+    isCoin(input.asset) &&
+    !(Number.isInteger(input.qty) && input.qty > 0 && input.qty <= QTY_MAX)
+  ) {
     errors.qty = `수량은 1 이상 ${QTY_MAX.toLocaleString()} 이하의 정수여야 합니다.`
   }
   if (!isCoin(input.asset) && input.itemKey === null) {

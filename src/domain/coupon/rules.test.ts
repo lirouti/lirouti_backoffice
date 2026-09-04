@@ -164,7 +164,9 @@ describe('couponStatusOf · canStop', () => {
 
   // 기간 한정을 안 켠 쿠폰은 날짜가 지나도 끝나지 않는다.
   it('⚠️ 기간 한정을 안 켰으면 끝나지 않는다', () => {
-    expect(couponStatusOf(coupon({ endAt: '2026-03-31', limits: limits({ dated: false }) }), TODAY)).toBe('진행 중')
+    expect(
+      couponStatusOf(coupon({ endAt: '2026-03-31', limits: limits({ dated: false }) }), TODAY),
+    ).toBe('진행 중')
   })
 
   it('끝난 쿠폰은 되살리지 않는다', () => {
@@ -183,7 +185,9 @@ describe('couponStatusOf · canStop', () => {
   })
 
   it('기간 한정을 안 켰으면 끝나지 않는다', () => {
-    expect(isExpired(coupon({ endAt: '2026-03-31', limits: limits({ dated: false }) }), TODAY)).toBe(false)
+    expect(
+      isExpired(coupon({ endAt: '2026-03-31', limits: limits({ dated: false }) }), TODAY),
+    ).toBe(false)
   })
 })
 
@@ -191,7 +195,13 @@ describe('filterCoupons', () => {
   const list = [
     coupon({ key: 0, kind: 'single', name: '여름 이벤트 보상', code: 'SUMMER2026' }),
     coupon({ key: 1, kind: 'bulk', name: '사전예약 감사', code: 'PREORDER-****' }),
-    coupon({ key: 2, kind: 'single', name: '봄 시즌 보상', code: 'SPRING2026', endAt: '2026-03-31' }),
+    coupon({
+      key: 2,
+      kind: 'single',
+      name: '봄 시즌 보상',
+      code: 'SPRING2026',
+      endAt: '2026-03-31',
+    }),
   ]
 
   it('상태 탭', () => {
@@ -253,14 +263,20 @@ describe('validateCoupon', () => {
 
   it('인플루언서는 채널명을 받는다', () => {
     expect(validateCoupon(input({ kind: 'influencer', owner: '' })).owner).toBeTruthy()
-    expect(validateCoupon(input({ kind: 'influencer', owner: '새콤 채널' })).owner).toBeUndefined()
+    expect(
+      validateCoupon(input({ kind: 'influencer', owner: '새콤 채널' })).owner,
+    ).toBeUndefined()
   })
 
   // ⚠️ 메시지까지 본다. 빈 날짜를 「종료일이 빠릅니다」 로 잡으면 (`'' < 시작일`)
   //    검증이 없어져도 테스트가 **엉뚱한 이유로** 통과한다.
   it('기간 한정이면 두 날짜가 다 있고 순서가 맞아야 한다', () => {
-    expect(validateCoupon(input({ endAt: '' })).period).toBe('노출 시작과 종료를 모두 입력하세요.')
-    expect(validateCoupon(input({ startAt: '' })).period).toBe('노출 시작과 종료를 모두 입력하세요.')
+    expect(validateCoupon(input({ endAt: '' })).period).toBe(
+      '노출 시작과 종료를 모두 입력하세요.',
+    )
+    expect(validateCoupon(input({ startAt: '' })).period).toBe(
+      '노출 시작과 종료를 모두 입력하세요.',
+    )
     expect(validateCoupon(input({ startAt: '2026-08-31', endAt: '2026-08-01' })).period).toBe(
       '종료일이 시작일보다 빠릅니다.',
     )
@@ -268,22 +284,43 @@ describe('validateCoupon', () => {
 
   // 기간 한정을 안 켰으면 날짜를 요구하지 않는다.
   it('⚠️ 기간 한정을 끄면 날짜가 비어도 된다', () => {
-    expect(validateCoupon(input({ startAt: '', endAt: '', limits: limits({ dated: false }) })).period).toBeUndefined()
+    expect(
+      validateCoupon(input({ startAt: '', endAt: '', limits: limits({ dated: false }) }))
+        .period,
+    ).toBeUndefined()
   })
 
   // 켜 두고 0 이면 상세가 「제한 없음」 으로 보인다 — 운영자가 건 제한이 사라진다.
   it('⚠️ 선착순을 켰으면 인원이 1 이상이어야 한다', () => {
-    expect(validateCoupon(input({ limits: limits({ firstCome: true, firstComeQty: 0 }) })).firstComeQty).toBeTruthy()
-    expect(validateCoupon(input({ limits: limits({ firstCome: true, firstComeQty: 1.5 }) })).firstComeQty).toBeTruthy()
-    expect(validateCoupon(input({ limits: limits({ firstCome: true, firstComeQty: 500 }) })).firstComeQty).toBeUndefined()
+    expect(
+      validateCoupon(input({ limits: limits({ firstCome: true, firstComeQty: 0 }) }))
+        .firstComeQty,
+    ).toBeTruthy()
+    expect(
+      validateCoupon(input({ limits: limits({ firstCome: true, firstComeQty: 1.5 }) }))
+        .firstComeQty,
+    ).toBeTruthy()
+    expect(
+      validateCoupon(input({ limits: limits({ firstCome: true, firstComeQty: 500 }) }))
+        .firstComeQty,
+    ).toBeUndefined()
     // 안 켰으면 0 이어도 된다.
-    expect(validateCoupon(input({ limits: limits({ firstCome: false, firstComeQty: 0 }) })).firstComeQty).toBeUndefined()
+    expect(
+      validateCoupon(input({ limits: limits({ firstCome: false, firstComeQty: 0 }) }))
+        .firstComeQty,
+    ).toBeUndefined()
   })
 
   it('보상은 하나 이상이고 수량은 1 이상의 정수', () => {
     expect(validateCoupon(input({ rewards: [] })).rewards).toBeTruthy()
-    expect(validateCoupon(input({ rewards: [{ kind: 'gem', label: '젬', note: '재화', qty: 0 }] })).rewards).toBeTruthy()
-    expect(validateCoupon(input({ rewards: [{ kind: 'gem', label: '젬', note: '재화', qty: 1.5 }] })).rewards).toBeTruthy()
+    expect(
+      validateCoupon(input({ rewards: [{ kind: 'gem', label: '젬', note: '재화', qty: 0 }] }))
+        .rewards,
+    ).toBeTruthy()
+    expect(
+      validateCoupon(input({ rewards: [{ kind: 'gem', label: '젬', note: '재화', qty: 1.5 }] }))
+        .rewards,
+    ).toBeTruthy()
   })
 })
 
@@ -295,7 +332,9 @@ describe('normalizeCouponInput', () => {
   })
 
   it('⚠️ 일괄로 바꾸면 코드를 이름에서 만든다 — 빈 접두사로 저장되지 않는다', () => {
-    const out = normalizeCouponInput(input({ kind: 'bulk', code: '', name: 'preorder thanks', qty: 500 }))
+    const out = normalizeCouponInput(
+      input({ kind: 'bulk', code: '', name: 'preorder thanks', qty: 500 }),
+    )
     expect(out.code).toBe('PREORD-****')
     expect(out.qty).toBe(500)
   })
@@ -310,7 +349,9 @@ describe('normalizeCouponInput', () => {
   })
 
   it('선착순을 끄면 수량을 지운다', () => {
-    const out = normalizeCouponInput(input({ limits: limits({ firstCome: false, firstComeQty: 500 }) }))
+    const out = normalizeCouponInput(
+      input({ limits: limits({ firstCome: false, firstComeQty: 500 }) }),
+    )
     expect(out.limits.firstComeQty).toBe(0)
   })
 

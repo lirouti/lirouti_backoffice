@@ -5,7 +5,14 @@
  *    디자인 파일을 가리키는데, 어드민 안에서는 열 수 없는 주소다 — 「어디서 쓰나」 를
  *    보러 온 사람이 그 화면으로 못 간다 (docs/ARCHITECTURE.md §29.2).
  */
-import type { CodeCategory, CodeGroup, CodeGroupInput, CodeLog, CodeTone, CodeValue } from '@/domain/code'
+import type {
+  CodeCategory,
+  CodeGroup,
+  CodeGroupInput,
+  CodeLog,
+  CodeTone,
+  CodeValue,
+} from '@/domain/code'
 import type { ScreenId } from '@/domain/screens'
 
 type RawValue = [code: string, label: string, tone: CodeTone, uses: number]
@@ -23,6 +30,9 @@ type Row = [
   updatedBy: string,
 ]
 
+// ⚠️ **한 줄이 한 레코드다.** 표처럼 읽는 것이 이 파일의 목적이라 자동 포맷을 끈다 —
+//    풀어 놓으면 12칸짜리 한 줄이 14줄이 되어 무엇이 무엇인지 보이지 않는다.
+// prettier-ignore
 const ROWS: Row[] = [
   [
     '문의 분류', 'QNA_CATEGORY', '고객 소통', '1:1 문의를 접수할 때 유저가 고르는 분류',
@@ -158,7 +168,12 @@ export function addCodeGroup(input: CodeGroupInput, by: string, at: string): Cod
 export function codeLogs(g: CodeGroup): CodeLog[] {
   const first = g.values[0]
   return [
-    { at: g.updatedAt, kind: '값 추가', what: `${first?.label ?? '값'} · ${first?.code ?? ''} 추가`, by: g.updatedBy },
+    {
+      at: g.updatedAt,
+      kind: '값 추가',
+      what: `${first?.label ?? '값'} · ${first?.code ?? ''} 추가`,
+      by: g.updatedBy,
+    },
     { at: '2026-08-05 10:11', kind: '순서 변경', what: '두 번째 값을 위로 이동', by: '김하늘' },
     { at: '2026-07-14 09:52', kind: '숨김', what: '쓰지 않는 값 숨김 처리', by: '정민재' },
     { at: '2026-06-02 11:07', kind: '그룹 생성', what: '코드 그룹 최초 등록', by: '김하늘' },

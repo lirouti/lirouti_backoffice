@@ -109,7 +109,9 @@ function FaqForm({ faqId, initial }: { faqId: string; initial: FaqInput }) {
   const save = useSaveFaq()
   const remove = useDeleteFaq()
   // 손대기 전에는 `null` — 그동안은 받아 온 값을 그대로 보여 준다.
-  const [draft, setDraft] = useState<FaqInput | null>(() => restoreDraft(draftScope(faqId), EMPTY))
+  const [draft, setDraft] = useState<FaqInput | null>(() =>
+    restoreDraft(draftScope(faqId), EMPTY),
+  )
   const [tried, setTried] = useState(false)
   const [asking, setAsking] = useState(false)
   // ⚠️ **알림 표시 여부는 따로 둔다.** `draft` 는 계속 바뀌므로 「되살렸다」 의 표시로
@@ -132,7 +134,13 @@ function FaqForm({ faqId, initial }: { faqId: string; initial: FaqInput }) {
     if (Object.keys(errors).length > 0) return
     save.mutate(
       { input: form, faqId: editing ? Number(faqId) : undefined },
-      { onSuccess: () => { autosave.clear(); markSaved(); back() } },
+      {
+        onSuccess: () => {
+          autosave.clear()
+          markSaved()
+          back()
+        },
+      },
     )
   }
 
@@ -144,7 +152,11 @@ function FaqForm({ faqId, initial }: { faqId: string; initial: FaqInput }) {
         actions={
           <>
             {editing && (
-              <Button variant="danger" onClick={() => setAsking(true)} disabled={remove.isPending}>
+              <Button
+                variant="danger"
+                onClick={() => setAsking(true)}
+                disabled={remove.isPending}
+              >
                 삭제
               </Button>
             )}
@@ -173,12 +185,35 @@ function FaqForm({ faqId, initial }: { faqId: string; initial: FaqInput }) {
       {save.error && <ErrorBanner message={save.error.message} />}
       {remove.error && <ErrorBanner message={remove.error.message} />}
 
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '18px', alignItems: 'flex-start' })}>
+      <div
+        className={css({
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '18px',
+          alignItems: 'flex-start',
+        })}
+      >
         <Card className={css({ flex: '2 1 420px', minWidth: '0', p: '15px 17px' })}>
           <CardTitle title="내용" />
-          <div className={css({ display: 'flex', flexDirection: 'column', gap: '13px', mt: '13px' })}>
+          <div
+            className={css({
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '13px',
+              mt: '13px',
+            })}
+          >
             <div>
-              <div className={css({ mb: '6px', textStyle: 'label', fontWeight: '600', color: 'ink' })}>분류</div>
+              <div
+                className={css({
+                  mb: '6px',
+                  textStyle: 'label',
+                  fontWeight: '600',
+                  color: 'ink',
+                })}
+              >
+                분류
+              </div>
               <Segmented
                 value={form.category}
                 onChange={(v) => set('category', v)}
@@ -235,11 +270,15 @@ function FaqForm({ faqId, initial }: { faqId: string; initial: FaqInput }) {
               border: '1px solid token(colors.bd)',
             })}
           >
-            <div className={css({ display: 'flex', alignItems: 'center', gap: '7px', mb: '10px' })}>
+            <div
+              className={css({ display: 'flex', alignItems: 'center', gap: '7px', mb: '10px' })}
+            >
               <span className={css({ textStyle: 'micro', fontWeight: '700', color: 'priD' })}>
                 {form.category}
               </span>
-              <span className={css({ textStyle: 'micro', color: 'faint' })}>자주 묻는 질문</span>
+              <span className={css({ textStyle: 'micro', color: 'faint' })}>
+                자주 묻는 질문
+              </span>
             </div>
             <QaLine mark="Q" text={form.question.trim() || '질문이 여기에 보입니다'} strong />
             <QaLine mark="A" text={form.answer.trim() || '답변이 여기에 보입니다'} />
@@ -255,7 +294,14 @@ function FaqForm({ faqId, initial }: { faqId: string; initial: FaqInput }) {
       <Dialog
         open={asking}
         onCancel={() => setAsking(false)}
-        onConfirm={() => remove.mutate(Number(faqId), { onSuccess: () => { markSaved(); back() } })}
+        onConfirm={() =>
+          remove.mutate(Number(faqId), {
+            onSuccess: () => {
+              markSaved()
+              back()
+            },
+          })
+        }
         title="FAQ 를 지웁니다"
         body="지우면 앱에서 사라지고 1:1 문의 답변 템플릿에서도 없어집니다. 앱에만 감추려면 「앱에 노출」 을 끄세요."
         tone="danger"

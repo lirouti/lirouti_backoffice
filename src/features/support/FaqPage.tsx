@@ -23,7 +23,14 @@ import { SkeletonRows, SkeletonStats } from '@/shared/ui/Skeleton'
 import { StatTile } from '@/shared/ui/StatTile'
 import { Switch } from '@/shared/ui/Switch'
 
-import { FAQ_TABS, filterFaqs, isMeasured, POOR_HELPFUL, type Faq, type FaqTab } from '@/domain/faq'
+import {
+  FAQ_TABS,
+  filterFaqs,
+  isMeasured,
+  POOR_HELPFUL,
+  type Faq,
+  type FaqTab,
+} from '@/domain/faq'
 import { SCREENS } from '@/domain/screens'
 
 import { useFaqs, useReorderFaqs, useToggleFaq } from '@/api/faq'
@@ -63,14 +70,21 @@ export default function FaqPage() {
       { faqId, visible },
       {
         onSuccess: () =>
-          setDraft((prev) => prev && prev.map((f) => (f.key === faqId ? { ...f, visible } : f))),
+          setDraft(
+            (prev) => prev && prev.map((f) => (f.key === faqId ? { ...f, visible } : f)),
+          ),
       },
     )
 
   const commit = () =>
     reorder.mutate(
       all.map((f) => f.key),
-      { onSuccess: () => { setDraft(null); markSaved() } },
+      {
+        onSuccess: () => {
+          setDraft(null)
+          markSaved()
+        },
+      },
     )
 
   return (
@@ -194,8 +208,18 @@ function FaqRow({
 
   return (
     <li className={css({ borderBottom: '1px solid token(colors.ln)' })}>
-      <div className={css({ display: 'flex', alignItems: 'center', gap: '11px', p: '11px 15px' })}>
-        <span className={css({ flex: 'none', width: '22px', textStyle: 'caption', color: 'faint', textAlign: 'right' })}>
+      <div
+        className={css({ display: 'flex', alignItems: 'center', gap: '11px', p: '11px 15px' })}
+      >
+        <span
+          className={css({
+            flex: 'none',
+            width: '22px',
+            textStyle: 'caption',
+            color: 'faint',
+            textAlign: 'right',
+          })}
+        >
           {n}
         </span>
         <Badge size="sm">{f.category}</Badge>
@@ -219,16 +243,40 @@ function FaqRow({
         >
           {f.question}
         </button>
-        <span className={css({ flex: 'none', width: '64px', textAlign: 'right', textStyle: 'caption', color: 'sub' })}>
+        <span
+          className={css({
+            flex: 'none',
+            width: '64px',
+            textAlign: 'right',
+            textStyle: 'caption',
+            color: 'sub',
+          })}
+        >
           {/* 새로 등록한 FAQ 는 아직 아무도 안 봤다 — 0 이 아니라 잴 것이 없다 */}
           {isMeasured(f) ? num(f.views) : '—'}
         </span>
-        <span className={css({ flex: 'none', width: '110px', display: 'flex', alignItems: 'center', gap: '8px' })}>
+        <span
+          className={css({
+            flex: 'none',
+            width: '110px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+          })}
+        >
           <span className={css({ flex: '1' })}>
             {/* 못 잰 값을 0% 막대로 그리면 「아무도 도움 안 됐다」 로 읽힌다 */}
             <ProgressBar rate={isMeasured(f) ? f.helpful : 0} label={`${f.question} 도움됨`} />
           </span>
-          <span className={css({ flex: 'none', width: '34px', textAlign: 'right', textStyle: 'caption', color: 'sub' })}>
+          <span
+            className={css({
+              flex: 'none',
+              width: '34px',
+              textAlign: 'right',
+              textStyle: 'caption',
+              color: 'sub',
+            })}
+          >
             {isMeasured(f) ? `${f.helpful}%` : '—'}
           </span>
         </span>
@@ -244,10 +292,18 @@ function FaqRow({
         </span>
         <span className={css({ display: 'flex', gap: '4px' })}>
           {/* 거른 상태에서는 옮길 수 없다 — 버튼을 없애지 않고 잠가 이유를 위에 적는다 */}
-          <Button onClick={onUp} disabled={busy || !canMove || !onUp} aria-label={`${f.question} 위로`}>
+          <Button
+            onClick={onUp}
+            disabled={busy || !canMove || !onUp}
+            aria-label={`${f.question} 위로`}
+          >
             ↑
           </Button>
-          <Button onClick={onDown} disabled={busy || !canMove || !onDown} aria-label={`${f.question} 아래로`}>
+          <Button
+            onClick={onDown}
+            disabled={busy || !canMove || !onDown}
+            aria-label={`${f.question} 아래로`}
+          >
             ↓
           </Button>
           <Button onClick={onEdit}>편집</Button>

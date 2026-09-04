@@ -116,7 +116,9 @@ export async function verifyTotp(v: TotpVerification): Promise<Viewer> {
     return mockViewer(v.challenge.replace(/^mock-/, ''))
   }
 
-  return asViewer(await http.post<unknown>('/admin/auth/totp/verify', v, { skipSessionExpiry: true }))
+  return asViewer(
+    await http.post<unknown>('/admin/auth/totp/verify', v, { skipSessionExpiry: true }),
+  )
 }
 
 export async function logout(): Promise<void> {

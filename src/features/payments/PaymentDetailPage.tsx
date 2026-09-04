@@ -111,15 +111,39 @@ function Detail({ payment: p, payId }: { payment: Payment; payId: string }) {
         </div>
       )}
 
-      <div className={css({ display: 'flex', alignItems: 'center', gap: '8px', mb: '16px', flexWrap: 'wrap' })}>
+      <div
+        className={css({
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          mb: '16px',
+          flexWrap: 'wrap',
+        })}
+      >
         <Badge tone={PAY_STATUS_TONE[p.status]}>{PAY_STATUS_LABEL[p.status]}</Badge>
-        <span className={css({ fontFamily: 'mono', textStyle: 'caption', color: 'faint' })}>{p.orderNo}</span>
+        <span className={css({ fontFamily: 'mono', textStyle: 'caption', color: 'faint' })}>
+          {p.orderNo}
+        </span>
       </div>
 
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '18px', alignItems: 'flex-start' })}>
+      <div
+        className={css({
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '18px',
+          alignItems: 'flex-start',
+        })}
+      >
         <Card className={css({ flex: '1 1 300px', minWidth: '260px', p: '15px' })}>
           <CardTitle title="결제" />
-          <dl className={css({ m: '12px 0 0', display: 'flex', flexDirection: 'column', gap: '9px' })}>
+          <dl
+            className={css({
+              m: '12px 0 0',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '9px',
+            })}
+          >
             <Row k="주문번호" v={p.orderNo} mono />
             <Row k="회원" v={`${p.who} · ${p.email}`} />
             <Row k="결제사" v={PG_LABEL[p.pg]} />
@@ -130,7 +154,14 @@ function Detail({ payment: p, payId }: { payment: Payment; payId: string }) {
 
         <Card className={css({ flex: '1 1 300px', minWidth: '260px', p: '15px' })}>
           <CardTitle title="지급" sub="유상과 보너스를 나눠 봅니다." />
-          <dl className={css({ m: '12px 0 0', display: 'flex', flexDirection: 'column', gap: '9px' })}>
+          <dl
+            className={css({
+              m: '12px 0 0',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '9px',
+            })}
+          >
             <Row k="상품" v={p.product} />
             <Row k="유상 지급" v={`${num(p.give)}개`} />
             {/* ⚠️ 보너스는 무상이라 **환불 대상이 아니다.** 나란히 두되 성질을 밝힌다. */}
@@ -141,12 +172,15 @@ function Detail({ payment: p, payId }: { payment: Payment; payId: string }) {
         </Card>
 
         <Card className={css({ flex: '1 1 300px', minWidth: '260px', p: '15px' })}>
-          <CardTitle
-            title="환불 가능액"
-            sub="미사용 유상 재화만 청약철회 대상입니다."
-          />
+          <CardTitle title="환불 가능액" sub="미사용 유상 재화만 청약철회 대상입니다." />
           <div className={css({ mt: '12px' })}>
-            <div className={css({ textStyle: 'h2', fontWeight: '700', color: refundable > 0 ? 'ink' : 'faint' })}>
+            <div
+              className={css({
+                textStyle: 'h2',
+                fontWeight: '700',
+                color: refundable > 0 ? 'ink' : 'faint',
+              })}
+            >
               {won(refundable)}
             </div>
             {/*
@@ -197,7 +231,11 @@ function Detail({ payment: p, payId }: { payment: Payment; payId: string }) {
 function Row({ k, v, mono }: { k: string; v: string; mono?: boolean }) {
   return (
     <div className={css({ display: 'flex', alignItems: 'center', gap: '10px' })}>
-      <dt className={css({ flex: 'none', width: '78px', textStyle: 'caption', color: 'faint' })}>{k}</dt>
+      <dt
+        className={css({ flex: 'none', width: '78px', textStyle: 'caption', color: 'faint' })}
+      >
+        {k}
+      </dt>
       <dd
         className={css({
           m: '0',
@@ -210,7 +248,9 @@ function Row({ k, v, mono }: { k: string; v: string; mono?: boolean }) {
           overflow: 'hidden',
           textOverflow: 'ellipsis',
         })}
-        style={mono ? { fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' } : undefined}
+        style={
+          mono ? { fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' } : undefined
+        }
       >
         {v}
       </dd>

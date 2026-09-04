@@ -7,7 +7,6 @@
  */
 import type { AssetExt } from '../asset'
 
-
 /** 캐릭터 착용 슬롯 */
 export type Slot = 'HEAD' | 'BODY' | 'HAND' | 'FACE'
 
@@ -71,7 +70,6 @@ export type Item = {
   flags: ItemFlags
 }
 
-
 /**
  * 폼이 편집하는 부분만.
  *
@@ -80,8 +78,17 @@ export type Item = {
  */
 export type ItemInput = Pick<
   Item,
-  'name' | 'sub' | 'slot' | 'tier' | 'price' | 'source' | 'season' | 'assetId'
-  | 'visibleFrom' | 'visibleTo' | 'flags'
+  | 'name'
+  | 'sub'
+  | 'slot'
+  | 'tier'
+  | 'price'
+  | 'source'
+  | 'season'
+  | 'assetId'
+  | 'visibleFrom'
+  | 'visibleTo'
+  | 'flags'
 >
 
 /** 슬롯의 정렬 순서. 타입의 열거 짝이라 여기 둔다. */

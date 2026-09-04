@@ -46,7 +46,12 @@ function groupOf(id: ScreenId): string {
 export function openableScreens(): PaletteItem[] {
   return (Object.keys(SCREENS) as ScreenId[])
     .filter((id) => !SCREENS[id].path.includes('/:'))
-    .map((id) => ({ screen: id, label: SCREENS[id].label, group: groupOf(id), path: SCREENS[id].path }))
+    .map((id) => ({
+      screen: id,
+      label: SCREENS[id].label,
+      group: groupOf(id),
+      path: SCREENS[id].path,
+    }))
 }
 
 /**
@@ -85,11 +90,13 @@ export function searchScreens(viewer: Viewer, q: string): PaletteItem[] {
   const needle = squash(q)
   if (!needle) return allowed
 
-  return allowed
-    .map((item) => ({ item, rank: score(item, needle) }))
-    .filter((r): r is { item: PaletteItem; rank: number } => r.rank !== null)
-    // ⚠️ **같은 점수면 사이드바 순서를 지킨다.** 정렬이 안정적이지 않으면 같은 검색어에
-    //    매번 다른 차례가 나와서, 손가락이 기억한 자리를 못 믿게 된다.
-    .sort((a, b) => a.rank - b.rank)
-    .map((r) => r.item)
+  return (
+    allowed
+      .map((item) => ({ item, rank: score(item, needle) }))
+      .filter((r): r is { item: PaletteItem; rank: number } => r.rank !== null)
+      // ⚠️ **같은 점수면 사이드바 순서를 지킨다.** 정렬이 안정적이지 않으면 같은 검색어에
+      //    매번 다른 차례가 나와서, 손가락이 기억한 자리를 못 믿게 된다.
+      .sort((a, b) => a.rank - b.rank)
+      .map((r) => r.item)
+  )
 }

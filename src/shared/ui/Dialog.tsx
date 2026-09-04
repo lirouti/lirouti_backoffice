@@ -1,4 +1,11 @@
-import { useEffect, useId, useRef, type MouseEvent, type ReactNode, type SyntheticEvent } from 'react'
+import {
+  useEffect,
+  useId,
+  useRef,
+  type MouseEvent,
+  type ReactNode,
+  type SyntheticEvent,
+} from 'react'
 
 import { css } from 'styled-system/css'
 
@@ -124,8 +131,19 @@ export function Dialog({
               })}
             >
               <svg width="17" height="17" viewBox="0 0 16 16">
-                <path d="M8,2.5 L14.5,13.5 H1.5 Z" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
-                <path d="M8,6.5 V9.4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+                <path
+                  d="M8,2.5 L14.5,13.5 H1.5 Z"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M8,6.5 V9.4"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  strokeLinecap="round"
+                />
                 <circle cx="8" cy="11.4" r="0.9" fill="currentColor" />
               </svg>
             </span>
@@ -142,7 +160,14 @@ export function Dialog({
 
         {children && <div className={css({ mt: '16px' })}>{children}</div>}
 
-        <div className={css({ display: 'flex', gap: '7px', justifyContent: 'flex-end', mt: '20px' })}>
+        <div
+          className={css({
+            display: 'flex',
+            gap: '7px',
+            justifyContent: 'flex-end',
+            mt: '20px',
+          })}
+        >
           <Button onClick={onCancel}>{cancelLabel}</Button>
           <Button
             variant={danger ? 'danger' : 'primary'}

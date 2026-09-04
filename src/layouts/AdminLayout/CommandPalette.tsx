@@ -128,7 +128,9 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
           role="combobox"
           aria-expanded
           aria-controls={listId}
-          aria-activedescendant={found[cursor] ? `${listId}-${found[cursor].screen}` : undefined}
+          aria-activedescendant={
+            found[cursor] ? `${listId}-${found[cursor].screen}` : undefined
+          }
           autoComplete="off"
           className={css({
             w: '100%',
@@ -145,7 +147,15 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
       </div>
 
       {found.length === 0 ? (
-        <p className={css({ m: '0', p: '22px 16px', textAlign: 'center', textStyle: 'label', color: 'sub' })}>
+        <p
+          className={css({
+            m: '0',
+            p: '22px 16px',
+            textAlign: 'center',
+            textStyle: 'label',
+            color: 'sub',
+          })}
+        >
           찾는 화면이 없습니다.
         </p>
       ) : (
@@ -153,7 +163,13 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
           id={listId}
           role="listbox"
           aria-label="화면"
-          className={css({ listStyle: 'none', m: '0', p: '6px', maxHeight: '52vh', overflowY: 'auto' })}
+          className={css({
+            listStyle: 'none',
+            m: '0',
+            p: '6px',
+            maxHeight: '52vh',
+            overflowY: 'auto',
+          })}
         >
           {found.map((item, i) => (
             <li key={item.screen}>
@@ -184,9 +200,13 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
                   color: i === cursor ? 'priD' : 'ink',
                 })}
               >
-                <span className={css({ textStyle: 'label', fontWeight: '600' })}>{item.label}</span>
+                <span className={css({ textStyle: 'label', fontWeight: '600' })}>
+                  {item.label}
+                </span>
                 {item.group !== '' && (
-                  <span className={css({ textStyle: 'micro', color: 'faint' })}>{item.group}</span>
+                  <span className={css({ textStyle: 'micro', color: 'faint' })}>
+                    {item.group}
+                  </span>
                 )}
               </button>
             </li>

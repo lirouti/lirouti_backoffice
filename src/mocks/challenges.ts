@@ -1,15 +1,41 @@
 /** 챌린지 목 데이터. 원본 `build()` 의 일상/주간/시즌 × 6개 구성을 유지한다. */
 import { rng } from '@/shared/lib/rng'
 
-import { CHALLENGE_CONDS, type Challenge, type ChallengeInput, type ChallengeKind } from '@/domain/challenge'
+import {
+  CHALLENGE_CONDS,
+  type Challenge,
+  type ChallengeInput,
+  type ChallengeKind,
+} from '@/domain/challenge'
 import { SLOT_ORDER, type Slot } from '@/domain/item'
 
 import { ASSETS } from './assetTable'
 
 const TITLES: Record<ChallengeKind, string[]> = {
-  DAILY: ['오늘 출석하기', '옷 갈아입히기', '이모티콘 보내기', '배경 바꾸기', '먹이 주기', '산책 나가기'],
-  WEEKLY: ['7일 연속 출석', '아이템 3개 착용', '친구 2명 초대', '챌린지 10회 달성', '젬 300개 사용', '도감 5칸 채우기'],
-  SEASON: ['시즌 도감 완성', '유료 의상 수집', '30일 개근', '전 배경 해금', '업적 8개 달성', '레벨 20 도달'],
+  DAILY: [
+    '오늘 출석하기',
+    '옷 갈아입히기',
+    '이모티콘 보내기',
+    '배경 바꾸기',
+    '먹이 주기',
+    '산책 나가기',
+  ],
+  WEEKLY: [
+    '7일 연속 출석',
+    '아이템 3개 착용',
+    '친구 2명 초대',
+    '챌린지 10회 달성',
+    '젬 300개 사용',
+    '도감 5칸 채우기',
+  ],
+  SEASON: [
+    '시즌 도감 완성',
+    '유료 의상 수집',
+    '30일 개근',
+    '전 배경 해금',
+    '업적 8개 달성',
+    '레벨 20 도달',
+  ],
 }
 
 /**
@@ -35,7 +61,8 @@ export function allChallenges(): Challenge[] {
       const r = rng(ki * 10 + i + 3)
       const rate = Math.round(18 + r() * 74)
       const status = r() < 0.15 ? 'ENDED' : r() < 0.12 ? 'SCHEDULED' : 'ACTIVE'
-      const gem = kind === 'DAILY' ? 10 + i * 5 : kind === 'WEEKLY' ? 80 + i * 20 : 400 + i * 100
+      const gem =
+        kind === 'DAILY' ? 10 + i * 5 : kind === 'WEEKLY' ? 80 + i * 20 : 400 + i * 100
 
       // 시즌 챌린지와 3의 배수 인덱스에만 보상 아이템이 붙는다 (원본 규칙)
       const slot: Slot = SLOT_ORDER[i % 4]!

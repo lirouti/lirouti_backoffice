@@ -24,8 +24,10 @@ export function validateBackground(input: BackgroundInput): BackgroundInputError
   if (!Number.isFinite(input.price)) errors.price = '가격이 너무 큽니다.'
 
   // 등급과 가격은 서로를 구속한다. 유료인데 0원이면 상점에서 공짜로 나간다 (아이템과 같은 규칙).
-  else if (input.tier === 'PAID' && input.price <= 0) errors.price = '유료 배경은 가격을 입력하세요.'
-  else if (input.tier === 'FREE' && input.price !== 0) errors.price = '무료 배경은 가격이 0이어야 합니다.'
+  else if (input.tier === 'PAID' && input.price <= 0)
+    errors.price = '유료 배경은 가격을 입력하세요.'
+  else if (input.tier === 'FREE' && input.price !== 0)
+    errors.price = '무료 배경은 가격이 0이어야 합니다.'
 
   return errors
 }

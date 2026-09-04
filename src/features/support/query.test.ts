@@ -5,7 +5,9 @@ import { inquiriesQueryOf, inquiryScopeLabel, parseInquiryQuery } from './query'
 
 describe('문의 목록 query', () => {
   it('회원 UID와 기존 필터를 함께 읽는다', () => {
-    expect(parseInquiryQuery(new URLSearchParams('who=U-10240&tab=대기&cat=버그&q=부화'))).toEqual({
+    expect(
+      parseInquiryQuery(new URLSearchParams('who=U-10240&tab=대기&cat=버그&q=부화')),
+    ).toEqual({
       filter: { tab: '대기', category: '버그', q: '부화' },
       userUid: 'U-10240',
     })

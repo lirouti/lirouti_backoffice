@@ -55,7 +55,13 @@ export default function PushDetailPage() {
   return <Detail detail={data} pushId={pushId} />
 }
 
-function Detail({ detail: { push: p, hours, failures }, pushId }: { detail: PushDetail; pushId: string }) {
+function Detail({
+  detail: { push: p, hours, failures },
+  pushId,
+}: {
+  detail: PushDetail
+  pushId: string
+}) {
   const navigate = useNavigate()
   const cancel = useCancelSchedule()
   const [asking, setAsking] = useState(false)
@@ -74,7 +80,11 @@ function Detail({ detail: { push: p, hours, failures }, pushId }: { detail: Push
           <>
             <Button onClick={() => navigate(SCREENS.push.path)}>목록</Button>
             {canCancel(p.status) && (
-              <Button variant="danger" onClick={() => setAsking(true)} disabled={cancel.isPending}>
+              <Button
+                variant="danger"
+                onClick={() => setAsking(true)}
+                disabled={cancel.isPending}
+              >
                 예약 취소
               </Button>
             )}
@@ -94,7 +104,15 @@ function Detail({ detail: { push: p, hours, failures }, pushId }: { detail: Push
 
       {cancel.error && <ErrorBanner message={cancel.error.message} />}
 
-      <div className={css({ display: 'flex', alignItems: 'center', gap: '8px', mb: '16px', flexWrap: 'wrap' })}>
+      <div
+        className={css({
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          mb: '16px',
+          flexWrap: 'wrap',
+        })}
+      >
         <Badge tone={PUSH_KIND_TONE[p.kind]}>{PUSH_KIND_LABEL[p.kind]}</Badge>
         <Badge tone={PUSH_STATUS_TONE[p.status]}>{p.status}</Badge>
         <span className={css({ textStyle: 'caption', color: 'faint' })}>{p.at}</span>
@@ -114,28 +132,53 @@ function Detail({ detail: { push: p, hours, failures }, pushId }: { detail: Push
         <StatTile label="열림률" value={rate === null ? '—' : `${rate}%`} />
       </div>
 
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '18px', alignItems: 'flex-start' })}>
+      <div
+        className={css({
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '18px',
+          alignItems: 'flex-start',
+        })}
+      >
         <Card className={css({ flex: '2 1 420px', minWidth: '0', p: '17px 20px' })}>
           <CardTitle title="발송 후 시간대별 열림" sub="발송 시각 기준 12시간" />
           {sent ? (
             <div className={css({ mt: '10px' })}>
-              <BarChart
-                groups={groups}
-                max={Math.max(1, ...hours)}
-                legend={['열림']}
-              />
+              <BarChart groups={groups} max={Math.max(1, ...hours)} legend={['열림']} />
             </div>
           ) : (
-            <p className={css({ m: '20px 0', textAlign: 'center', textStyle: 'body', color: 'faint' })}>
+            <p
+              className={css({
+                m: '20px 0',
+                textAlign: 'center',
+                textStyle: 'body',
+                color: 'faint',
+              })}
+            >
               아직 보내지 않았습니다.
             </p>
           )}
         </Card>
 
-        <div className={css({ flex: '1 1 280px', minWidth: '0', display: 'flex', flexDirection: 'column', gap: '18px' })}>
+        <div
+          className={css({
+            flex: '1 1 280px',
+            minWidth: '0',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '18px',
+          })}
+        >
           <Card className={css({ p: '15px' })}>
             <CardTitle title="설정" />
-            <dl className={css({ m: '12px 0 0', display: 'flex', flexDirection: 'column', gap: '9px' })}>
+            <dl
+              className={css({
+                m: '12px 0 0',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '9px',
+              })}
+            >
               <Row k="대상" v={p.audience} />
               <Row k="이동" v={p.link} />
               <Row k="발송자" v={p.by} />
@@ -151,7 +194,14 @@ function Detail({ detail: { push: p, hours, failures }, pushId }: { detail: Push
               </p>
             ) : (
               <>
-                <dl className={css({ m: '12px 0 0', display: 'flex', flexDirection: 'column', gap: '9px' })}>
+                <dl
+                  className={css({
+                    m: '12px 0 0',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '9px',
+                  })}
+                >
                   {failures.map((f) => (
                     <Row key={f.why} k={f.why} v={`${num(f.count)}명`} />
                   ))}
@@ -181,8 +231,22 @@ function Detail({ detail: { push: p, hours, failures }, pushId }: { detail: Push
 function Row({ k, v }: { k: string; v: string }) {
   return (
     <div className={css({ display: 'flex', alignItems: 'center', gap: '10px' })}>
-      <dt className={css({ flex: 'none', width: '78px', textStyle: 'caption', color: 'faint' })}>{k}</dt>
-      <dd className={css({ m: '0', flex: '1', minWidth: '0', textAlign: 'right', textStyle: 'label', fontWeight: '600', color: 'ink' })}>
+      <dt
+        className={css({ flex: 'none', width: '78px', textStyle: 'caption', color: 'faint' })}
+      >
+        {k}
+      </dt>
+      <dd
+        className={css({
+          m: '0',
+          flex: '1',
+          minWidth: '0',
+          textAlign: 'right',
+          textStyle: 'label',
+          fontWeight: '600',
+          color: 'ink',
+        })}
+      >
         {v}
       </dd>
     </div>

@@ -47,7 +47,6 @@ export function AdminLayout() {
   // 같은 탭 안에서 화면을 옮기면 앞의 화면이 파기된다 — 저장 안 된 게 있으면 먼저 묻는다.
   const blocker = useUnsavedNavGuard()
 
-
   // 저장 안 된 변경이 있으면 새로고침·닫기를 막는다.
   // (문구는 브라우저가 정한다 — 우리가 못 바꾼다. stores/dirtyStore.ts 참고)
   useBeforeUnloadWhenDirty()
@@ -112,7 +111,9 @@ export function AdminLayout() {
   return (
     <div className={css({ display: 'flex', minHeight: '100vh' })}>
       <Sidebar />
-      <div className={css({ flex: '1', minWidth: '0', display: 'flex', flexDirection: 'column' })}>
+      <div
+        className={css({ flex: '1', minWidth: '0', display: 'flex', flexDirection: 'column' })}
+      >
         <div
           className={css({
             position: 'sticky',

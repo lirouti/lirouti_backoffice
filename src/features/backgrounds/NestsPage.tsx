@@ -24,7 +24,10 @@ export default function NestsPage() {
 
   return (
     <>
-      <PageHeader title="둥지" sub="발밑 단계입니다. 함께한 일수로 해금되며 소품이 늘어납니다." />
+      <PageHeader
+        title="둥지"
+        sub="발밑 단계입니다. 함께한 일수로 해금되며 소품이 늘어납니다."
+      />
 
       {error ? (
         <ErrorBanner message={error.message} />
@@ -88,7 +91,9 @@ function NestCard({ nest: n }: { nest: Nest }) {
         </span>
       </div>
       <div className={css({ p: '10px 12px 12px', borderTop: '1px solid token(colors.ln)' })}>
-        <div className={css({ textStyle: 'label', fontWeight: '700', color: 'ink' })}>{n.name}</div>
+        <div className={css({ textStyle: 'label', fontWeight: '700', color: 'ink' })}>
+          {n.name}
+        </div>
         <div className={css({ mt: '3px', textStyle: 'micro', color: 'faint' })}>{n.sub}</div>
       </div>
     </Card>

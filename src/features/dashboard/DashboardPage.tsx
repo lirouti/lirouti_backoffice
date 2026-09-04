@@ -58,33 +58,41 @@ export default function DashboardPage() {
         <ScreenState tone="danger">{error.message}</ScreenState>
       ) : (
         <>
-      <div
-        className={css({
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '12px',
-        })}
-      >
-        {data.kpis.map((k) => (
-          <StatCard key={k.label} {...k} />
-        ))}
-      </div>
+          <div
+            className={css({
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '12px',
+            })}
+          >
+            {data.kpis.map((k) => (
+              <StatCard key={k.label} {...k} />
+            ))}
+          </div>
 
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '14px', mt: '14px' })}>
-        <Card className={css({ flex: '1 1 520px', p: '17px 19px 12px' })}>
-          <CardTitle title="일간 활성 유저" sub="최근 14일 · 천 명" />
-          <LineChart values={data.dau.values} domain={data.dau.domain} ticks={data.dau.ticks} />
-        </Card>
-        <Card className={css({ flex: '1 1 340px', p: '17px 19px 12px' })}>
-          <CardTitle title="젬 유입 · 소비" sub="주간 · 백만" />
-          <BarChart groups={data.gemFlow.groups} max={data.gemFlow.max} legend={['유입', '소비']} />
-        </Card>
-      </div>
+          <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '14px', mt: '14px' })}>
+            <Card className={css({ flex: '1 1 520px', p: '17px 19px 12px' })}>
+              <CardTitle title="일간 활성 유저" sub="최근 14일 · 천 명" />
+              <LineChart
+                values={data.dau.values}
+                domain={data.dau.domain}
+                ticks={data.dau.ticks}
+              />
+            </Card>
+            <Card className={css({ flex: '1 1 340px', p: '17px 19px 12px' })}>
+              <CardTitle title="젬 유입 · 소비" sub="주간 · 백만" />
+              <BarChart
+                groups={data.gemFlow.groups}
+                max={data.gemFlow.max}
+                legend={['유입', '소비']}
+              />
+            </Card>
+          </div>
 
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '14px', mt: '14px' })}>
-        <TopItemsCard items={data.topItems} />
-        <LiveChallengesCard challenges={data.liveChallenges} />
-      </div>
+          <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '14px', mt: '14px' })}>
+            <TopItemsCard items={data.topItems} />
+            <LiveChallengesCard challenges={data.liveChallenges} />
+          </div>
         </>
       )}
     </>

@@ -20,7 +20,9 @@ export function RequireAuth({ children }: { children: ReactNode }) {
   const location = useLocation()
 
   if (!viewer) {
-    return <Navigate to={LOGIN_PATH} replace state={{ from: location.pathname + location.search }} />
+    return (
+      <Navigate to={LOGIN_PATH} replace state={{ from: location.pathname + location.search }} />
+    )
   }
   return <>{children}</>
 }

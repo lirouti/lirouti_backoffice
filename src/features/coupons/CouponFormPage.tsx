@@ -105,18 +105,31 @@ export default function CouponFormPage() {
   if (error || !data)
     return <ErrorBanner message={error?.message ?? '쿠폰 목록을 불러오지 못했습니다.'} />
 
-  const set = <K extends keyof CouponInput>(k: K, v: CouponInput[K]) => setForm((f) => ({ ...f, [k]: v }))
+  const set = <K extends keyof CouponInput>(k: K, v: CouponInput[K]) =>
+    setForm((f) => ({ ...f, [k]: v }))
   const setLimit = <K extends keyof CouponInput['limits']>(k: K, v: CouponInput['limits'][K]) =>
     set('limits', { ...form.limits, [k]: v })
   const setReward = (i: number, patch: Partial<CouponReward>) =>
-    set('rewards', form.rewards.map((r, at) => (at === i ? { ...r, ...patch } : r)))
+    set(
+      'rewards',
+      form.rewards.map((r, at) => (at === i ? { ...r, ...patch } : r)),
+    )
 
   const back = () => navigate(SCREENS.coupons.path)
 
   const commit = () => {
     setTried(true)
     if (Object.keys(errors).length > 0) return
-    issue.mutate({ input: form, by: viewer.name }, { onSuccess: () => { draft.clear(); markSaved(); back() } })
+    issue.mutate(
+      { input: form, by: viewer.name },
+      {
+        onSuccess: () => {
+          draft.clear()
+          markSaved()
+          back()
+        },
+      },
+    )
   }
 
   // 일괄·시리얼은 개별 코드를 서버가 만든다 — 화면은 접두사만 보여 준다.
@@ -155,11 +168,33 @@ export default function CouponFormPage() {
 
       {issue.error && <ErrorBanner message={issue.error.message} />}
 
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '18px', alignItems: 'flex-start' })}>
-        <div className={css({ flex: '2 1 420px', minWidth: '0', display: 'flex', flexDirection: 'column', gap: '18px' })}>
+      <div
+        className={css({
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '18px',
+          alignItems: 'flex-start',
+        })}
+      >
+        <div
+          className={css({
+            flex: '2 1 420px',
+            minWidth: '0',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '18px',
+          })}
+        >
           <Card className={css({ p: '15px 17px' })}>
             <CardTitle title="발급 방식" sub="코드가 하나인지 여럿인지가 여기서 갈립니다." />
-            <div className={css({ display: 'flex', flexDirection: 'column', gap: '8px', mt: '13px' })}>
+            <div
+              className={css({
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+                mt: '13px',
+              })}
+            >
               {COUPON_KINDS.map((k) => (
                 <KindOption key={k} kind={k} on={form.kind === k} pick={() => set('kind', k)} />
               ))}
@@ -168,7 +203,14 @@ export default function CouponFormPage() {
 
           <Card className={css({ p: '15px 17px' })}>
             <CardTitle title="기본 정보" />
-            <div className={css({ display: 'flex', flexDirection: 'column', gap: '13px', mt: '13px' })}>
+            <div
+              className={css({
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '13px',
+                mt: '13px',
+              })}
+            >
               <Input
                 value={form.name}
                 onChange={(v) => set('name', v)}
@@ -221,27 +263,59 @@ export default function CouponFormPage() {
           </Card>
 
           <Card className={css({ p: '15px 17px' })}>
-            <div className={css({ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' })}>
+            <div
+              className={css({
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                flexWrap: 'wrap',
+              })}
+            >
               <div className={css({ flex: '1 1 160px', minWidth: '0' })}>
-                <CardTitle title="보상 묶음" sub="한 쿠폰으로 여러 항목을 한 번에 지급합니다." />
+                <CardTitle
+                  title="보상 묶음"
+                  sub="한 쿠폰으로 여러 항목을 한 번에 지급합니다."
+                />
               </div>
-              <Button onClick={() => set('rewards', [...form.rewards, newReward()])}>항목 추가</Button>
+              <Button onClick={() => set('rewards', [...form.rewards, newReward()])}>
+                항목 추가
+              </Button>
             </div>
 
             {tried && errors.rewards && (
-              <p className={css({ m: '10px 0 0', textStyle: 'caption', color: 'rFg' })}>{errors.rewards}</p>
+              <p className={css({ m: '10px 0 0', textStyle: 'caption', color: 'rFg' })}>
+                {errors.rewards}
+              </p>
             )}
 
-            <div className={css({ display: 'flex', flexDirection: 'column', gap: '10px', mt: '13px' })}>
+            <div
+              className={css({
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px',
+                mt: '13px',
+              })}
+            >
               {form.rewards.map((r, i) => (
-                <div key={i} className={css({ display: 'flex', alignItems: 'flex-end', gap: '8px', flexWrap: 'wrap' })}>
+                <div
+                  key={i}
+                  className={css({
+                    display: 'flex',
+                    alignItems: 'flex-end',
+                    gap: '8px',
+                    flexWrap: 'wrap',
+                  })}
+                >
                   <div className={css({ flex: '0 1 110px', minWidth: '0' })}>
                     <Select
                       value={r.kind}
                       onChange={(v) => setReward(i, { kind: v as CouponReward['kind'] })}
                       label={i === 0 ? '종류' : undefined}
                       aria-label={`${i + 1}번 보상 종류`}
-                      options={REWARD_KINDS.map((k) => ({ value: k, label: REWARD_KIND_LABEL[k] }))}
+                      options={REWARD_KINDS.map((k) => ({
+                        value: k,
+                        label: REWARD_KIND_LABEL[k],
+                      }))}
                     />
                   </div>
                   <div className={css({ flex: '1 1 130px', minWidth: '0' })}>
@@ -265,7 +339,12 @@ export default function CouponFormPage() {
                   <Button
                     variant="danger"
                     disabled={form.rewards.length <= 1}
-                    onClick={() => set('rewards', form.rewards.filter((_, at) => at !== i))}
+                    onClick={() =>
+                      set(
+                        'rewards',
+                        form.rewards.filter((_, at) => at !== i),
+                      )
+                    }
                     aria-label={`${i + 1}번 보상 삭제`}
                   >
                     삭제
@@ -277,7 +356,14 @@ export default function CouponFormPage() {
 
           <Card className={css({ p: '15px 17px' })}>
             <CardTitle title="사용 제한" />
-            <div className={css({ display: 'flex', flexDirection: 'column', gap: '13px', mt: '13px' })}>
+            <div
+              className={css({
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '13px',
+                mt: '13px',
+              })}
+            >
               <Switch
                 checked={form.limits.perUser}
                 onChange={(v) => setLimit('perUser', v)}
@@ -353,7 +439,9 @@ export default function CouponFormPage() {
               textAlign: 'center',
             })}
           >
-            <div className={css({ textStyle: 'micro', color: 'sub' })}>{COUPON_KIND_LABEL[form.kind]}</div>
+            <div className={css({ textStyle: 'micro', color: 'sub' })}>
+              {COUPON_KIND_LABEL[form.kind]}
+            </div>
             <div
               className={css({
                 mt: '7px',
@@ -373,12 +461,23 @@ export default function CouponFormPage() {
             </div>
           </div>
 
-          <dl className={css({ m: '13px 0 0', display: 'flex', flexDirection: 'column', gap: '9px' })}>
+          <dl
+            className={css({
+              m: '13px 0 0',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '9px',
+            })}
+          >
             <Row k="보상" v={`${num(form.rewards.length)}개 항목`} />
             <Row k="발급 수량" v={single ? '무제한' : `${num(form.qty)}개`} />
             <Row
               k="기간"
-              v={form.limits.dated && form.startAt && form.endAt ? `${form.startAt.slice(5)} – ${form.endAt.slice(5)}` : '제한 없음'}
+              v={
+                form.limits.dated && form.startAt && form.endAt
+                  ? `${form.startAt.slice(5)} – ${form.endAt.slice(5)}`
+                  : '제한 없음'
+              }
             />
           </dl>
 
@@ -414,7 +513,14 @@ function KindOption({ kind, on, pick }: { kind: CouponKind; on: boolean; pick: (
         _focusVisible: { outline: '2px solid token(colors.ringBd)', outlineOffset: '2px' },
       })}
     >
-      <span className={css({ display: 'block', textStyle: 'label', fontWeight: '700', color: on ? 'priD' : 'ink' })}>
+      <span
+        className={css({
+          display: 'block',
+          textStyle: 'label',
+          fontWeight: '700',
+          color: on ? 'priD' : 'ink',
+        })}
+      >
         {COUPON_KIND_LABEL[kind]}
       </span>
       <span className={css({ display: 'block', mt: '2px', textStyle: 'micro', color: 'sub' })}>
@@ -427,8 +533,22 @@ function KindOption({ kind, on, pick }: { kind: CouponKind; on: boolean; pick: (
 function Row({ k, v }: { k: string; v: string }) {
   return (
     <div className={css({ display: 'flex', alignItems: 'center', gap: '10px' })}>
-      <dt className={css({ flex: 'none', width: '72px', textStyle: 'caption', color: 'faint' })}>{k}</dt>
-      <dd className={css({ m: '0', flex: '1', minWidth: '0', textAlign: 'right', textStyle: 'label', fontWeight: '600', color: 'ink' })}>
+      <dt
+        className={css({ flex: 'none', width: '72px', textStyle: 'caption', color: 'faint' })}
+      >
+        {k}
+      </dt>
+      <dd
+        className={css({
+          m: '0',
+          flex: '1',
+          minWidth: '0',
+          textAlign: 'right',
+          textStyle: 'label',
+          fontWeight: '600',
+          color: 'ink',
+        })}
+      >
         {v}
       </dd>
     </div>

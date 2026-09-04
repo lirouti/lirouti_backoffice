@@ -355,13 +355,14 @@ function DemoNotice() {
         lineHeight: '19px',
       })}
     >
-      <strong className={css({ fontWeight: '700' })}>데모 환경입니다.</strong> 실제 데이터가 아니며
-      아무 계정으로 들어옵니다 — <strong className={css({ fontWeight: '700' })}>이메일 형식 아이디</strong>와{' '}
+      <strong className={css({ fontWeight: '700' })}>데모 환경입니다.</strong> 실제 데이터가
+      아니며 아무 계정으로 들어옵니다 —{' '}
+      <strong className={css({ fontWeight: '700' })}>이메일 형식 아이디</strong>와{' '}
       <strong className={css({ fontWeight: '700' })}>8자 이상 비밀번호</strong>, 인증 코드는{' '}
       <code className={css({ fontFamily: 'mono' })}>000000</code> 이 아닌 아무 6자리.
       <br />
-      아이디를 <code className={css({ fontFamily: 'mono' })}>op@</code> 로 시작하면 권한이 제한된
-      운영자 화면을 볼 수 있습니다.
+      아이디를 <code className={css({ fontFamily: 'mono' })}>op@</code> 로 시작하면 권한이
+      제한된 운영자 화면을 볼 수 있습니다.
     </div>
   )
 }

@@ -42,7 +42,9 @@ const filterOf = (p: URLSearchParams): CouponFilter => {
 }
 
 const period = (e: CouponEntry): string =>
-  e.coupon.limits.dated ? `${e.coupon.startAt.slice(5)} – ${e.coupon.endAt.slice(5)}` : '제한 없음'
+  e.coupon.limits.dated
+    ? `${e.coupon.startAt.slice(5)} – ${e.coupon.endAt.slice(5)}`
+    : '제한 없음'
 
 const COLUMNS: Column<CouponEntry>[] = [
   {
@@ -51,8 +53,17 @@ const COLUMNS: Column<CouponEntry>[] = [
     minWidth: '180px',
     render: (e) => (
       <span>
-        <span className={css({ display: 'block', fontWeight: '600', color: 'ink' })}>{e.coupon.name}</span>
-        <span className={css({ display: 'block', fontFamily: 'mono', textStyle: 'micro', color: 'faint' })}>
+        <span className={css({ display: 'block', fontWeight: '600', color: 'ink' })}>
+          {e.coupon.name}
+        </span>
+        <span
+          className={css({
+            display: 'block',
+            fontFamily: 'mono',
+            textStyle: 'micro',
+            color: 'faint',
+          })}
+        >
           {e.coupon.code}
         </span>
       </span>
@@ -62,7 +73,9 @@ const COLUMNS: Column<CouponEntry>[] = [
     key: 'kind',
     label: '방식',
     width: '116px',
-    render: (e) => <Badge tone={COUPON_KIND_TONE[e.coupon.kind]}>{COUPON_KIND_LABEL[e.coupon.kind]}</Badge>,
+    render: (e) => (
+      <Badge tone={COUPON_KIND_TONE[e.coupon.kind]}>{COUPON_KIND_LABEL[e.coupon.kind]}</Badge>
+    ),
   },
   {
     key: 'rewards',
@@ -91,7 +104,14 @@ const COLUMNS: Column<CouponEntry>[] = [
           <span className={css({ flex: '1', minWidth: '60px' })}>
             <ProgressBar rate={rate} label={`${e.coupon.name} 사용률`} tone="plain" />
           </span>
-          <span className={css({ flex: 'none', textStyle: 'caption', color: 'sub', whiteSpace: 'nowrap' })}>
+          <span
+            className={css({
+              flex: 'none',
+              textStyle: 'caption',
+              color: 'sub',
+              whiteSpace: 'nowrap',
+            })}
+          >
             {num(e.coupon.used)} / {num(e.coupon.issued)}
           </span>
         </span>
@@ -152,7 +172,15 @@ export default function CouponsPage() {
         <SkeletonStats count={4} min={150} silent className={css({ mb: '16px' })} />
       ) : null}
 
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center', mb: '14px' })}>
+      <div
+        className={css({
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '10px',
+          alignItems: 'center',
+          mb: '14px',
+        })}
+      >
         <Input
           value={f.q ?? ''}
           onChange={(v) => patch('q', v)}
@@ -178,7 +206,9 @@ export default function CouponsPage() {
           rows={data?.coupons ?? []}
           minWidth={1020}
           rowKey={(e) => String(e.coupon.key)}
-          onRowClick={(e) => navigate(SCREENS.coupondet.path.replace(':couponId', String(e.coupon.key)))}
+          onRowClick={(e) =>
+            navigate(SCREENS.coupondet.path.replace(':couponId', String(e.coupon.key)))
+          }
         />
       )}
     </>

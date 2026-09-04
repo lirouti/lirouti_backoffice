@@ -51,10 +51,7 @@ type ColumnStyle = {
  * - `render` 가 없으면 `key` 는 **행에서 꺼낼 필드 이름**이라 실재해야 한다
  */
 export type Column<Row> = ColumnStyle &
-  (
-    | { key: string; render: (row: Row) => ReactNode }
-    | { key: FieldKey<Row>; render?: never }
-  )
+  ({ key: string; render: (row: Row) => ReactNode } | { key: FieldKey<Row>; render?: never })
 
 /**
  * `T` 가 `any` 인가.
@@ -170,7 +167,11 @@ export function Table<Row>({
                     감출 때도 **글자는 DOM 에 남긴다.** 안 그리면 `<th>` 가 비어서 헤더로
                     안 쳐지고, 그 열의 칸들이 헤더를 잃는다 (§38).
                   */}
-                  {c.labelHidden ? <span className={css({ srOnly: true })}>{c.label}</span> : c.label}
+                  {c.labelHidden ? (
+                    <span className={css({ srOnly: true })}>{c.label}</span>
+                  ) : (
+                    c.label
+                  )}
                 </th>
               ))}
             </tr>
@@ -197,7 +198,10 @@ export function Table<Row>({
                   transition: 'background .12s',
                   '&[data-selected]': { bg: 'prev2' },
                   '&:hover:not([data-selected])': { bg: 'hov' },
-                  _focusVisible: { outline: '2px solid token(colors.ringBd)', outlineOffset: '-2px' },
+                  _focusVisible: {
+                    outline: '2px solid token(colors.ringBd)',
+                    outlineOffset: '-2px',
+                  },
                 })}
               >
                 {columns.map((c) => (
@@ -215,7 +219,13 @@ export function Table<Row>({
                     {c.render ? (
                       c.render(row)
                     ) : c.truncate ? (
-                      <div className={css({ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' })}>
+                      <div
+                        className={css({
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        })}
+                      >
                         {value(row, c)}
                       </div>
                     ) : (

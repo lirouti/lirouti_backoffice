@@ -349,12 +349,24 @@ export default function GrantsPage() {
   )
 }
 
-function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+function Field({
+  label,
+  hint,
+  children,
+}: {
+  label: string
+  hint?: string
+  children: React.ReactNode
+}) {
   return (
     <div>
-      <div className={css({ mb: '6px', textStyle: 'label', fontWeight: '600', color: 'ink' })}>{label}</div>
+      <div className={css({ mb: '6px', textStyle: 'label', fontWeight: '600', color: 'ink' })}>
+        {label}
+      </div>
       {children}
-      {hint && <p className={css({ m: '5px 0 0', textStyle: 'micro', color: 'faint' })}>{hint}</p>}
+      {hint && (
+        <p className={css({ m: '5px 0 0', textStyle: 'micro', color: 'faint' })}>{hint}</p>
+      )}
     </div>
   )
 }

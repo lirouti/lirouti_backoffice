@@ -18,7 +18,9 @@ type CheckboxProps = {
 
 export function Checkbox({ checked, onChange, label }: CheckboxProps) {
   return (
-    <label className={css({ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' })}>
+    <label
+      className={css({ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' })}
+    >
       <input
         type="checkbox"
         checked={checked}
@@ -41,7 +43,10 @@ export function Checkbox({ checked, onChange, label }: CheckboxProps) {
           justifyContent: 'center',
           color: checked ? 'onPri' : 'transparent',
           // input 을 숨겼으므로 포커스 링을 이 네모가 대신 받아야 키보드 사용자가 위치를 안다.
-          _peerFocusVisible: { boxShadow: '0 0 0 3px token(colors.ring)', borderColor: 'ringBd' },
+          _peerFocusVisible: {
+            boxShadow: '0 0 0 3px token(colors.ring)',
+            borderColor: 'ringBd',
+          },
         })}
       >
         <svg width="11" height="11" viewBox="0 0 12 12">

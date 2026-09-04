@@ -44,7 +44,14 @@ export function Sidebar() {
         height: '100vh',
       })}
     >
-      <div className={css({ display: 'flex', alignItems: 'center', gap: '10px', p: '18px 18px 16px' })}>
+      <div
+        className={css({
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          p: '18px 18px 16px',
+        })}
+      >
         {/* 로고가 이미 파란 그라디언트라 배경 사각형을 씌우면 겹친다. 그대로 놓는다. */}
         <img
           src={LOGO}
@@ -54,7 +61,9 @@ export function Sidebar() {
           className={css({ flex: 'none', display: 'block' })}
         />
         <div>
-          <div className={css({ textStyle: 'body', fontWeight: '700', color: 'ink' })}>리루티</div>
+          <div className={css({ textStyle: 'body', fontWeight: '700', color: 'ink' })}>
+            리루티
+          </div>
           <div className={css({ textStyle: 'micro', color: 'faint' })}>운영 어드민</div>
         </div>
       </div>
@@ -230,7 +239,14 @@ function Group({ group, isActiveGroup }: { group: NavGroup; isActiveGroup: boole
       </button>
 
       {expanded && (
-        <div className={css({ display: 'flex', flexDirection: 'column', gap: '1px', p: '2px 0 4px' })}>
+        <div
+          className={css({
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1px',
+            p: '2px 0 4px',
+          })}
+        >
           {group.children.map((c) => (
             <NavLink
               key={c.screen}
@@ -314,7 +330,14 @@ function SignOutButton() {
           strokeWidth="1.5"
           strokeLinecap="round"
         />
-        <path d="M10,5 L13,8 L10,11 M13,8 H6" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path
+          d="M10,5 L13,8 L10,11 M13,8 H6"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       </svg>
     </button>
   )

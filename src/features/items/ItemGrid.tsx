@@ -79,7 +79,11 @@ function Tile({ item, onOpen }: { item: Item; onOpen: () => void }) {
         overflow: 'hidden',
         cursor: 'pointer',
         _hover: { borderColor: 'chart', boxShadow: '0 4px 14px rgba(47,124,239,.13)' },
-        _focusVisible: { outline: 'none', borderColor: 'ringBd', boxShadow: '0 0 0 3px token(colors.ring)' },
+        _focusVisible: {
+          outline: 'none',
+          borderColor: 'ringBd',
+          boxShadow: '0 0 0 3px token(colors.ring)',
+        },
       })}
     >
       <span className={css({ position: 'relative', display: 'block' })}>
@@ -95,7 +99,13 @@ function Tile({ item, onOpen }: { item: Item; onOpen: () => void }) {
         )}
       </span>
 
-      <span className={css({ display: 'block', p: '9px 11px 11px', borderTop: '1px solid token(colors.ln)' })}>
+      <span
+        className={css({
+          display: 'block',
+          p: '9px 11px 11px',
+          borderTop: '1px solid token(colors.ln)',
+        })}
+      >
         <span
           className={css({
             display: 'block',
@@ -110,8 +120,12 @@ function Tile({ item, onOpen }: { item: Item; onOpen: () => void }) {
           {item.name}
         </span>
         <span className={css({ mt: '3px', display: 'flex', alignItems: 'center', gap: '6px' })}>
-          <span className={css({ textStyle: 'micro', color: 'faint' })}>{SLOT_LABEL[item.slot]}</span>
-          <span className={css({ ml: 'auto', textStyle: 'micro', fontWeight: '700', color: 'sub' })}>
+          <span className={css({ textStyle: 'micro', color: 'faint' })}>
+            {SLOT_LABEL[item.slot]}
+          </span>
+          <span
+            className={css({ ml: 'auto', textStyle: 'micro', fontWeight: '700', color: 'sub' })}
+          >
             {gem(item.price)}
           </span>
         </span>

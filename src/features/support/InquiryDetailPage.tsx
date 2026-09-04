@@ -40,7 +40,12 @@ import { SCREENS } from '@/domain/screens'
 import { SOCIAL_LABEL, USER_STATUS_LABEL } from '@/domain/user'
 
 import { useFaqs } from '@/api/faq'
-import { useHoldInquiry, useInquiry, useReplyInquiry, type InquiryDetail } from '@/api/inquiries'
+import {
+  useHoldInquiry,
+  useInquiry,
+  useReplyInquiry,
+  type InquiryDetail,
+} from '@/api/inquiries'
 
 import { useViewer } from '@/stores/viewerStore'
 
@@ -66,7 +71,11 @@ export default function InquiryDetailPage() {
   return <Detail detail={data} />
 }
 
-function Detail({ detail: { inquiry: q, user, payments, past, now } }: { detail: InquiryDetail }) {
+function Detail({
+  detail: { inquiry: q, user, payments, past, now },
+}: {
+  detail: InquiryDetail
+}) {
   const navigate = useNavigate()
   const viewer = useViewer()
   const { data: faqs } = useFaqs()
@@ -90,7 +99,13 @@ function Detail({ detail: { inquiry: q, user, payments, past, now } }: { detail:
   const commit = () =>
     reply.mutate(
       { qnaId: q.key, text, by: viewer.name, notify },
-      { onSuccess: () => { setAsking(false); setTried(false); setText('') } },
+      {
+        onSuccess: () => {
+          setAsking(false)
+          setTried(false)
+          setText('')
+        },
+      },
     )
 
   return (
@@ -102,7 +117,10 @@ function Detail({ detail: { inquiry: q, user, payments, past, now } }: { detail:
           <>
             <Button onClick={() => navigate(SCREENS.qna.path)}>목록</Button>
             {canHold(q.status) && (
-              <Button onClick={() => hold.mutate({ qnaId: q.key, by: viewer.name })} disabled={hold.isPending}>
+              <Button
+                onClick={() => hold.mutate({ qnaId: q.key, by: viewer.name })}
+                disabled={hold.isPending}
+              >
                 보류
               </Button>
             )}
@@ -123,23 +141,61 @@ function Detail({ detail: { inquiry: q, user, payments, past, now } }: { detail:
       {reply.error && <ErrorBanner message={reply.error.message} />}
       {hold.error && <ErrorBanner message={hold.error.message} />}
 
-      <div className={css({ display: 'flex', alignItems: 'center', gap: '8px', mb: '16px', flexWrap: 'wrap' })}>
+      <div
+        className={css({
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          mb: '16px',
+          flexWrap: 'wrap',
+        })}
+      >
         <Badge tone={INQUIRY_CATEGORY_TONE[q.category]}>{q.category}</Badge>
         <Badge tone={INQUIRY_STATUS_TONE[q.status]}>{q.status}</Badge>
         {q.reopened && <Badge tone="danger">재문의</Badge>}
         {waited !== null && (
-          <span className={css({ textStyle: 'caption', color: late ? 'rFg' : 'faint', fontWeight: late ? '700' : '400' })}>
+          <span
+            className={css({
+              textStyle: 'caption',
+              color: late ? 'rFg' : 'faint',
+              fontWeight: late ? '700' : '400',
+            })}
+          >
             {/* 열린 건인지로 가른다 — `answeredAt` 으로 가르면 재문의 건이 「답변함」 이 된다 */}
-            {isOpen(q.status) ? `${durationLabel(waited)} 대기 중` : `${durationLabel(waited)} 만에 답변`}
+            {isOpen(q.status)
+              ? `${durationLabel(waited)} 대기 중`
+              : `${durationLabel(waited)} 만에 답변`}
           </span>
         )}
       </div>
 
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '18px', alignItems: 'flex-start' })}>
-        <div className={css({ flex: '2 1 420px', minWidth: '0', display: 'flex', flexDirection: 'column', gap: '18px' })}>
+      <div
+        className={css({
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '18px',
+          alignItems: 'flex-start',
+        })}
+      >
+        <div
+          className={css({
+            flex: '2 1 420px',
+            minWidth: '0',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '18px',
+          })}
+        >
           <Card className={css({ p: '15px 17px' })}>
             <CardTitle title="대화" />
-            <div className={css({ display: 'flex', flexDirection: 'column', gap: '11px', mt: '13px' })}>
+            <div
+              className={css({
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '11px',
+                mt: '13px',
+              })}
+            >
               {q.messages.map((m, i) => (
                 <Bubble key={`${m.at}-${i}`} message={m} />
               ))}
@@ -147,7 +203,14 @@ function Detail({ detail: { inquiry: q, user, payments, past, now } }: { detail:
           </Card>
 
           <Card className={css({ p: '15px 17px' })}>
-            <div className={css({ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' })}>
+            <div
+              className={css({
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                flexWrap: 'wrap',
+              })}
+            >
               <div className={css({ flex: '1 1 160px', minWidth: '0' })}>
                 <CardTitle title="답변 작성" sub="앱 알림과 함께 전달됩니다." />
               </div>
@@ -175,12 +238,24 @@ function Detail({ detail: { inquiry: q, user, payments, past, now } }: { detail:
               />
             </div>
 
-            <div className={css({ display: 'flex', alignItems: 'center', gap: '12px', mt: '13px', flexWrap: 'wrap' })}>
+            <div
+              className={css({
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                mt: '13px',
+                flexWrap: 'wrap',
+              })}
+            >
               <Switch checked={notify} onChange={setNotify} label="앱 알림 발송" />
               <span className={css({ flex: '1' })} />
               {/* TODO(임시 저장 API 가 생기면): 초안을 서버에 남긴다 (§18.8) */}
               <Button disabled>임시 저장 · 준비 중</Button>
-              <Button variant="primary" onClick={ask} disabled={reply.isPending || !canReply(q.status)}>
+              <Button
+                variant="primary"
+                onClick={ask}
+                disabled={reply.isPending || !canReply(q.status)}
+              >
                 {canReply(q.status) ? '답변 발송' : '보류 중'}
               </Button>
             </div>
@@ -192,12 +267,27 @@ function Detail({ detail: { inquiry: q, user, payments, past, now } }: { detail:
           </Card>
         </div>
 
-        <div className={css({ flex: '1 1 300px', minWidth: '0', display: 'flex', flexDirection: 'column', gap: '18px' })}>
+        <div
+          className={css({
+            flex: '1 1 300px',
+            minWidth: '0',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '18px',
+          })}
+        >
           <Card className={css({ p: '15px' })}>
             <CardTitle title="작성자" />
             {user ? (
               <>
-                <div className={css({ display: 'flex', alignItems: 'center', gap: '10px', mt: '12px' })}>
+                <div
+                  className={css({
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    mt: '12px',
+                  })}
+                >
                   <span
                     aria-hidden="true"
                     className={css({
@@ -215,15 +305,36 @@ function Detail({ detail: { inquiry: q, user, payments, past, now } }: { detail:
                     {user.nick.slice(0, 1)}
                   </span>
                   <span className={css({ minWidth: '0' })}>
-                    <span className={css({ display: 'block', textStyle: 'label', fontWeight: '700', color: 'ink' })}>
+                    <span
+                      className={css({
+                        display: 'block',
+                        textStyle: 'label',
+                        fontWeight: '700',
+                        color: 'ink',
+                      })}
+                    >
                       {user.nick}
                     </span>
-                    <span className={css({ display: 'block', fontFamily: 'mono', textStyle: 'micro', color: 'faint' })}>
+                    <span
+                      className={css({
+                        display: 'block',
+                        fontFamily: 'mono',
+                        textStyle: 'micro',
+                        color: 'faint',
+                      })}
+                    >
                       {user.uid}
                     </span>
                   </span>
                 </div>
-                <dl className={css({ m: '13px 0 0', display: 'flex', flexDirection: 'column', gap: '9px' })}>
+                <dl
+                  className={css({
+                    m: '13px 0 0',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '9px',
+                  })}
+                >
                   <Row k="상태" v={USER_STATUS_LABEL[user.status]} />
                   <Row k="로그인" v={SOCIAL_LABEL[user.social]} />
                   <Row k="파란보석" v={`${num(user.wallet.gem)}개`} />
@@ -234,7 +345,11 @@ function Detail({ detail: { inquiry: q, user, payments, past, now } }: { detail:
                   <Row k="가입" v={date(user.joinedAt)} />
                 </dl>
                 <div className={css({ mt: '13px' })}>
-                  <Button onClick={() => navigate(SCREENS.user.path.replace(':userId', String(user.key)))}>
+                  <Button
+                    onClick={() =>
+                      navigate(SCREENS.user.path.replace(':userId', String(user.key)))
+                    }
+                  >
                     회원 상세
                   </Button>
                 </div>
@@ -250,18 +365,57 @@ function Detail({ detail: { inquiry: q, user, payments, past, now } }: { detail:
           <Card className={css({ p: '15px' })}>
             <CardTitle title="최근 결제" sub="결제 문의는 여기부터 봅니다." />
             {payments.length === 0 ? (
-              <p className={css({ m: '12px 0 0', textStyle: 'body', color: 'faint' })}>결제 내역이 없습니다.</p>
+              <p className={css({ m: '12px 0 0', textStyle: 'body', color: 'faint' })}>
+                결제 내역이 없습니다.
+              </p>
             ) : (
-              <ul className={css({ listStyle: 'none', m: '12px 0 0', p: '0', display: 'flex', flexDirection: 'column', gap: '10px' })}>
+              <ul
+                className={css({
+                  listStyle: 'none',
+                  m: '12px 0 0',
+                  p: '0',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '10px',
+                })}
+              >
                 {payments.map((p) => (
-                  <li key={p.key} className={css({ display: 'flex', alignItems: 'center', gap: '9px' })}>
+                  <li
+                    key={p.key}
+                    className={css({ display: 'flex', alignItems: 'center', gap: '9px' })}
+                  >
                     <span className={css({ flex: '1', minWidth: '0' })}>
-                      <span className={css({ display: 'block', textStyle: 'label', fontWeight: '600', color: 'ink', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' })}>
+                      <span
+                        className={css({
+                          display: 'block',
+                          textStyle: 'label',
+                          fontWeight: '600',
+                          color: 'ink',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        })}
+                      >
                         {p.product}
                       </span>
-                      <span className={css({ display: 'block', textStyle: 'micro', color: 'faint' })}>{p.at}</span>
+                      <span
+                        className={css({
+                          display: 'block',
+                          textStyle: 'micro',
+                          color: 'faint',
+                        })}
+                      >
+                        {p.at}
+                      </span>
                     </span>
-                    <span className={css({ flex: 'none', textStyle: 'caption', fontWeight: '600', color: 'ink' })}>
+                    <span
+                      className={css({
+                        flex: 'none',
+                        textStyle: 'caption',
+                        fontWeight: '600',
+                        color: 'ink',
+                      })}
+                    >
                       {num(p.amount)}원
                     </span>
                     <Badge tone={PAY_STATUS_TONE[p.status]} size="sm">
@@ -276,14 +430,27 @@ function Detail({ detail: { inquiry: q, user, payments, past, now } }: { detail:
           <Card className={css({ p: '15px' })}>
             <CardTitle title="이 유저의 지난 문의" />
             {past.length === 0 ? (
-              <p className={css({ m: '12px 0 0', textStyle: 'body', color: 'faint' })}>처음 보낸 문의입니다.</p>
+              <p className={css({ m: '12px 0 0', textStyle: 'body', color: 'faint' })}>
+                처음 보낸 문의입니다.
+              </p>
             ) : (
-              <ul className={css({ listStyle: 'none', m: '12px 0 0', p: '0', display: 'flex', flexDirection: 'column', gap: '9px' })}>
+              <ul
+                className={css({
+                  listStyle: 'none',
+                  m: '12px 0 0',
+                  p: '0',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '9px',
+                })}
+              >
                 {past.map((p) => (
                   <li key={p.key}>
                     <button
                       type="button"
-                      onClick={() => navigate(SCREENS.qnadet.path.replace(':qnaId', String(p.key)))}
+                      onClick={() =>
+                        navigate(SCREENS.qnadet.path.replace(':qnaId', String(p.key)))
+                      }
                       className={css({
                         display: 'flex',
                         alignItems: 'center',
@@ -294,16 +461,31 @@ function Detail({ detail: { inquiry: q, user, payments, past, now } }: { detail:
                         bg: 'transparent',
                         p: '0',
                         cursor: 'pointer',
-                        _focusVisible: { outline: '2px solid token(colors.ringBd)', outlineOffset: '2px' },
+                        _focusVisible: {
+                          outline: '2px solid token(colors.ringBd)',
+                          outlineOffset: '2px',
+                        },
                       })}
                     >
                       <Badge tone={INQUIRY_STATUS_TONE[p.status]} size="sm">
                         {p.status}
                       </Badge>
-                      <span className={css({ flex: '1', minWidth: '0', textStyle: 'caption', color: 'ink', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' })}>
+                      <span
+                        className={css({
+                          flex: '1',
+                          minWidth: '0',
+                          textStyle: 'caption',
+                          color: 'ink',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        })}
+                      >
                         {p.title}
                       </span>
-                      <span className={css({ flex: 'none', textStyle: 'micro', color: 'faint' })}>
+                      <span
+                        className={css({ flex: 'none', textStyle: 'micro', color: 'faint' })}
+                      >
                         {p.at.slice(5, 10)}
                       </span>
                     </button>
@@ -328,7 +510,14 @@ function Detail({ detail: { inquiry: q, user, payments, past, now } }: { detail:
             {notify && user && ' 앱 알림도 함께 갑니다.'}
             {' 보낸 답변은 되돌릴 수 없습니다.'}
             {!user && (
-              <span className={css({ display: 'block', mt: '9px', color: 'rFg', fontWeight: '600' })}>
+              <span
+                className={css({
+                  display: 'block',
+                  mt: '9px',
+                  color: 'rFg',
+                  fontWeight: '600',
+                })}
+              >
                 회원을 찾을 수 없어 알림은 가지 않습니다.
               </span>
             )}
@@ -371,16 +560,37 @@ function Bubble({ message: m }: { message: InquiryMessage }) {
           borderColor: admin ? 'liveBd' : 'ln',
         })}
       >
-        <div className={css({ display: 'flex', justifyContent: 'space-between', gap: '10px', mb: '5px' })}>
-          <span className={css({ textStyle: 'caption', fontWeight: '700', color: 'ink' })}>{m.name}</span>
+        <div
+          className={css({
+            display: 'flex',
+            justifyContent: 'space-between',
+            gap: '10px',
+            mb: '5px',
+          })}
+        >
+          <span className={css({ textStyle: 'caption', fontWeight: '700', color: 'ink' })}>
+            {m.name}
+          </span>
           {/* ⚠️ 운영자 말풍선은 `soft` 배경이라 `faint` 가 4.35:1 로 모자란다 (§3.5.1) */}
-          <span className={css({ display: 'flex', alignItems: 'center', gap: '6px', textStyle: 'micro', color: 'sub' })}>
+          <span
+            className={css({
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              textStyle: 'micro',
+              color: 'sub',
+            })}
+          >
             {/* 알림 없이 남긴 답변은 유저가 못 볼 수 있다 — 나중에 근거가 된다 (§28.4) */}
-            {m.notified === false && <span className={css({ color: 'warnFg', fontWeight: '700' })}>알림 없음</span>}
+            {m.notified === false && (
+              <span className={css({ color: 'warnFg', fontWeight: '700' })}>알림 없음</span>
+            )}
             {m.at}
           </span>
         </div>
-        <p className={css({ m: '0', textStyle: 'body', color: 'sub', whiteSpace: 'pre-line' })}>{m.text}</p>
+        <p className={css({ m: '0', textStyle: 'body', color: 'sub', whiteSpace: 'pre-line' })}>
+          {m.text}
+        </p>
       </div>
     </div>
   )
@@ -389,8 +599,22 @@ function Bubble({ message: m }: { message: InquiryMessage }) {
 function Row({ k, v }: { k: string; v: string }) {
   return (
     <div className={css({ display: 'flex', alignItems: 'center', gap: '10px' })}>
-      <dt className={css({ flex: 'none', width: '72px', textStyle: 'caption', color: 'faint' })}>{k}</dt>
-      <dd className={css({ m: '0', flex: '1', minWidth: '0', textAlign: 'right', textStyle: 'label', fontWeight: '600', color: 'ink' })}>
+      <dt
+        className={css({ flex: 'none', width: '72px', textStyle: 'caption', color: 'faint' })}
+      >
+        {k}
+      </dt>
+      <dd
+        className={css({
+          m: '0',
+          flex: '1',
+          minWidth: '0',
+          textAlign: 'right',
+          textStyle: 'label',
+          fontWeight: '600',
+          color: 'ink',
+        })}
+      >
         {v}
       </dd>
     </div>

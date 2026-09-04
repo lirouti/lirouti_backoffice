@@ -90,11 +90,20 @@ export default function ShopDisplayPage() {
       */}
       {isPending ? (
         <div
-          className={css({ display: 'flex', flexWrap: 'wrap', gap: '18px', alignItems: 'flex-start' })}
+          className={css({
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '18px',
+            alignItems: 'flex-start',
+          })}
         >
           {/* 좌측 진열 목록 + 우측 미리보기 2단. 한 줄 격자로 그렸더니 326px 이 밀렸다 */}
           <SkeletonBlock height={516} className={css({ flex: '2 1 420px', minWidth: '0' })} />
-          <SkeletonBlock height={314} silent className={css({ flex: '1 1 280px', minWidth: '0' })} />
+          <SkeletonBlock
+            height={314}
+            silent
+            className={css({ flex: '1 1 280px', minWidth: '0' })}
+          />
         </div>
       ) : error || !data ? (
         <ErrorBanner message={error?.message ?? '진열을 불러오지 못했습니다.'} />
@@ -207,12 +216,30 @@ function SlotRow({
         borderBottomColor: cut ? 'pri' : 'ln',
       })}
     >
-      <span className={css({ flex: 'none', width: '22px', textStyle: 'caption', color: 'faint', textAlign: 'right' })}>
+      <span
+        className={css({
+          flex: 'none',
+          width: '22px',
+          textStyle: 'caption',
+          color: 'faint',
+          textAlign: 'right',
+        })}
+      >
         {n}
       </span>
       <AssetThumb assetId={item.assetId} alt={item.name} size={36} />
       <span className={css({ flex: '1', minWidth: '0' })}>
-        <span className={css({ display: 'block', textStyle: 'label', fontWeight: '600', color: 'ink', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' })}>
+        <span
+          className={css({
+            display: 'block',
+            textStyle: 'label',
+            fontWeight: '600',
+            color: 'ink',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          })}
+        >
           {item.name}
         </span>
         <span className={css({ display: 'block', textStyle: 'micro', color: 'faint' })}>
@@ -227,7 +254,11 @@ function SlotRow({
         <Button onClick={onUp} disabled={disabled || !onUp} aria-label={`${item.name} 위로`}>
           ↑
         </Button>
-        <Button onClick={onDown} disabled={disabled || !onDown} aria-label={`${item.name} 아래로`}>
+        <Button
+          onClick={onDown}
+          disabled={disabled || !onDown}
+          aria-label={`${item.name} 아래로`}
+        >
           ↓
         </Button>
       </span>

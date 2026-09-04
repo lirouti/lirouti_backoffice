@@ -87,7 +87,12 @@ describe('pageRange', () => {
   })
 
   it('구간이 빈틈없이 이어지고 마지막이 총 건수와 맞는다', () => {
-    for (const [total, per] of [[384, 20], [30, 10], [7, 20], [101, 25]] as const) {
+    for (const [total, per] of [
+      [384, 20],
+      [30, 10],
+      [7, 20],
+      [101, 25],
+    ] as const) {
       const pages = pageCount(total, per)
       let expected = 1
       for (let p = 1; p <= pages; p += 1) {

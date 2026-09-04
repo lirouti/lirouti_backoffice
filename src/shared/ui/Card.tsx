@@ -29,7 +29,14 @@ export function Card({ className, children, ...rest }: CardProps) {
 /** 카드 제목 줄. 부제는 baseline 정렬로 붙는다. */
 export function CardTitle({ title, sub }: { title: string; sub?: string }) {
   return (
-    <div className={css({ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: '10px' })}>
+    <div
+      className={css({
+        display: 'flex',
+        flexWrap: 'wrap',
+        alignItems: 'baseline',
+        gap: '10px',
+      })}
+    >
       <div className={css({ textStyle: 'h3', color: 'ink' })}>{title}</div>
       {sub && <div className={css({ textStyle: 'label', color: 'sub' })}>{sub}</div>}
     </div>

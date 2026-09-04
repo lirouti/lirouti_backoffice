@@ -31,7 +31,9 @@ describe('validateAssetFile', () => {
   })
 
   it('허용하지 않는 형식은 막는다', () => {
-    expect(validateAssetFile(file({ name: 'a.gif', type: 'image/gif' }), head)).toMatch(/SVG · PNG/)
+    expect(validateAssetFile(file({ name: 'a.gif', type: 'image/gif' }), head)).toMatch(
+      /SVG · PNG/,
+    )
   })
 
   // 브라우저·OS 에 따라 `File.type` 이 빈 문자열로 온다. 그때 확장자로 짐작하지 않으면

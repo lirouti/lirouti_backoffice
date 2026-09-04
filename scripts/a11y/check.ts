@@ -83,7 +83,10 @@ const browser = await puppeteer.connect({
 let bad = 0
 for (const path of targets) {
   const page = await browser.newPage()
-  await page.evaluateOnNewDocument((v: string) => localStorage.setItem('riruti_admin_view_v2', v), VIEWER)
+  await page.evaluateOnNewDocument(
+    (v: string) => localStorage.setItem('riruti_admin_view_v2', v),
+    VIEWER,
+  )
 
   const r = await lighthouse(
     `${BASE}${path}`,
@@ -106,7 +109,9 @@ for (const path of targets) {
     .map((a) => a.id)
 
   if (score < 100 || failed.length > 0) bad += 1
-  console.log(`${String(score).padStart(3)}  ${path}${failed.length ? `   ✗ ${failed.join(', ')}` : ''}`)
+  console.log(
+    `${String(score).padStart(3)}  ${path}${failed.length ? `   ✗ ${failed.join(', ')}` : ''}`,
+  )
   await page.close()
 }
 

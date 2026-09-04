@@ -44,7 +44,11 @@ export async function getPushes({ tab, q }: PushQuery): Promise<PushesResult> {
     await mockDelay()
     const all = allPushes()
     // 지표는 **거르기 전 전체**로 낸다 — 탭마다 「예약 대기」 가 바뀌면 안 된다.
-    return { pushes: filterPushes(all, tab, q), summary: summarizePushes(all, today()), consent: pushConsent() }
+    return {
+      pushes: filterPushes(all, tab, q),
+      summary: summarizePushes(all, today()),
+      consent: pushConsent(),
+    }
   }
 
   // TODO(백엔드 스펙 확정 후): http.get<PushDto[]>('/admin/ops/push')
@@ -113,7 +117,11 @@ export type DirectCheck = {
 export async function checkDirect(input: PushInput): Promise<DirectCheck> {
   if (USE_MOCK) {
     await mockDelay()
-    const { send, missing, blocked } = directTargets(parseUserIds(input.ids), allUsers(), input.kind)
+    const { send, missing, blocked } = directTargets(
+      parseUserIds(input.ids),
+      allUsers(),
+      input.kind,
+    )
     return { count: send.length, missing, blocked: blocked.map((u) => u.uid) }
   }
 

@@ -38,6 +38,10 @@ export function willDiscard(from: string, to: string, isDirty: boolean): boolean
 export function useUnsavedNavGuard() {
   return useBlocker(({ currentLocation, nextLocation }) => {
     const { dirty } = useDirtyStore.getState()
-    return willDiscard(currentLocation.pathname, nextLocation.pathname, !!dirty[currentLocation.pathname])
+    return willDiscard(
+      currentLocation.pathname,
+      nextLocation.pathname,
+      !!dirty[currentLocation.pathname],
+    )
   })
 }

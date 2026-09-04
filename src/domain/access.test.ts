@@ -85,10 +85,18 @@ describe('validateCredentials', () => {
   // 화면이 어느 칸 아래에 메시지를 놓을지 정하는 값이라, 「무엇이 틀렸나」 보다
   // **어느 키에 담기나**가 계약이다.
   it('빈 값 · 형식 · 길이를 각각 그 칸에 담는다', () => {
-    expect(validateCredentials({ email: 'nope', password: '12345678' }).email).toContain('이메일 형식')
-    expect(validateCredentials({ email: 'a@riruti.co', password: '1234567' }).password).toContain('8자 이상')
-    expect(validateCredentials({ email: '', password: '12345678' }).email).toContain('아이디를 입력')
-    expect(validateCredentials({ email: 'a@riruti.co', password: '' }).password).toContain('비밀번호를 입력')
+    expect(validateCredentials({ email: 'nope', password: '12345678' }).email).toContain(
+      '이메일 형식',
+    )
+    expect(
+      validateCredentials({ email: 'a@riruti.co', password: '1234567' }).password,
+    ).toContain('8자 이상')
+    expect(validateCredentials({ email: '', password: '12345678' }).email).toContain(
+      '아이디를 입력',
+    )
+    expect(validateCredentials({ email: 'a@riruti.co', password: '' }).password).toContain(
+      '비밀번호를 입력',
+    )
   })
 
   it('둘 다 비면 둘 다 잡는다 — 예전에는 한 줄로 뭉쳐 있었다', () => {
@@ -100,7 +108,9 @@ describe('validateCredentials', () => {
 
   // 공백만 넣은 아이디는 「빈 값」이다 — 앞뒤 공백을 다듬은 뒤 판정한다.
   it('공백만 있는 아이디는 비어 있는 것으로 본다', () => {
-    expect(validateCredentials({ email: '   ', password: '12345678' }).email).toContain('아이디를 입력')
+    expect(validateCredentials({ email: '   ', password: '12345678' }).email).toContain(
+      '아이디를 입력',
+    )
   })
 })
 

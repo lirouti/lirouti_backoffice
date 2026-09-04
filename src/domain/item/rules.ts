@@ -5,7 +5,14 @@
  * 사라져도 이 파일은 남는다 — 그게 이 층을 따로 둔 이유다.
  */
 import type { AssetKind } from '../asset'
-import { SLOT_ORDER, type Item, type ItemInput, type ItemStatus, type Slot, type Tier } from './types'
+import {
+  SLOT_ORDER,
+  type Item,
+  type ItemInput,
+  type ItemStatus,
+  type Slot,
+  type Tier,
+} from './types'
 
 /**
  * 판매량 상위 N개.
@@ -52,7 +59,10 @@ export const isOnSale = (it: Item): boolean => it.status === 'VISIBLE'
  *
  * 다시 노출할 때는 저장된 시작일을 버리지 않는다. 시작일이 있으면 예약, 없으면 즉시 노출이다.
  */
-export function visibilityStatusOf(item: Pick<Item, 'visibleFrom'>, hidden: boolean): ItemStatus {
+export function visibilityStatusOf(
+  item: Pick<Item, 'visibleFrom'>,
+  hidden: boolean,
+): ItemStatus {
   if (hidden) return 'HIDDEN'
   return item.visibleFrom ? 'SCHEDULED' : 'VISIBLE'
 }
@@ -82,8 +92,10 @@ export function validateItem(input: ItemInput): ItemInputErrors {
   if (!Number.isFinite(input.price)) errors.price = '가격이 너무 큽니다.'
 
   // 등급과 가격은 서로를 구속한다. 유료인데 0원이면 상점에서 공짜로 나간다.
-  else if (input.tier === 'PAID' && input.price <= 0) errors.price = '유료 아이템은 가격을 입력하세요.'
-  else if (input.tier === 'FREE' && input.price !== 0) errors.price = '무료 아이템은 가격이 0이어야 합니다.'
+  else if (input.tier === 'PAID' && input.price <= 0)
+    errors.price = '유료 아이템은 가격을 입력하세요.'
+  else if (input.tier === 'FREE' && input.price !== 0)
+    errors.price = '무료 아이템은 가격이 0이어야 합니다.'
 
   // 둘 다 있을 때만 본다 — 빈 문자열은 "제한 없음" 이라 비교 대상이 아니다.
   if (input.visibleFrom && input.visibleTo && input.visibleTo < input.visibleFrom) {
@@ -132,8 +144,32 @@ export function statusOf(input: ItemInput, prev?: ItemStatus): ItemStatus {
 
 /** `Item` 에서 폼이 편집하는 부분만 떼어낸다 (수정 화면의 초기값). */
 export function toItemInput(item: Item): ItemInput {
-  const { name, sub, slot, tier, price, source, season, assetId, visibleFrom, visibleTo, flags } = item
-  return { name, sub, slot, tier, price, source, season, assetId, visibleFrom, visibleTo, flags }
+  const {
+    name,
+    sub,
+    slot,
+    tier,
+    price,
+    source,
+    season,
+    assetId,
+    visibleFrom,
+    visibleTo,
+    flags,
+  } = item
+  return {
+    name,
+    sub,
+    slot,
+    tier,
+    price,
+    source,
+    season,
+    assetId,
+    visibleFrom,
+    visibleTo,
+    flags,
+  }
 }
 
 /**
@@ -143,4 +179,5 @@ export function toItemInput(item: Item): ItemInput {
  *    (둘 다 문자열), 슬롯은 **어느 칸을 그릴지 정하는 값**이라 모르는 값이 들어오면
  *    폼이 빈 화면이 된다 (docs/ARCHITECTURE.md §33.1).
  */
-export const isKnownSlot = (v: { slot: string }): boolean => (SLOT_ORDER as string[]).includes(v.slot)
+export const isKnownSlot = (v: { slot: string }): boolean =>
+  (SLOT_ORDER as string[]).includes(v.slot)

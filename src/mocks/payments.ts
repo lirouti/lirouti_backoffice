@@ -26,6 +26,9 @@ type Row = [
   memberUnused: number,
 ]
 
+// ⚠️ **한 줄이 한 레코드다.** 표처럼 읽는 것이 이 파일의 목적이라 자동 포맷을 끈다 —
+//    풀어 놓으면 12칸짜리 한 줄이 14줄이 되어 무엇이 무엇인지 보이지 않는다.
+// prettier-ignore
 const ROWS: Row[] = [
   [0, '09:12', '9921', '소이', '파란보석 1,100개', 12100, '토스', '완료', 1000, 100, 1200],
   [0, '08:41', '9918', '새벽러너', '파란보석 10,000개+보너스', 110000, '카카오페이', '완료', 10000, 1500, 2900],
@@ -75,26 +78,28 @@ export function allPayments(): Payment[] {
   const perMember = new Map<string, number>()
   for (const r of ROWS) perMember.set(r[3], r[10])
 
-  const rows: Payment[] = ROWS.map(([ago, time, seq, who, product, amount, pg, status, give, bonus], i) => {
-    const day = daysAgo(ago)
-    return {
-      key: i,
-      // ⚠️ **주문번호의 날짜도 일시와 같아야 한다.** 원본 값을 그대로 두면
-      //    `ord_20260814_…` 가 오늘 결제에 붙어 **한눈에 가짜로 보인다.**
-      orderNo: `ord_${day.replaceAll('-', '')}_${seq}`,
-      at: `${day} ${time}`,
-      who,
-      email: EMAILS[who] ?? '',
-      product,
-      amount,
-      pg: PG[pg],
-      status: STATUS[status],
-      give,
-      bonus,
-      // 아래 `spread` 가 채운다. 여기서는 자리만 잡는다.
-      unusedGem: 0,
-    }
-  })
+  const rows: Payment[] = ROWS.map(
+    ([ago, time, seq, who, product, amount, pg, status, give, bonus], i) => {
+      const day = daysAgo(ago)
+      return {
+        key: i,
+        // ⚠️ **주문번호의 날짜도 일시와 같아야 한다.** 원본 값을 그대로 두면
+        //    `ord_20260814_…` 가 오늘 결제에 붙어 **한눈에 가짜로 보인다.**
+        orderNo: `ord_${day.replaceAll('-', '')}_${seq}`,
+        at: `${day} ${time}`,
+        who,
+        email: EMAILS[who] ?? '',
+        product,
+        amount,
+        pg: PG[pg],
+        status: STATUS[status],
+        give,
+        bonus,
+        // 아래 `spread` 가 채운다. 여기서는 자리만 잡는다.
+        unusedGem: 0,
+      }
+    },
+  )
 
   cache = spread(rows, perMember)
   return cache

@@ -82,7 +82,12 @@ export const useViewerStore = create<ViewerState>()(
       // 그래서 아이디(email)는 원래 뷰어의 것을 유지한다.
       preview: (name, scopes) =>
         set((s) => ({
-          viewer: { role: 'operator', name, email: s.viewer?.email ?? TOP_VIEWER.email, scopes },
+          viewer: {
+            role: 'operator',
+            name,
+            email: s.viewer?.email ?? TOP_VIEWER.email,
+            scopes,
+          },
         })),
       exit: () => set({ viewer: TOP_VIEWER }),
       // 401 로 세션이 끊긴 경로. 사람이 누른 로그아웃과 **같게** 정리한다 —
@@ -104,6 +109,7 @@ export const useViewerStore = create<ViewerState>()(
  */
 export function useViewer(): Viewer {
   const viewer = useViewerStore((s) => s.viewer)
-  if (!viewer) throw new Error('인증 전에는 셸을 렌더하지 않습니다 — RequireAuth 를 확인하세요.')
+  if (!viewer)
+    throw new Error('인증 전에는 셸을 렌더하지 않습니다 — RequireAuth 를 확인하세요.')
   return viewer
 }

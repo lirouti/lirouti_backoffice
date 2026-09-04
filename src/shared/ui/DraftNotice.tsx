@@ -52,7 +52,12 @@ export function DraftSavedAt({ at }: { at: Date | null }) {
   return (
     <p
       aria-live="polite"
-      className={css({ m: '8px 0 0', textAlign: 'right', textStyle: 'caption', color: 'faint' })}
+      className={css({
+        m: '8px 0 0',
+        textAlign: 'right',
+        textStyle: 'caption',
+        color: 'faint',
+      })}
     >
       임시 저장됨
     </p>

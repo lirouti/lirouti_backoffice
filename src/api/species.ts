@@ -6,7 +6,12 @@
  */
 import { useMutation, useQuery } from '@tanstack/react-query'
 
-import { normalizeSpeciesInput, type Species, type SpeciesInput, type SpeciesLog } from '@/domain/species'
+import {
+  normalizeSpeciesInput,
+  type Species,
+  type SpeciesInput,
+  type SpeciesLog,
+} from '@/domain/species'
 
 import { allSpecies, logsOf, setHidden, upsertSpecies } from '@/mocks/species'
 
@@ -48,7 +53,10 @@ export async function getSpecies(speciesId: string): Promise<SpeciesDetail> {
 }
 
 export function useSpecies(speciesId: string) {
-  return useQuery({ queryKey: qk.species.detail(speciesId), queryFn: () => getSpecies(speciesId) })
+  return useQuery({
+    queryKey: qk.species.detail(speciesId),
+    queryFn: () => getSpecies(speciesId),
+  })
 }
 
 /** 등록이면 `speciesId` 가 없다. 수정이면 있다. */
@@ -58,7 +66,10 @@ export async function saveSpecies({ speciesId, input }: SaveSpeciesVars): Promis
   if (USE_MOCK) {
     await mockDelay()
     // 검증이 본 값과 **같은 값**을 저장한다 (`domain/species/rules.ts` 의 ⚠️).
-    return upsertSpecies(normalizeSpeciesInput(input), speciesId == null ? undefined : Number(speciesId))
+    return upsertSpecies(
+      normalizeSpeciesInput(input),
+      speciesId == null ? undefined : Number(speciesId),
+    )
   }
 
   // TODO(백엔드 스펙 확정 후): speciesId 유무로 POST / PATCH
@@ -72,7 +83,10 @@ export function useSaveSpecies() {
   })
 }
 
-export async function setSpeciesHidden(v: { speciesId: string; hidden: boolean }): Promise<Species> {
+export async function setSpeciesHidden(v: {
+  speciesId: string
+  hidden: boolean
+}): Promise<Species> {
   if (USE_MOCK) {
     await mockDelay()
     return setHidden(Number(v.speciesId), v.hidden)

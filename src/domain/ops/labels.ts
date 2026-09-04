@@ -4,7 +4,13 @@ import type { BadgeTone } from '@/shared/ui/tone'
 import type { GrantKind, NoticeCategory, PeriodStatus } from './types'
 
 /** 공지 작성에서 고를 수 있는 분류 */
-export const NOTICE_CATEGORIES: NoticeCategory[] = ['시즌', '점검', '업데이트', '밸런스', '재화']
+export const NOTICE_CATEGORIES: NoticeCategory[] = [
+  '시즌',
+  '점검',
+  '업데이트',
+  '밸런스',
+  '재화',
+]
 
 /** 공지에서 쓰는 말 */
 export const NOTICE_STATUS_LABEL: Record<PeriodStatus, string> = {

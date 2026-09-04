@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest'
 
-import { isScreenId, matchScreen, paramOf, SCREEN_IDS, SCREENS, sectionOf, type ScreenMeta } from './screens'
+import {
+  isScreenId,
+  matchScreen,
+  paramOf,
+  SCREEN_IDS,
+  SCREENS,
+  sectionOf,
+  type ScreenMeta,
+} from './screens'
 
 /**
  * 경로 매칭은 **구체성 정렬**에 기대고 있다. 화면이 늘 때마다 정렬 결과가 바뀌는데,

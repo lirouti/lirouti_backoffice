@@ -84,7 +84,14 @@ export function Input({
         </label>
       )}
 
-      <div className={css({ position: 'relative', display: 'flex', alignItems: 'stretch', minWidth: '0' })}>
+      <div
+        className={css({
+          position: 'relative',
+          display: 'flex',
+          alignItems: 'stretch',
+          minWidth: '0',
+        })}
+      >
         {prefixIcon && (
           <span
             aria-hidden="true"
@@ -178,16 +185,30 @@ export function Input({
             color: 'rFg',
           })}
         >
-          <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true" className={css({ flex: 'none' })}>
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 16 16"
+            aria-hidden="true"
+            className={css({ flex: 'none' })}
+          >
             <circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" strokeWidth="1.6" />
-            <path d="M8,4.6 V8.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+            <path
+              d="M8,4.6 V8.6"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+            />
             <circle cx="8" cy="11.1" r="0.9" fill="currentColor" />
           </svg>
           <span>{error}</span>
         </div>
       ) : (
         hint && (
-          <div id={`${id}-hint`} className={css({ mt: '5px', textStyle: 'caption', color: 'faint' })}>
+          <div
+            id={`${id}-hint`}
+            className={css({ mt: '5px', textStyle: 'caption', color: 'faint' })}
+          >
             {hint}
           </div>
         )

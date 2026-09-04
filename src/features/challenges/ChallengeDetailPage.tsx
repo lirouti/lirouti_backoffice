@@ -87,19 +87,43 @@ function Detail({ detail, chalId }: { detail: ChallengeDetail; chalId: string })
 
       {stop.error && <ErrorBanner message={stop.error.message} />}
 
-      <div className={css({ display: 'flex', alignItems: 'center', gap: '8px', mb: '14px', flexWrap: 'wrap' })}>
+      <div
+        className={css({
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          mb: '14px',
+          flexWrap: 'wrap',
+        })}
+      >
         <Badge tone={CHALLENGE_KIND_TONE[c.kind]}>{CHALLENGE_KIND_LABEL[c.kind]}</Badge>
         <Badge tone={CHALLENGE_STATUS_TONE[c.status]}>{CHALLENGE_STATUS_LABEL[c.status]}</Badge>
-        <span className={css({ fontFamily: 'mono', textStyle: 'caption', color: 'faint' })}>{c.code}</span>
+        <span className={css({ fontFamily: 'mono', textStyle: 'caption', color: 'faint' })}>
+          {c.code}
+        </span>
       </div>
 
-      <div className={css({ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px', mb: '18px' })}>
+      <div
+        className={css({
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+          gap: '12px',
+          mb: '18px',
+        })}
+      >
         {stats.map((s) => (
           <StatTile key={s.k} label={s.k} value={s.v} />
         ))}
       </div>
 
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '18px', alignItems: 'flex-start' })}>
+      <div
+        className={css({
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '18px',
+          alignItems: 'flex-start',
+        })}
+      >
         <Card className={css({ flex: '3 1 460px', minWidth: '0', p: '17px 20px' })}>
           <CardTitle title="일자별 달성 추이" sub="최근 14일" />
           <div className={css({ mt: '12px' })}>
@@ -107,10 +131,26 @@ function Detail({ detail, chalId }: { detail: ChallengeDetail; chalId: string })
           </div>
         </Card>
 
-        <div className={css({ flex: '1 1 300px', minWidth: '260px', maxWidth: '380px', display: 'flex', flexDirection: 'column', gap: '14px' })}>
+        <div
+          className={css({
+            flex: '1 1 300px',
+            minWidth: '260px',
+            maxWidth: '380px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '14px',
+          })}
+        >
           <Card className={css({ p: '15px' })}>
             <CardTitle title="설정" />
-            <dl className={css({ m: '12px 0 0', display: 'flex', flexDirection: 'column', gap: '9px' })}>
+            <dl
+              className={css({
+                m: '12px 0 0',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '9px',
+              })}
+            >
               <Row k="조건" v={c.cond} />
               <Row k="목표" v={num(c.goal)} />
               <Row k="보상" v={rewardLabel(c)} />
@@ -124,7 +164,14 @@ function Detail({ detail, chalId }: { detail: ChallengeDetail; chalId: string })
           <Card className={css({ p: '15px' })}>
             <CardTitle title="보상 아이템" />
             {c.rewardItem ? (
-              <div className={css({ display: 'flex', alignItems: 'center', gap: '11px', mt: '12px' })}>
+              <div
+                className={css({
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '11px',
+                  mt: '12px',
+                })}
+              >
                 <AssetThumb
                   assetId={c.rewardItem.assetId}
                   src={c.rewardItem.assetSrc}
@@ -162,7 +209,11 @@ function Detail({ detail, chalId }: { detail: ChallengeDetail; chalId: string })
 function Row({ k, v }: { k: string; v: string }) {
   return (
     <div className={css({ display: 'flex', alignItems: 'center', gap: '10px' })}>
-      <dt className={css({ flex: 'none', width: '64px', textStyle: 'caption', color: 'faint' })}>{k}</dt>
+      <dt
+        className={css({ flex: 'none', width: '64px', textStyle: 'caption', color: 'faint' })}
+      >
+        {k}
+      </dt>
       <dd
         className={css({
           m: '0',

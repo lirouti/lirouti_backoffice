@@ -20,7 +20,13 @@ import { useLevels } from '@/api/levels'
 
 const COLUMNS: Column<Level>[] = [
   { key: 'lv', label: 'Lv', width: '58px', align: 'right', strong: true },
-  { key: 'need', label: '필요 경험치', width: '120px', align: 'right', render: (l) => num(l.need) },
+  {
+    key: 'need',
+    label: '필요 경험치',
+    width: '120px',
+    align: 'right',
+    render: (l) => num(l.need),
+  },
   {
     key: 'total',
     label: '누적',

@@ -158,4 +158,3 @@ describe('assertResolved', () => {
     expect(() => assertResolved('<rect/></sc-if>', 'as_nest_0')).toThrow('as_nest_0')
   })
 })
-

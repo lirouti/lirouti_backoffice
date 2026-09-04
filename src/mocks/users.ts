@@ -18,6 +18,9 @@ type Row = [
   lastSeenAt: string,
 ]
 
+// ⚠️ **한 줄이 한 레코드다.** 표처럼 읽는 것이 이 파일의 목적이라 자동 포맷을 끈다 —
+//    풀어 놓으면 12칸짜리 한 줄이 14줄이 되어 무엇이 무엇인지 보이지 않는다.
+// prettier-ignore
 const ROWS: Row[] = [
   ['소이', 'soi@kakao.com', '카카오', '정상', 1840, 320, 62000, 148, '2026-01-14', '2026-08-13'],
   ['하루뭉치', 'haru.m@gmail.com', '구글', '정상', 420, 1180, 12100, 96, '2026-02-03', '2026-08-14'],
@@ -45,24 +48,26 @@ let cache: User[] | null = null
 
 export function allUsers(): User[] {
   if (cache) return cache
-  cache = ROWS.map(([nick, email, social, status, gem, topaz, paid, certs, joinedAt, lastSeenAt], i) => ({
-    key: i,
-    uid: `U-${10240 + i}`,
-    nick,
-    email,
-    social: SOCIAL[social],
-    status: STATUS[status],
-    wallet: { gem, topaz },
-    paid,
-    certs,
-    joinedAt,
-    lastSeenAt,
-    // 탈퇴 계정만 탈퇴일을 갖는다 — 마지막 접속을 그날로 본다.
-    leftAt: STATUS[status] === 'LEFT' ? lastSeenAt : '',
-    // 전체 동의율(69%)에 가깝게, **시드 없이 결정적으로** 나눈다 — 새로고침마다
-    // 동의 여부가 바뀌면 지정 발송 대상 수가 흔들린다.
-    marketingOptIn: i % 10 < 7,
-  }))
+  cache = ROWS.map(
+    ([nick, email, social, status, gem, topaz, paid, certs, joinedAt, lastSeenAt], i) => ({
+      key: i,
+      uid: `U-${10240 + i}`,
+      nick,
+      email,
+      social: SOCIAL[social],
+      status: STATUS[status],
+      wallet: { gem, topaz },
+      paid,
+      certs,
+      joinedAt,
+      lastSeenAt,
+      // 탈퇴 계정만 탈퇴일을 갖는다 — 마지막 접속을 그날로 본다.
+      leftAt: STATUS[status] === 'LEFT' ? lastSeenAt : '',
+      // 전체 동의율(69%)에 가깝게, **시드 없이 결정적으로** 나눈다 — 새로고침마다
+      // 동의 여부가 바뀌면 지정 발송 대상 수가 흔들린다.
+      marketingOptIn: i % 10 < 7,
+    }),
+  )
   return cache
 }
 

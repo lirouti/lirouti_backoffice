@@ -34,25 +34,32 @@ const FORBIDDEN = {
 
 /** 층별 기본 사유 */
 const WHY = {
-  shared: 'shared 는 최하층이라 위쪽을 몰라야 합니다. 필요한 모양을 자기 prop 계약으로 선언하세요 — 구조적 타이핑이라 도메인 타입을 그대로 넘길 수 있습니다.',
+  shared:
+    'shared 는 최하층이라 위쪽을 몰라야 합니다. 필요한 모양을 자기 prop 계약으로 선언하세요 — 구조적 타이핑이라 도메인 타입을 그대로 넘길 수 있습니다.',
   domain: 'domain 은 순수 규칙 층입니다. 데이터 출처·상태·화면을 알면 안 됩니다.',
   mocks: 'mocks 는 데이터 구현체입니다. 화면이나 상태를 참조하면 서버로 교체할 때 딸려 갑니다.',
   api: 'api 는 데이터 파사드입니다. 화면·상태에 의존하면 파사드의 의미가 없습니다.',
   stores: 'stores 는 상태 그릇입니다. 규칙은 domain 으로, 데이터는 api 로 보내세요.',
   features: 'features 는 화면 층입니다. 위쪽이나 옆을 참조할 수 없습니다.',
-  entities: 'entities 는 여러 화면이 함께 쓰는 도메인 UI 입니다. 특정 화면이나 전역 상태를 알면 그 화면 전용이 되어 버립니다 — 그러면 features 안에 두는 게 맞습니다.',
-  layouts: 'layouts 는 모든 화면이 공유하는 셸입니다. 특정 화면이나 데이터 계층을 알면 안 됩니다.',
+  entities:
+    'entities 는 여러 화면이 함께 쓰는 도메인 UI 입니다. 특정 화면이나 전역 상태를 알면 그 화면 전용이 되어 버립니다 — 그러면 features 안에 두는 게 맞습니다.',
+  layouts:
+    'layouts 는 모든 화면이 공유하는 셸입니다. 특정 화면이나 데이터 계층을 알면 안 됩니다.',
 }
 
 /** (from → to) 특수 안내 */
 const PAIR = {
   'features>features':
     'features 끼리는 서로 참조하지 않습니다. 공유가 필요하면 domain/shared/api 로 올리고, 같은 feature 안은 상대경로(./)를 쓰세요.',
-  'features>mocks': '화면은 mocks 를 직접 보지 않습니다. api 파사드를 거치세요 — 서버로 갈아탈 때 화면을 손대지 않기 위한 경계입니다.',
+  'features>mocks':
+    '화면은 mocks 를 직접 보지 않습니다. api 파사드를 거치세요 — 서버로 갈아탈 때 화면을 손대지 않기 위한 경계입니다.',
   'entities>mocks': '공용 도메인 UI 도 mocks 를 직접 보지 않습니다. api 파사드를 거치세요.',
-  'entities>features': 'entities 는 features 아래층입니다. 특정 화면의 조각이 필요하면 그건 아직 공용이 아니라는 뜻이라, 그 feature 안에 두세요.',
-  'layouts>api': '셸은 데이터를 가져오지 않습니다. 데이터가 필요하면 그 화면(features)에서 부르세요.',
-  'stores>api': '스토어에서 데이터를 부르지 마세요. 화면이 api 를 부르고 결과만 스토어에 넣습니다.',
+  'entities>features':
+    'entities 는 features 아래층입니다. 특정 화면의 조각이 필요하면 그건 아직 공용이 아니라는 뜻이라, 그 feature 안에 두세요.',
+  'layouts>api':
+    '셸은 데이터를 가져오지 않습니다. 데이터가 필요하면 그 화면(features)에서 부르세요.',
+  'stores>api':
+    '스토어에서 데이터를 부르지 마세요. 화면이 api 를 부르고 결과만 스토어에 넣습니다.',
 }
 
 /**
@@ -192,10 +199,22 @@ export default tseslint.config(
         'error',
         {
           paths: [
-            { name: 'react', message: 'domain 은 순수 TypeScript 여야 합니다. 훅이 필요하면 layouts/features 로 올리세요.' },
+            {
+              name: 'react',
+              message:
+                'domain 은 순수 TypeScript 여야 합니다. 훅이 필요하면 layouts/features 로 올리세요.',
+            },
             { name: 'react-dom', message: 'domain 은 순수 TypeScript 여야 합니다.' },
-            { name: 'react-router', message: 'domain 은 라우터를 몰라야 합니다. 경로 정보는 SCREENS 데이터로 표현하세요.' },
-            { name: 'zustand', message: 'domain 은 상태 저장소를 몰라야 합니다. 규칙은 인자를 받아 값을 돌려주세요.' },
+            {
+              name: 'react-router',
+              message:
+                'domain 은 라우터를 몰라야 합니다. 경로 정보는 SCREENS 데이터로 표현하세요.',
+            },
+            {
+              name: 'zustand',
+              message:
+                'domain 은 상태 저장소를 몰라야 합니다. 규칙은 인자를 받아 값을 돌려주세요.',
+            },
           ],
           patterns: [
             {
@@ -203,7 +222,16 @@ export default tseslint.config(
               message: 'domain 은 스타일 시스템을 몰라야 합니다.',
             },
             {
-              group: ['@/app', '@/app/*', '@/layouts/*', '@/features/*', '@/entities/*', '@/stores/*', '@/api/*', '@/mocks/*'],
+              group: [
+                '@/app',
+                '@/app/*',
+                '@/layouts/*',
+                '@/features/*',
+                '@/entities/*',
+                '@/stores/*',
+                '@/api/*',
+                '@/mocks/*',
+              ],
               message: WHY.domain,
             },
             {

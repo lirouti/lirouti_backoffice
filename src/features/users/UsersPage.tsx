@@ -119,7 +119,15 @@ export default function UsersPage() {
         <SkeletonStats count={4} min={150} silent className={css({ mb: '16px' })} />
       ) : null}
 
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center', mb: '14px' })}>
+      <div
+        className={css({
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '10px',
+          alignItems: 'center',
+          mb: '14px',
+        })}
+      >
         <Input
           value={f.q ?? ''}
           onChange={(v) => patch('q', v)}
@@ -171,8 +179,12 @@ const COLUMNS: Column<User>[] = [
       <span className={css({ display: 'flex', alignItems: 'center', gap: '9px' })}>
         <Avatar nick={u.nick} />
         <span className={css({ minWidth: '0' })}>
-          <span className={css({ display: 'block', fontWeight: '700', color: 'ink' })}>{u.nick}</span>
-          <span className={css({ display: 'block', textStyle: 'micro', color: 'faint' })}>{u.email}</span>
+          <span className={css({ display: 'block', fontWeight: '700', color: 'ink' })}>
+            {u.nick}
+          </span>
+          <span className={css({ display: 'block', textStyle: 'micro', color: 'faint' })}>
+            {u.email}
+          </span>
         </span>
       </span>
     ),
@@ -205,12 +217,20 @@ const COLUMNS: Column<User>[] = [
     render: (u) => (u.paid > 0 ? `${num(u.paid)}원` : '—'),
   },
   { key: 'certs', label: '인증', width: '80px', align: 'right', render: (u) => num(u.certs) },
-  { key: 'joinedAt', label: '가입', width: '110px', nowrap: true, render: (u) => date(u.joinedAt) },
+  {
+    key: 'joinedAt',
+    label: '가입',
+    width: '110px',
+    nowrap: true,
+    render: (u) => date(u.joinedAt),
+  },
   {
     key: 'status',
     label: '상태',
     width: '84px',
-    render: (u) => <Badge tone={USER_STATUS_TONE[u.status]}>{USER_STATUS_LABEL[u.status]}</Badge>,
+    render: (u) => (
+      <Badge tone={USER_STATUS_TONE[u.status]}>{USER_STATUS_LABEL[u.status]}</Badge>
+    ),
   },
 ]
 
@@ -237,4 +257,3 @@ function Avatar({ nick }: { nick: string }) {
     </span>
   )
 }
-

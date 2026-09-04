@@ -105,7 +105,15 @@ export function StackedBarLineChart({
       </ResponsiveContainer>
 
       {/* 범례는 디자인에 맞춰 직접 그린다 — Recharts 기본 범례는 여백·타이포가 다르다 */}
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '14px', pt: '2px', pb: '4px' })}>
+      <div
+        className={css({
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '14px',
+          pt: '2px',
+          pb: '4px',
+        })}
+      >
         {(
           [
             ['chart', 'square', legend[0]],

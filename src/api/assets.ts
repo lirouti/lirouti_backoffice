@@ -6,7 +6,13 @@
  */
 import { useMutation, useQuery } from '@tanstack/react-query'
 
-import { extOfFile, validateAssetFile, ASSET_SPECS, type Asset, type AssetKind } from '@/domain/asset'
+import {
+  extOfFile,
+  validateAssetFile,
+  ASSET_SPECS,
+  type Asset,
+  type AssetKind,
+} from '@/domain/asset'
 
 import { addAsset, assetsOf } from '@/mocks/assets'
 

@@ -42,10 +42,31 @@ export function Breadcrumbs({ current }: { current: ScreenId | null }) {
       {crumbs.map((c, i) => {
         const last = i === crumbs.length - 1
         return (
-          <div key={`${c.label}-${i}`} className={css({ display: 'flex', alignItems: 'center', gap: '5px', minWidth: '0' })}>
+          <div
+            key={`${c.label}-${i}`}
+            className={css({
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              minWidth: '0',
+            })}
+          >
             {i > 0 && (
-              <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" className={css({ flex: 'none', color: 'faint2' })}>
-                <path d="M4.5,2.5 L8,6 L4.5,9.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+              <svg
+                width="11"
+                height="11"
+                viewBox="0 0 12 12"
+                aria-hidden="true"
+                className={css({ flex: 'none', color: 'faint2' })}
+              >
+                <path
+                  d="M4.5,2.5 L8,6 L4.5,9.5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
             )}
             <Crumb crumb={c} last={last} />
@@ -75,8 +96,12 @@ function Crumb({ crumb, last }: { crumb: Crumb; last: boolean }) {
 
   const inner = (
     <>
-      {crumb.icon && <Icon name={crumb.icon} size={13} className={css({ color: last ? 'pri' : 'faint' })} />}
-      <span className={css({ overflow: 'hidden', textOverflow: 'ellipsis' })}>{crumb.label}</span>
+      {crumb.icon && (
+        <Icon name={crumb.icon} size={13} className={css({ color: last ? 'pri' : 'faint' })} />
+      )}
+      <span className={css({ overflow: 'hidden', textOverflow: 'ellipsis' })}>
+        {crumb.label}
+      </span>
     </>
   )
 
@@ -104,7 +129,8 @@ function buildCrumbs(nav: ReturnType<typeof useScopedNav>, current: ScreenId | n
 
   // 상세 화면이면 부모 섹션을 한 단계 더 끼워 넣는다.
   const section = sectionOf(current)
-  if (section !== current) out.push({ label: SCREENS[section].label, to: SCREENS[section].path })
+  if (section !== current)
+    out.push({ label: SCREENS[section].label, to: SCREENS[section].path })
 
   const leaf = SCREENS[current].label
   // 그룹 라벨과 잎 라벨이 같으면 중복 표시하지 않는다.

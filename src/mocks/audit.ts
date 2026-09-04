@@ -30,6 +30,9 @@ type Row = [
   screen: ScreenId,
 ]
 
+// ⚠️ **한 줄이 한 레코드다.** 표처럼 읽는 것이 이 파일의 목적이라 자동 포맷을 끈다 —
+//    풀어 놓으면 12칸짜리 한 줄이 14줄이 되어 무엇이 무엇인지 보이지 않는다.
+// prettier-ignore
 const ROWS: Row[] = [
   [0, '09:41', '김하늘', '최고 관리자', '환불', 'ord_20260814_9921 · 소이', '-12,100원', '회원 요청 · 오결제', '10.4.2.18', '결제 상태', '완료', '환불', 'pay'],
   [0, '09:12', '박서준', '운영자', '재화 지급', '소이 · 파란보석', '+500', '점검 보상 · 무상 적립', '10.4.2.31', '파란보석 잔액', '1,340', '1,840', 'grant'],
@@ -56,18 +59,20 @@ const ROWS: Row[] = [
  * 번호로 만들면 필터를 걸 때마다 같은 기록이 다른 번호를 갖는다.
  */
 export const allAuditLogs = (): AuditLog[] =>
-  ROWS.map(([ago, hhmm, by, role, kind, target, delta, why, ip, field, from, to, screen], i) => ({
-    logId: `log_${88410 + i * 17}`,
-    at: `${daysAgo(ago)} ${hhmm}`,
-    by,
-    role,
-    kind,
-    target,
-    delta,
-    why,
-    ip,
-    field,
-    from,
-    to,
-    screen,
-  }))
+  ROWS.map(
+    ([ago, hhmm, by, role, kind, target, delta, why, ip, field, from, to, screen], i) => ({
+      logId: `log_${88410 + i * 17}`,
+      at: `${daysAgo(ago)} ${hhmm}`,
+      by,
+      role,
+      kind,
+      target,
+      delta,
+      why,
+      ip,
+      field,
+      from,
+      to,
+      screen,
+    }),
+  )

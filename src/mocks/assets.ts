@@ -43,7 +43,10 @@ export const assetsOf = (kind: AssetKind): Asset[] => catalog[kind]
  * @param src 이 그림을 그릴 URL. 부르는 쪽이 만든다 — 목은 `URL.createObjectURL`,
  *   서버가 붙으면 응답에 실려 온다.
  */
-export function addAsset(kind: AssetKind, v: { name: string; sub: string; src: string; ext: AssetExt }): Asset {
+export function addAsset(
+  kind: AssetKind,
+  v: { name: string; sub: string; src: string; ext: AssetExt },
+): Asset {
   uploaded += 1
   const asset: Asset = {
     // 빌드 에셋(`as_head_0`)과 겹치지 않게 접두사를 다르게 둔다.

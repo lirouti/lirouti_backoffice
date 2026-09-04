@@ -49,7 +49,10 @@ export const isSingleCode = (kind: CouponKind): boolean =>
  *    쓸 수 있는 글자만 남기고, 남는 게 없으면 `BULK` 로 떨어진다.
  */
 export function bulkPrefix(name: string): string {
-  const kept = [...name.toUpperCase()].filter((ch) => /[A-Z0-9]/.test(ch)).join('').slice(0, 6)
+  const kept = [...name.toUpperCase()]
+    .filter((ch) => /[A-Z0-9]/.test(ch))
+    .join('')
+    .slice(0, 6)
   // 한 글자여도 코드로 쓸 수 있다. 운영자가 정한 것을 굳이 버리지 않는다.
   return kept.length >= 1 ? kept : 'BULK'
 }
@@ -191,7 +194,8 @@ export function validateCoupon(input: CouponInput, takenCodes: string[] = []): C
     const code = input.code.trim().toUpperCase()
     if (!code) errors.code = '코드를 입력하세요.'
     else if (!isCouponCode(code)) errors.code = '코드는 영문 대문자 · 숫자 · 하이픈만 씁니다.'
-    else if (takenCodes.some((t) => t.toUpperCase() === code)) errors.code = '이미 쓰고 있는 코드입니다.'
+    else if (takenCodes.some((t) => t.toUpperCase() === code))
+      errors.code = '이미 쓰고 있는 코드입니다.'
   } else if (!Number.isInteger(input.qty) || input.qty <= 0) {
     errors.qty = '발급 수량은 1 이상의 정수여야 합니다.'
   }
@@ -207,7 +211,10 @@ export function validateCoupon(input: CouponInput, takenCodes: string[] = []): C
   }
 
   // ⚠️ 켜 두고 0 이면 상세가 「제한 없음」 으로 보인다 — 운영자가 건 제한이 사라진다.
-  if (input.limits.firstCome && (!Number.isInteger(input.limits.firstComeQty) || input.limits.firstComeQty <= 0)) {
+  if (
+    input.limits.firstCome &&
+    (!Number.isInteger(input.limits.firstComeQty) || input.limits.firstComeQty <= 0)
+  ) {
     errors.firstComeQty = '선착순 인원은 1 이상의 정수여야 합니다.'
   }
 

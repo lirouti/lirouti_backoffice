@@ -41,7 +41,14 @@ export default function SecurityPage() {
           WebAuthn challenge 발급·검증 엔드포인트가 필요해 서버 스펙이 나온 뒤로 미뤘다.
         */}
         <Card className={css({ p: '14px 20px' })}>
-          <div className={css({ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '10px' })}>
+          <div
+            className={css({
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              gap: '10px',
+            })}
+          >
             <div className={css({ textStyle: 'body', fontWeight: '700', color: 'faint' })}>
               패스키
             </div>

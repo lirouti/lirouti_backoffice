@@ -63,7 +63,8 @@ export function LineChart({ values, domain, ticks, height = 170 }: LineChartProp
           r={4.2}
           fill={token('colors.surf')}
           stroke={token('colors.pri')}
-          strokeWidth={2.4}        />
+          strokeWidth={2.4}
+        />
       </AreaChart>
     </ResponsiveContainer>
   )

@@ -89,12 +89,27 @@ export function TotpStep({
         })}
       >
         <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-          <path d="M7.5,2 L3.5,6 L7.5,10" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+          <path
+            d="M7.5,2 L3.5,6 L7.5,10"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
         로그인으로
       </button>
 
-      <h1 className={css({ m: '0', fontSize: '25px', lineHeight: '34px', letterSpacing: '-0.7px', fontWeight: '700' })}>
+      <h1
+        className={css({
+          m: '0',
+          fontSize: '25px',
+          lineHeight: '34px',
+          letterSpacing: '-0.7px',
+          fontWeight: '700',
+        })}
+      >
         인증 코드 입력
       </h1>
       <p className={css({ m: '7px 0 22px', textStyle: 'body', color: 'sub' })}>

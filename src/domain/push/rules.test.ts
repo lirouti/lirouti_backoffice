@@ -95,7 +95,12 @@ describe('hourOf', () => {
 
   // 모양만 보면 통과하지만 **존재하지 않는 시각**이라 예약해도 영원히 안 나간다.
   it('⚠️ 달력에 없는 날 · 60분 이상은 null', () => {
-    for (const bad of ['2026-02-30 10:00', '2026-13-01 10:00', '2026-04-31 10:00', '2026-08-14 10:99']) {
+    for (const bad of [
+      '2026-02-30 10:00',
+      '2026-13-01 10:00',
+      '2026-04-31 10:00',
+      '2026-08-14 10:99',
+    ]) {
       expect(hourOf(bad)).toBeNull()
     }
   })
@@ -164,7 +169,10 @@ describe('reachOf', () => {
 
   it('회원 목록을 주면 동의까지 걸러 센다', () => {
     const two = input({ kind: 'marketing', audience: '직접 지정', ids: 'U-1, U-2' })
-    const users = [user({ key: 0, uid: 'U-1' }), user({ key: 1, uid: 'U-2', marketingOptIn: false })]
+    const users = [
+      user({ key: 0, uid: 'U-1' }),
+      user({ key: 1, uid: 'U-2', marketingOptIn: false }),
+    ]
     expect(reachOf(two, consent, users)).toBe(1)
   })
 
@@ -227,16 +235,24 @@ describe('validatePush', () => {
 
   it('제목·본문은 필수이고 길이 제한이 있다', () => {
     expect(validatePush(input({ title: '  ' }), consent, AT).title).toBeTruthy()
-    expect(validatePush(input({ title: 'ㄱ'.repeat(PUSH_LIMITS.title + 1) }), consent, AT).title).toBeTruthy()
-    expect(validatePush(input({ body: 'ㄱ'.repeat(PUSH_LIMITS.body + 1) }), consent, AT).body).toBeTruthy()
+    expect(
+      validatePush(input({ title: 'ㄱ'.repeat(PUSH_LIMITS.title + 1) }), consent, AT).title,
+    ).toBeTruthy()
+    expect(
+      validatePush(input({ body: 'ㄱ'.repeat(PUSH_LIMITS.body + 1) }), consent, AT).body,
+    ).toBeTruthy()
   })
 
   it('제한 길이 정확히는 통과한다', () => {
-    expect(validatePush(input({ title: 'ㄱ'.repeat(PUSH_LIMITS.title) }), consent, AT).title).toBeUndefined()
+    expect(
+      validatePush(input({ title: 'ㄱ'.repeat(PUSH_LIMITS.title) }), consent, AT).title,
+    ).toBeUndefined()
   })
 
   it('대상이 0명이면 막는다', () => {
-    expect(validatePush(input({ audience: '직접 지정', ids: '' }), consent, AT).ids).toBeTruthy()
+    expect(
+      validatePush(input({ audience: '직접 지정', ids: '' }), consent, AT).ids,
+    ).toBeTruthy()
   })
 
   // 원본은 예약일 때만 막아서, 밤 11시에 「지금 발송」 을 누르면 그대로 나갔다.
@@ -253,7 +269,9 @@ describe('validatePush', () => {
 
 describe('repeatInputOf', () => {
   it('내용과 설정은 복사하되 과거 발송 시각과 결과는 새 입력에 넣지 않는다', () => {
-    expect(repeatInputOf(push({ kind: 'marketing', audience: '휴면 회원', link: '내 캐릭터' }))).toEqual({
+    expect(
+      repeatInputOf(push({ kind: 'marketing', audience: '휴면 회원', link: '내 캐릭터' })),
+    ).toEqual({
       kind: 'marketing',
       title: '8/14 점검 안내',
       body: '오늘 02시부터 04시까지 접속이 어렵습니다',
@@ -299,7 +317,14 @@ describe('summarizePushes', () => {
   const list = [
     push({ key: 0, at: '2026-08-14 18:00', delivered: 100, opened: 50 }),
     push({ key: 1, at: '2026-08-13 09:00', delivered: 900, opened: 180 }),
-    push({ key: 2, at: '2026-08-20 10:00', status: '예약', targeted: 28600, delivered: 0, opened: 0 }),
+    push({
+      key: 2,
+      at: '2026-08-20 10:00',
+      status: '예약',
+      targeted: 28600,
+      delivered: 0,
+      opened: 0,
+    }),
   ]
 
   it('오늘 발송과 예약 대기를 센다', () => {
@@ -327,14 +352,24 @@ describe('canCancel', () => {
 describe('failuresOf', () => {
   // 대상은 이미 푸시를 켠 사람만 세었다. 거부를 실패로 또 세면 두 번 빼는 것이다.
   it('⚠️ 「푸시 거부」 는 실패에 넣지 않는다', () => {
-    expect(failuresOf(push()).map((f) => f.why)).toEqual(['토큰 만료', '기기 미등록', '일시 오류'])
+    expect(failuresOf(push()).map((f) => f.why)).toEqual([
+      '토큰 만료',
+      '기기 미등록',
+      '일시 오류',
+    ])
   })
 
   // 합이 어긋나면 「대상 − 도달」 과 표가 안 맞아 운영자가 숫자를 의심한다.
   it('⚠️ 합이 「대상 − 도달」 과 정확히 같다', () => {
     // ⚠️ `[10, 4]` 를 빼지 말 것 — 나머지 값들은 **우연히** 반올림이 딱 떨어져서,
     //    비율만 세 번 반올림하는 구현으로 되돌려도 통과한다. `lost = 6` 에서만 어긋난다.
-    for (const [targeted, delivered] of [[38940, 37200], [100, 99], [10, 4], [7, 3], [1, 0]]) {
+    for (const [targeted, delivered] of [
+      [38940, 37200],
+      [100, 99],
+      [10, 4],
+      [7, 3],
+      [1, 0],
+    ]) {
       const rows = failuresOf(push({ targeted, delivered }))
       expect(rows.reduce((s, f) => s + f.count, 0)).toBe(targeted! - delivered!)
     }

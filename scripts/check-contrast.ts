@@ -68,13 +68,22 @@ const AA_NON_TEXT = 3
 type Issue = { what: string; mode: Mode; got: number; need: number; detail: string }
 const issues: Issue[] = []
 
-function require_(what: string, mode: Mode, fg: string, bg: string, need: number, detail: string) {
+function require_(
+  what: string,
+  mode: Mode,
+  fg: string,
+  bg: string,
+  need: number,
+  detail: string,
+) {
   const got = ratio(fg, bg)
   if (got < need) issues.push({ what, mode, got, need, detail })
 }
 
 function worstSurface(mode: Mode, fg: string): string {
-  return SURFACES.map((s) => T[s]![mode]).reduce((w, b) => (ratio(fg, b) < ratio(fg, w) ? b : w))
+  return SURFACES.map((s) => T[s]![mode]).reduce((w, b) =>
+    ratio(fg, b) < ratio(fg, w) ? b : w,
+  )
 }
 
 for (const mode of MODES) {
@@ -87,7 +96,14 @@ for (const mode of MODES) {
   // 2. faint2 는 **비텍스트 전용**이다 (아이콘·구분선·테두리). 3:1 만 만족하면 된다.
   //    텍스트로 쓰고 싶으면 faint 를 쓸 것 — panda.config 의 주석 참고.
   const f2 = T.faint2![mode]
-  require_('faint2 (아이콘·테두리)', mode, f2, worstSurface(mode, f2), AA_NON_TEXT, '표면 위 아이콘')
+  require_(
+    'faint2 (아이콘·테두리)',
+    mode,
+    f2,
+    worstSurface(mode, f2),
+    AA_NON_TEXT,
+    '표면 위 아이콘',
+  )
 
   // 3. 배지 — xFg 는 xBg 위에서도, 맨 표면 위에서도 읽혀야 한다
   //    (StatCard 처럼 배경 없이 색만 쓰는 자리가 있다).
@@ -95,7 +111,8 @@ for (const mode of MODES) {
     if (!name.endsWith('Fg')) continue
     const fg = T[name]![mode]
     const bg = T[name.replace(/Fg$/, 'Bg')]
-    if (bg) require_(`${name} on ${name.replace(/Fg$/, 'Bg')}`, mode, fg, bg[mode], AA_TEXT, '배지')
+    if (bg)
+      require_(`${name} on ${name.replace(/Fg$/, 'Bg')}`, mode, fg, bg[mode], AA_TEXT, '배지')
     require_(`${name} (표면 위)`, mode, fg, worstSurface(mode, fg), AA_TEXT, '배경 없는 텍스트')
   }
 
@@ -108,7 +125,15 @@ for (const mode of MODES) {
     if (!bg) continue
     for (const name of allow) {
       const fg = T[name]?.[mode]
-      if (fg) require_(`${name} (${surface} 위)`, mode, fg, bg, AA_TEXT, `${surface} 에서 허용한 글자색`)
+      if (fg)
+        require_(
+          `${name} (${surface} 위)`,
+          mode,
+          fg,
+          bg,
+          AA_TEXT,
+          `${surface} 에서 허용한 글자색`,
+        )
     }
     // 막은 색이 **정말로 못 쓰는 색인지** 확인한다 — 통과해 버리면 금지가 근거를 잃는다.
     for (const name of deny) {
@@ -137,9 +162,7 @@ if (issues.length === 0) {
 }
 
 for (const i of issues) {
-  console.error(
-    `${i.what} [${i.mode}] — ${i.got.toFixed(2)}:1, ${i.need}:1 필요 (${i.detail})`,
-  )
+  console.error(`${i.what} [${i.mode}] — ${i.got.toFixed(2)}:1, ${i.need}:1 필요 (${i.detail})`)
 }
 console.error(`\n명암비 위반 ${issues.length}건 — docs/ARCHITECTURE.md §3.5`)
 process.exit(1)

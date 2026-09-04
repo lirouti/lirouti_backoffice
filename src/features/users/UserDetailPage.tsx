@@ -107,10 +107,20 @@ function Detail({ detail, userId }: { detail: UserDetail; userId: string }) {
 
       {ban.error && <ErrorBanner message={ban.error.message} />}
 
-      <div className={css({ display: 'flex', alignItems: 'center', gap: '8px', mb: '16px', flexWrap: 'wrap' })}>
+      <div
+        className={css({
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          mb: '16px',
+          flexWrap: 'wrap',
+        })}
+      >
         <Badge tone={SOCIAL_TONE[user.social]}>{SOCIAL_LABEL[user.social]}</Badge>
         <Badge tone={USER_STATUS_TONE[user.status]}>{USER_STATUS_LABEL[user.status]}</Badge>
-        <span className={css({ fontFamily: 'mono', textStyle: 'caption', color: 'faint' })}>{user.uid}</span>
+        <span className={css({ fontFamily: 'mono', textStyle: 'caption', color: 'faint' })}>
+          {user.uid}
+        </span>
       </div>
 
       <div
@@ -127,11 +137,34 @@ function Detail({ detail, userId }: { detail: UserDetail; userId: string }) {
         <StatTile label="마지막 접속" value={date(user.lastSeenAt)} />
       </div>
 
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '18px', alignItems: 'flex-start' })}>
-        <div className={css({ flex: '1 1 300px', minWidth: '260px', maxWidth: '380px', display: 'flex', flexDirection: 'column', gap: '14px' })}>
+      <div
+        className={css({
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '18px',
+          alignItems: 'flex-start',
+        })}
+      >
+        <div
+          className={css({
+            flex: '1 1 300px',
+            minWidth: '260px',
+            maxWidth: '380px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '14px',
+          })}
+        >
           <Card className={css({ p: '15px' })}>
             <CardTitle title="계정" />
-            <dl className={css({ m: '12px 0 0', display: 'flex', flexDirection: 'column', gap: '9px' })}>
+            <dl
+              className={css({
+                m: '12px 0 0',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '9px',
+              })}
+            >
               <Row k="가입일" v={date(user.joinedAt)} />
               <Row k="마지막 접속" v={date(user.lastSeenAt)} />
               <Row k="로그인" v={SOCIAL_LABEL[user.social]} />
@@ -146,21 +179,55 @@ function Detail({ detail, userId }: { detail: UserDetail; userId: string }) {
               ⚠️ **합쳐 보이면 안 된다.** 환불 대상은 유상(파란보석)뿐이라,
               합계만 보고 환불액을 잡으면 무상까지 돌려주게 된다.
             */}
-            <div className={css({ mt: '12px', display: 'flex', flexDirection: 'column', gap: '10px' })}>
-              <Coin label="파란보석" hint="결제로 사는 유상 재화" value={user.wallet.gem} paid />
-              <Coin label="노란보석" hint="챌린지·업적으로 얻는 무상 재화" value={user.wallet.topaz} />
+            <div
+              className={css({
+                mt: '12px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px',
+              })}
+            >
+              <Coin
+                label="파란보석"
+                hint="결제로 사는 유상 재화"
+                value={user.wallet.gem}
+                paid
+              />
+              <Coin
+                label="노란보석"
+                hint="챌린지·업적으로 얻는 무상 재화"
+                value={user.wallet.topaz}
+              />
             </div>
           </Card>
         </div>
 
-        <div className={css({ flex: '3 1 460px', minWidth: '0', display: 'flex', flexDirection: 'column', gap: '14px' })}>
+        <div
+          className={css({
+            flex: '3 1 460px',
+            minWidth: '0',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '14px',
+          })}
+        >
           <Section title="재화 이력" sub="유상·무상이 따로 쌓입니다.">
-            <Table columns={LEDGER_COLUMNS} rows={ledger} minWidth={720} className={css({ border: '0' })} />
+            <Table
+              columns={LEDGER_COLUMNS}
+              rows={ledger}
+              minWidth={720}
+              className={css({ border: '0' })}
+            />
           </Section>
 
           <Section title="결제 내역">
             {orders.length > 0 ? (
-              <Table columns={ORDER_COLUMNS} rows={orders} minWidth={680} className={css({ border: '0' })} />
+              <Table
+                columns={ORDER_COLUMNS}
+                rows={orders}
+                minWidth={680}
+                className={css({ border: '0' })}
+              />
             ) : (
               <Empty>결제 내역이 없습니다.</Empty>
             )}
@@ -179,7 +246,11 @@ const LEDGER_COLUMNS: Column<CoinLedgerRow>[] = [
     label: '재화',
     width: '96px',
     render: (r) => (
-      <span className={css({ color: r.coin === '파란보석' ? 'priD' : 'aFg', fontWeight: '700' })}>{r.coin}</span>
+      <span
+        className={css({ color: r.coin === '파란보석' ? 'priD' : 'aFg', fontWeight: '700' })}
+      >
+        {r.coin}
+      </span>
     ),
   },
   {
@@ -195,7 +266,13 @@ const LEDGER_COLUMNS: Column<CoinLedgerRow>[] = [
       </span>
     ),
   },
-  { key: 'balance', label: '잔액', width: '90px', align: 'right', render: (r) => num(r.balance) },
+  {
+    key: 'balance',
+    label: '잔액',
+    width: '90px',
+    align: 'right',
+    render: (r) => num(r.balance),
+  },
   { key: 'why', label: '사유', truncate: true },
 ]
 
@@ -203,18 +280,30 @@ const ORDER_COLUMNS: Column<OrderRow>[] = [
   { key: 'at', label: '일시', width: '150px', nowrap: true },
   { key: 'orderNo', label: '주문번호', width: '150px' },
   { key: 'product', label: '상품', truncate: true },
-  { key: 'amount', label: '금액', width: '110px', align: 'right', render: (r) => `${num(r.amount)}원` },
+  {
+    key: 'amount',
+    label: '금액',
+    width: '110px',
+    align: 'right',
+    render: (r) => `${num(r.amount)}원`,
+  },
   {
     key: 'status',
     label: '상태',
     width: '90px',
-    render: (r) => (
-      <Badge tone={r.status === '환불' ? 'danger' : 'success'}>{r.status}</Badge>
-    ),
+    render: (r) => <Badge tone={r.status === '환불' ? 'danger' : 'success'}>{r.status}</Badge>,
   },
 ]
 
-function Section({ title, sub, children }: { title: string; sub?: string; children: React.ReactNode }) {
+function Section({
+  title,
+  sub,
+  children,
+}: {
+  title: string
+  sub?: string
+  children: React.ReactNode
+}) {
   return (
     <Card className={css({ p: '0', overflow: 'hidden' })}>
       <div className={css({ p: '17px 20px 0' })}>
@@ -227,14 +316,32 @@ function Section({ title, sub, children }: { title: string; sub?: string; childr
 
 function Empty({ children }: { children: React.ReactNode }) {
   return (
-    <p className={css({ m: '0', p: '28px 20px', textAlign: 'center', textStyle: 'caption', color: 'faint' })}>
+    <p
+      className={css({
+        m: '0',
+        p: '28px 20px',
+        textAlign: 'center',
+        textStyle: 'caption',
+        color: 'faint',
+      })}
+    >
       {children}
     </p>
   )
 }
 
 /** @param paid 유상 재화인가. 색이 그것으로 갈린다 */
-function Coin({ label, hint, value, paid }: { label: string; hint: string; value: number; paid?: boolean }) {
+function Coin({
+  label,
+  hint,
+  value,
+  paid,
+}: {
+  label: string
+  hint: string
+  value: number
+  paid?: boolean
+}) {
   return (
     <div
       className={css({
@@ -248,12 +355,25 @@ function Coin({ label, hint, value, paid }: { label: string; hint: string; value
       })}
     >
       <span className={css({ flex: '1', minWidth: '0' })}>
-        <span className={css({ display: 'block', textStyle: 'label', fontWeight: '700', color: 'ink' })}>
+        <span
+          className={css({
+            display: 'block',
+            textStyle: 'label',
+            fontWeight: '700',
+            color: 'ink',
+          })}
+        >
           {label}
         </span>
-        <span className={css({ display: 'block', mt: '1px', textStyle: 'micro', color: 'faint' })}>{hint}</span>
+        <span
+          className={css({ display: 'block', mt: '1px', textStyle: 'micro', color: 'faint' })}
+        >
+          {hint}
+        </span>
       </span>
-      <span className={css({ textStyle: 'h3', fontWeight: '700', color: paid ? 'priD' : 'aFg' })}>
+      <span
+        className={css({ textStyle: 'h3', fontWeight: '700', color: paid ? 'priD' : 'aFg' })}
+      >
         {num(value)}
       </span>
     </div>
@@ -263,8 +383,22 @@ function Coin({ label, hint, value, paid }: { label: string; hint: string; value
 function Row({ k, v }: { k: string; v: string }) {
   return (
     <div className={css({ display: 'flex', alignItems: 'center', gap: '10px' })}>
-      <dt className={css({ flex: 'none', width: '80px', textStyle: 'caption', color: 'faint' })}>{k}</dt>
-      <dd className={css({ m: '0', flex: '1', minWidth: '0', textAlign: 'right', textStyle: 'label', fontWeight: '600', color: 'ink' })}>
+      <dt
+        className={css({ flex: 'none', width: '80px', textStyle: 'caption', color: 'faint' })}
+      >
+        {k}
+      </dt>
+      <dd
+        className={css({
+          m: '0',
+          flex: '1',
+          minWidth: '0',
+          textAlign: 'right',
+          textStyle: 'label',
+          fontWeight: '600',
+          color: 'ink',
+        })}
+      >
         {v}
       </dd>
     </div>

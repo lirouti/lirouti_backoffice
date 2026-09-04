@@ -19,7 +19,6 @@ export default defineConfig({
     // 청크를 강제하면 Rollup 이 공용 모듈까지 그 청크에 배치해서, 엔트리가
     // charts 를 **정적으로** 의존하게 된다 — 로그인 화면에도 105KB 가 딸려왔다.
     // 자동 분할이 이미 recharts 를 lazy 한 DashboardPage 청크에 넣어준다. (§9.2)
-
   },
 
   server: { port: 5173 },

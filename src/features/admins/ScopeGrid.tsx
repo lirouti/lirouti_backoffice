@@ -48,7 +48,7 @@ export function ScopeGrid({ selected, onToggle, allOn, disabled }: ScopeGridProp
                 border: '1px solid',
                 borderRadius: 'md',
                 cursor: 'pointer',
-                }),
+              }),
               on
                 ? css({ borderColor: 'liveBd', bg: 'soft' })
                 : css({ borderColor: 'ln', bg: 'transparent' }),
@@ -77,7 +77,10 @@ export function ScopeGrid({ selected, onToggle, allOn, disabled }: ScopeGridProp
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  _peerFocusVisible: { boxShadow: '0 0 0 3px token(colors.ring)', borderColor: 'ringBd' },
+                  _peerFocusVisible: {
+                    boxShadow: '0 0 0 3px token(colors.ring)',
+                    borderColor: 'ringBd',
+                  },
                 }),
                 on
                   ? css({ borderColor: 'pri', bg: 'pri', color: 'onPri' })
@@ -96,7 +99,14 @@ export function ScopeGrid({ selected, onToggle, allOn, disabled }: ScopeGridProp
               </svg>
             </span>
             <span className={css({ minWidth: '0' })}>
-              <span className={css({ display: 'block', textStyle: 'label', fontWeight: '600', color: 'ink' })}>
+              <span
+                className={css({
+                  display: 'block',
+                  textStyle: 'label',
+                  fontWeight: '600',
+                  color: 'ink',
+                })}
+              >
                 {SCOPE_LABEL[scope]}
               </span>
               <span className={css({ display: 'block', textStyle: 'micro', color: 'sub' })}>

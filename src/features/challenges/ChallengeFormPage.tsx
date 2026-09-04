@@ -84,7 +84,11 @@ export default function ChallengeFormPage() {
   // ⚠️ `key` 로 `chalId` 가 바뀌면 반드시 새로 마운트한다 — 초기값을 한 번만 읽으므로
   //    A 의 입력으로 B 를 저장하게 될 수 있다 (`ItemFormPage` 와 같은 이유).
   return (
-    <ChallengeForm key={chalId} chalId={chalId} initial={toChallengeInput(existing.data.challenge)} />
+    <ChallengeForm
+      key={chalId}
+      chalId={chalId}
+      initial={toChallengeInput(existing.data.challenge)}
+    />
   )
 }
 
@@ -179,11 +183,33 @@ function ChallengeForm({ chalId, initial }: { chalId?: string; initial: Challeng
 
       {save.error && <ErrorBanner message={save.error.message} />}
 
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '18px', alignItems: 'flex-start' })}>
-        <div className={css({ flex: '3 1 520px', minWidth: '0', display: 'flex', flexDirection: 'column', gap: '14px' })}>
+      <div
+        className={css({
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '18px',
+          alignItems: 'flex-start',
+        })}
+      >
+        <div
+          className={css({
+            flex: '3 1 520px',
+            minWidth: '0',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '14px',
+          })}
+        >
           <Card className={css({ p: '17px 20px' })}>
             <CardTitle title="챌린지 정보" />
-            <div className={css({ display: 'flex', flexDirection: 'column', gap: '14px', mt: '14px' })}>
+            <div
+              className={css({
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '14px',
+                mt: '14px',
+              })}
+            >
               <Input
                 value={input.title}
                 onChange={(v) => set('title', v)}
@@ -243,7 +269,9 @@ function ChallengeForm({ chalId, initial }: { chalId?: string; initial: Challeng
 
           <Card className={css({ p: '17px 20px' })}>
             <CardTitle title="운영 기간" sub="비워 두면 제한 없음" />
-            <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '14px', mt: '14px' })}>
+            <div
+              className={css({ display: 'flex', flexWrap: 'wrap', gap: '14px', mt: '14px' })}
+            >
               <Input
                 type="date"
                 value={input.startAt}
@@ -268,7 +296,9 @@ function ChallengeForm({ chalId, initial }: { chalId?: string; initial: Challeng
         <SideCard input={input} errors={errors} />
       </div>
 
-      <div className={css({ display: 'flex', justifyContent: 'flex-end', gap: '8px', mt: '18px' })}>
+      <div
+        className={css({ display: 'flex', justifyContent: 'flex-end', gap: '8px', mt: '18px' })}
+      >
         <Button type="button" onClick={() => navigate(SCREENS.chal.path)}>
           취소
         </Button>
@@ -301,7 +331,15 @@ function RewardCard({
   return (
     <Card className={css({ p: '17px 20px' })}>
       <CardTitle title="보상 아이템" sub="젬과 함께 줄 아이템입니다. 없으면 젬만 지급됩니다." />
-      <div className={css({ display: 'flex', alignItems: 'center', gap: '12px', mt: '14px', flexWrap: 'wrap' })}>
+      <div
+        className={css({
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          mt: '14px',
+          flexWrap: 'wrap',
+        })}
+      >
         {input.rewardItem ? (
           <>
             <AssetThumb
@@ -310,7 +348,15 @@ function RewardCard({
               size={44}
               alt={input.rewardItem.name}
             />
-            <span className={css({ flex: '1', minWidth: '0', textStyle: 'body', fontWeight: '600', color: 'ink' })}>
+            <span
+              className={css({
+                flex: '1',
+                minWidth: '0',
+                textStyle: 'body',
+                fontWeight: '600',
+                color: 'ink',
+              })}
+            >
               {input.rewardItem.name}
             </span>
             <Button onClick={() => setPicking(true)}>바꾸기</Button>
@@ -353,21 +399,42 @@ function SideCard({
   ]
 
   return (
-    <Card className={css({ flex: '1 1 300px', minWidth: '260px', maxWidth: '380px', p: '15px' })}>
+    <Card
+      className={css({ flex: '1 1 300px', minWidth: '260px', maxWidth: '380px', p: '15px' })}
+    >
       <CardTitle title="요약" />
-      <dl className={css({ m: '12px 0 0', display: 'flex', flexDirection: 'column', gap: '8px' })}>
+      <dl
+        className={css({ m: '12px 0 0', display: 'flex', flexDirection: 'column', gap: '8px' })}
+      >
         <SummaryRow k="주기" v={CHALLENGE_KIND_LABEL[input.kind]} />
         <SummaryRow k="조건" v={`${input.cond} ${input.goal}회`} />
         <SummaryRow k="보상" v={rewardLabel(input)} />
       </dl>
 
-      <ul className={css({ listStyle: 'none', m: '14px 0 0', p: '0', display: 'flex', flexDirection: 'column', gap: '7px' })}>
+      <ul
+        className={css({
+          listStyle: 'none',
+          m: '14px 0 0',
+          p: '0',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '7px',
+        })}
+      >
         {checks.map((c) => (
-          <li key={c.label} className={css({ display: 'flex', alignItems: 'center', gap: '7px' })}>
-            <span aria-hidden="true" className={css({ flex: 'none', color: c.ok ? 'gFg' : 'faint2' })}>
+          <li
+            key={c.label}
+            className={css({ display: 'flex', alignItems: 'center', gap: '7px' })}
+          >
+            <span
+              aria-hidden="true"
+              className={css({ flex: 'none', color: c.ok ? 'gFg' : 'faint2' })}
+            >
               {c.ok ? '●' : '○'}
             </span>
-            <span className={css({ textStyle: 'caption', color: c.ok ? 'sub' : 'faint' })}>{c.label}</span>
+            <span className={css({ textStyle: 'caption', color: c.ok ? 'sub' : 'faint' })}>
+              {c.label}
+            </span>
           </li>
         ))}
       </ul>
@@ -378,8 +445,22 @@ function SideCard({
 function SummaryRow({ k, v }: { k: string; v: string }) {
   return (
     <div className={css({ display: 'flex', alignItems: 'center', gap: '10px' })}>
-      <dt className={css({ flex: 'none', width: '48px', textStyle: 'caption', color: 'faint' })}>{k}</dt>
-      <dd className={css({ m: '0', flex: '1', minWidth: '0', textAlign: 'right', textStyle: 'label', fontWeight: '600', color: 'ink' })}>
+      <dt
+        className={css({ flex: 'none', width: '48px', textStyle: 'caption', color: 'faint' })}
+      >
+        {k}
+      </dt>
+      <dd
+        className={css({
+          m: '0',
+          flex: '1',
+          minWidth: '0',
+          textAlign: 'right',
+          textStyle: 'label',
+          fontWeight: '600',
+          color: 'ink',
+        })}
+      >
         {v}
       </dd>
     </div>

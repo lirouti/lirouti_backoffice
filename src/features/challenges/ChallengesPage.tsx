@@ -90,7 +90,15 @@ export default function ChallengesPage() {
         }
       />
 
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center', mb: '14px' })}>
+      <div
+        className={css({
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '10px',
+          alignItems: 'center',
+          mb: '14px',
+        })}
+      >
         <Segmented value={kind ?? '전체'} onChange={pick} options={TABS} aria-label="주기" />
         <span className={css({ textStyle: 'caption', color: 'faint' })}>
           총 {num(rows.length)}개 · 진행 중 {num(live)}개
@@ -118,7 +126,9 @@ const COLUMNS: Column<Challenge>[] = [
     key: 'kind',
     label: '주기',
     width: '84px',
-    render: (c) => <Badge tone={CHALLENGE_KIND_TONE[c.kind]}>{CHALLENGE_KIND_LABEL[c.kind]}</Badge>,
+    render: (c) => (
+      <Badge tone={CHALLENGE_KIND_TONE[c.kind]}>{CHALLENGE_KIND_LABEL[c.kind]}</Badge>
+    ),
   },
   { key: 'title', label: '챌린지', minWidth: '180px', strong: true },
   { key: 'cond', label: '조건', width: '120px' },
@@ -152,7 +162,15 @@ const COLUMNS: Column<Challenge>[] = [
         <span className={css({ flex: '1' })}>
           <ProgressBar rate={c.rate} label={`${c.title} 달성률`} />
         </span>
-        <span className={css({ textStyle: 'micro', fontWeight: '700', color: 'sub', width: '34px', textAlign: 'right' })}>
+        <span
+          className={css({
+            textStyle: 'micro',
+            fontWeight: '700',
+            color: 'sub',
+            width: '34px',
+            textAlign: 'right',
+          })}
+        >
           {pct(c.rate)}
         </span>
       </span>

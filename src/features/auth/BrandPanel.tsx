@@ -92,15 +92,37 @@ export function BrandPanel() {
             boxShadow: '0 20px 48px rgba(12,42,96,.28)',
           })}
         >
-          <img src={LOGO} alt="" width={104} height={104} className={css({ display: 'block' })} />
+          <img
+            src={LOGO}
+            alt=""
+            width={104}
+            height={104}
+            className={css({ display: 'block' })}
+          />
         </div>
       </div>
 
       <div className={css({ position: 'relative', textAlign: 'center', maxWidth: '380px' })}>
-        <div className={css({ fontSize: '23px', lineHeight: '32px', letterSpacing: '-0.6px', fontWeight: '700', color: '#fff' })}>
+        <div
+          className={css({
+            fontSize: '23px',
+            lineHeight: '32px',
+            letterSpacing: '-0.6px',
+            fontWeight: '700',
+            color: '#fff',
+          })}
+        >
           리루티 운영 어드민
         </div>
-        <p className={css({ m: '10px 0 0', fontSize: '13.5px', lineHeight: '21px', letterSpacing: '-0.35px', color: '#fff' })}>
+        <p
+          className={css({
+            m: '10px 0 0',
+            fontSize: '13.5px',
+            lineHeight: '21px',
+            letterSpacing: '-0.35px',
+            color: '#fff',
+          })}
+        >
           캐릭터와 챌린지, 재화와 상점을 한곳에서 관리합니다. 계정은 운영팀 관리자에게 요청해
           발급받으세요.
         </p>

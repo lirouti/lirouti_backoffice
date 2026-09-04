@@ -61,7 +61,12 @@ export const isRisky = (log: AuditLog): boolean => RISKY_KINDS.includes(log.kind
  */
 export const isUnchanged = (log: AuditLog): boolean => log.from === log.to
 
-export const AUDIT_CATEGORIES: AuditCategory[] = ['재화 · 결제', '회원 · 신고', '권한', '콘텐츠']
+export const AUDIT_CATEGORIES: AuditCategory[] = [
+  '재화 · 결제',
+  '회원 · 신고',
+  '권한',
+  '콘텐츠',
+]
 
 export type AuditFilter = {
   /** 관리자 · 대상 · 사유 · 조작 부분 일치 */
@@ -79,7 +84,8 @@ export function filterAuditLogs(list: AuditLog[], f: AuditFilter): AuditLog[] {
     if (f.riskyOnly && !isRisky(log)) return false
     if (f.by && log.by !== f.by) return false
     if (f.category && AUDIT_CATEGORY[log.kind] !== f.category) return false
-    if (q && ![log.by, log.target, log.why, log.kind].join(' ').toLowerCase().includes(q)) return false
+    if (q && ![log.by, log.target, log.why, log.kind].join(' ').toLowerCase().includes(q))
+      return false
     return true
   })
 }

@@ -78,7 +78,13 @@ describe('검색어 왕복', () => {
   const roundTrip = (q: string) => parseItemsQuery(toSearchParams({ ...DEFAULT_QUERY, q })).q
 
   it('공백을 어디에 넣든 그대로 돌아온다', () => {
-    for (const q of ['왕실 벨벳', ' 왕실 벨벳', '왕실 벨벳 ', '  성좌의 로브  ', '왕실  벨벳']) {
+    for (const q of [
+      '왕실 벨벳',
+      ' 왕실 벨벳',
+      '왕실 벨벳 ',
+      '  성좌의 로브  ',
+      '왕실  벨벳',
+    ]) {
       expect(roundTrip(q)).toBe(q)
     }
   })

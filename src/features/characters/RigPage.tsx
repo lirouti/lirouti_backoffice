@@ -66,7 +66,14 @@ export default function RigPage() {
         sub="모든 캐릭터가 같은 몸과 같은 외곽선을 씁니다. 여섯 슬롯에 어떤 부품을 꽂느냐로 개성이 결정됩니다."
       />
 
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '18px', alignItems: 'flex-start' })}>
+      <div
+        className={css({
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '18px',
+          alignItems: 'flex-start',
+        })}
+      >
         <Card className={css({ flex: '1 1 400px', minWidth: '280px', p: '15px' })}>
           <AssetThumb assetId="rg" fluid alt="리그 기준 실루엣" />
           <div
@@ -88,7 +95,14 @@ export default function RigPage() {
                 })}
               >
                 <div className={css({ textStyle: 'caption', color: 'sub' })}>{a.label}</div>
-                <div className={css({ mt: '2px', textStyle: 'body', fontWeight: '700', color: 'ink' })}>
+                <div
+                  className={css({
+                    mt: '2px',
+                    textStyle: 'body',
+                    fontWeight: '700',
+                    color: 'ink',
+                  })}
+                >
                   {a.value}
                 </div>
               </div>
@@ -96,7 +110,15 @@ export default function RigPage() {
           </div>
         </Card>
 
-        <div className={css({ flex: '3 1 460px', minWidth: '0', display: 'flex', flexDirection: 'column', gap: '14px' })}>
+        <div
+          className={css({
+            flex: '3 1 460px',
+            minWidth: '0',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '14px',
+          })}
+        >
           <Table columns={COLUMNS} rows={SLOTS} minWidth={620} />
 
           <Card className={css({ p: '19px 21px' })}>

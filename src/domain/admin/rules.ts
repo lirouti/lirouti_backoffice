@@ -119,7 +119,8 @@ export function filterAdmins(list: Admin[], f: AdminFilter): Admin[] {
     if (f.tab === '최고 관리자' && a.role !== 'top') return false
     if (f.tab === '운영자' && a.role !== 'operator') return false
     if (f.tab === '대기 · 정지' && !isPending(a)) return false
-    if (q && !a.name.toLowerCase().includes(q) && !a.email.toLowerCase().includes(q)) return false
+    if (q && !a.name.toLowerCase().includes(q) && !a.email.toLowerCase().includes(q))
+      return false
     return true
   })
 }
@@ -232,7 +233,8 @@ export function validateAdmin(input: AdminInput, taken: string[]): AdminErrors {
   if (!v.email) errors.email = '아이디를 입력하세요.'
   else if (!isAdminEmail(v.email))
     errors.email = `아이디는 사내 이메일(${ADMIN_EMAIL_DOMAIN})이어야 합니다.`
-  else if (taken.some((t) => sameEmail(t, v.email))) errors.email = '이미 쓰이고 있는 아이디입니다.'
+  else if (taken.some((t) => sameEmail(t, v.email)))
+    errors.email = '이미 쓰이고 있는 아이디입니다.'
 
   if (v.role === 'operator' && v.scopes.length === 0)
     errors.scopes = '담당 모듈을 하나 이상 고르세요.'
