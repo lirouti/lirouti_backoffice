@@ -37,11 +37,38 @@ const VIEWER = JSON.stringify({
 })
 
 /**
+ * 파라미터가 있는 경로에 끼울 **실제 id**.
+ *
+ * ⚠️ **없으면 그 화면은 통째로 안 재진다.** 예전에는 `/:` 가 든 경로를 그냥 걸러 냈고,
+ *    「상세를 재려면 인자로 넘겨라」 고 적어 두었는데 **아무도 안 넘겼다** — 그래서
+ *    54개 중 40개만 재면서 「전 화면 100」 이라고 말해 왔다. 빠진 14개가 하필 표·다이얼로그·
+ *    폼이 몰린 상세·수정 화면이다 (docs/ARCHITECTURE.md §55).
+ *
+ * ⚠️ **목이 실제로 갖고 있는 id 여야 한다.** 없는 id 를 넣으면 오류 화면이나 빈 화면을 재고
+ *    **그걸 100 점이라고 보고한다** — 아래 `VIEWER` 의 ⚠️ 와 같은 종류의 사고다.
+ *    목은 시드 RNG 라 결정적이므로 이 값들은 고정이다.
+ */
+const SAMPLE_ID: Record<string, string> = {
+  ':userId': '1',
+  ':speciesId': '1',
+  ':itemId': '3',
+  ':bgId': '1',
+  ':chalId': '1',
+  ':achId': '1',
+  ':payId': '1',
+  ':pushId': '1',
+  ':qnaId': '1',
+  ':codeId': '1',
+  ':couponId': '1',
+  ':adminId': '1',
+}
+
+/**
  * 검사할 경로.
  *
- * ⚠️ **파라미터가 있는 경로는 뺀다** — `/items/:itemId` 는 그대로 열 수 없다. 상세 화면을
- *    재려면 인자로 실제 주소를 넘긴다(`bun run a11y /items/3`).
- * ⚠️ **아직 안 만든 화면도 뺀다** — placeholder 를 재 봐야 언제나 100 이다.
+ * ⚠️ **아직 안 만든 화면은 뺀다** — placeholder 를 재 봐야 언제나 100 이다.
+ * ⚠️ **파라미터에 넣을 id 를 모르면 멈춘다.** 조용히 건너뛰면 화면이 늘어날 때마다
+ *    검사 범위가 소리 없이 줄어든다 — 그게 이번에 났던 일이다.
  */
 function screenPaths(): string[] {
   // ⚠️ **저장소 뿌리 기준으로 읽는다.** `bun run a11y` 는 뿌리에서 도는데, 사람이
@@ -59,7 +86,18 @@ function screenPaths(): string[] {
   const out: string[] = []
   for (const m of screens.matchAll(/^ {2}(\w+): \{\s*(?:\n\s*)?path: '([^']+)'/gm)) {
     const [, id, path] = m
-    if (built.has(id!) && !path!.includes('/:')) out.push(path!)
+    if (!built.has(id!)) continue
+    out.push(
+      path!.replace(/:\w+/g, (param) => {
+        const sample = SAMPLE_ID[`:${param.slice(1)}`]
+        if (!sample) {
+          throw new Error(
+            `${id}(${path}) 의 ${param} 에 넣을 id 가 없습니다 — check.ts 의 SAMPLE_ID 에 추가하세요.`,
+          )
+        }
+        return sample
+      }),
+    )
   }
   return out
 }
