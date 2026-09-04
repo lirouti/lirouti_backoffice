@@ -14,6 +14,7 @@ import {
   filterAdmins,
   hasSignedIn,
   normalizeAdminInput,
+  mfaResetBlockReason,
   sameEmail,
   suspendBlockReason,
   summarizeAdmins,
@@ -34,6 +35,7 @@ import {
   adminMonthlyActions,
   allAdmins,
   findAdmin,
+  setAdminMfa,
   setAdminScopes,
   setAdminSuspended,
 } from '@/mocks/admins'
@@ -162,6 +164,32 @@ export async function suspendAdmin(v: {
 export function useSuspendAdmin() {
   return useMutation({
     mutationFn: suspendAdmin,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.admins.all }),
+  })
+}
+
+/**
+ * 다른 관리자의 등록된 인증 앱과 백업 코드를 폐기한다.
+ *
+ * 화면의 비활성 상태에 기대지 않고 자기 계정과 미설정 계정을 여기서 다시 막는다 (§50).
+ */
+export async function resetMfa(v: { adminId: number; meEmail: string }): Promise<void> {
+  if (USE_MOCK) {
+    await mockDelay()
+    const admin = findAdmin(v.adminId)
+    if (!admin) throw apiError('http', `관리자 #${v.adminId} 을(를) 찾을 수 없습니다.`, 404)
+    const blocked = mfaResetBlockReason(admin, v.meEmail)
+    if (blocked) throw apiError('http', blocked, 409)
+    setAdminMfa(v.adminId, '미설정')
+    return
+  }
+
+  throw new Error('관리자 API 가 아직 연결되지 않았습니다. VITE_USE_MOCK=1 로 두세요.')
+}
+
+export function useResetMfa() {
+  return useMutation({
+    mutationFn: resetMfa,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.admins.all }),
   })
 }

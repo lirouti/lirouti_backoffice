@@ -96,6 +96,12 @@ export function setAdminScopes(adminId: number, scopes: ScopeId[]): void {
   if (found) found.scopes = [...scopes]
 }
 
+/** 등록된 인증 앱과 백업 코드를 함께 폐기한 뒤의 표시 상태를 반영한다. */
+export function setAdminMfa(adminId: number, mfa: Admin['mfa']): void {
+  const found = admins.find((a) => a.adminId === adminId)
+  if (found) found.mfa = mfa
+}
+
 /**
  * 상세의 「최근 활동」.
  *
