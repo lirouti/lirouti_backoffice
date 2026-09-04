@@ -107,6 +107,7 @@ export const SCREENS = {
   shop: { path: '/shop/display', label: '상점 진열', scope: 'shop' },
 
   notice: { path: '/ops/notices', label: '공지', scope: 'ops' },
+  noticenew: { path: '/ops/notices/new', label: '공지 작성', scope: 'ops', section: 'notice' },
   event: { path: '/ops/events', label: '이벤트', scope: 'ops' },
   push: { path: '/ops/push', label: '푸시 알림', scope: 'ops' },
   pushnew: { path: '/ops/push/new', label: '알림 작성', scope: 'ops', section: 'push' },

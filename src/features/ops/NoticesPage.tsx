@@ -3,6 +3,8 @@
  *
  * **상태는 저장된 값이 아니라 기간에서 나온다** (docs/ARCHITECTURE.md §25.1).
  */
+import { useNavigate } from 'react-router'
+
 import { css } from 'styled-system/css'
 
 import { num } from '@/shared/lib/format'
@@ -20,10 +22,12 @@ import {
   PIN_LIMIT,
   periodLabel,
 } from '@/domain/ops'
+import { SCREENS } from '@/domain/screens'
 
 import { useNotices, type NoticeEntry } from '@/api/ops'
 
 export default function NoticesPage() {
+  const navigate = useNavigate()
   const { data, isPending, error } = useNotices()
 
   const columns: Column<NoticeEntry>[] = [
@@ -66,10 +70,9 @@ export default function NoticesPage() {
         title="공지"
         sub={`앱 내 공지사항입니다. 상단 고정은 최대 ${PIN_LIMIT}건까지 권장합니다.`}
         actions={
-          <>
-            {/* TODO(공지 작성 API 가 생기면): 제목·본문·기간·고정을 받는 폼 (§18.8) */}
-            <Button disabled>공지 작성 · 준비 중</Button>
-          </>
+          <Button onClick={() => navigate(SCREENS.noticenew.path)} variant="primary">
+            공지 작성
+          </Button>
         }
       />
 

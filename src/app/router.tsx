@@ -16,9 +16,9 @@ import { PlaceholderPage } from '@/features/PlaceholderPage'
 import { RequireAuth } from './RequireAuth'
 
 /**
- * 구현된 화면만 등록한다. 나머지 43개는 자동으로 placeholder 로 떨어진다.
+ * 구현된 화면만 등록한다. 빠진 화면은 자동으로 placeholder 로 떨어진다.
  *
- * **셸 안의 화면은 lazy** 다 — 44개를 한 번에 받을 이유가 없고, 라우트 경계가 곧
+ * **셸 안의 화면은 lazy** 다 — 53개를 한 번에 받을 이유가 없고, 라우트 경계가 곧
  * 청크 경계라 화면이 늘어도 분할 전략을 따로 고민할 필요가 없다.
  * 대시보드만 해도 recharts 를 안고 gzip 117KB 다 (첫 로드 252KB → 138KB).
  */
@@ -71,6 +71,7 @@ const IMPLEMENTED: Partial<Record<ScreenId, React.LazyExoticComponent<React.Comp
   event: lazy(() => import('@/features/ops/EventsPage')),
   grant: lazy(() => import('@/features/ops/GrantsPage')),
   notice: lazy(() => import('@/features/ops/NoticesPage')),
+  noticenew: lazy(() => import('@/features/ops/NoticeFormPage')),
   security: lazy(() => import('@/features/security/SecurityPage')),
   shop: lazy(() => import('@/features/shop/ShopDisplayPage')),
   user: lazy(() => import('@/features/users/UserDetailPage')),

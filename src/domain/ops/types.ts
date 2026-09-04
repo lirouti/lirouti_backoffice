@@ -16,9 +16,24 @@ export type PeriodStatus = 'ACTIVE' | 'SCHEDULED' | 'ENDED'
 /** 공지 분류. 앱의 공지 탭이 이 값으로 거른다 */
 export type NoticeCategory = '시즌' | '점검' | '업데이트' | '밸런스' | '재화'
 
+/** 운영자가 작성하는 공지. `key`·조회수는 서버가 정한다 */
+export type NoticeInput = {
+  title: string
+  body: string
+  /** 빈 문자열은 아직 고르지 않았음 */
+  category: NoticeCategory | ''
+  /** `YYYY-MM-DD` */
+  startAt: string
+  /** `YYYY-MM-DD`. 비우면 상시 */
+  endAt: string
+  pinned: boolean
+}
+
 export type Notice = {
   key: number
   title: string
+  /** 앱에 그대로 보여 줄 본문 */
+  body: string
   category: NoticeCategory
   /** `YYYY-MM-DD` */
   startAt: string
