@@ -30,35 +30,20 @@ import {
   SLA_HOURS,
   waitMinutes,
   type Inquiry,
-  type InquiryCategory,
-  type InquiryFilter,
-  type InquiryTab,
 } from '@/domain/inquiry'
 import { SCREENS } from '@/domain/screens'
 
 import { useInquiries } from '@/api/inquiries'
 
-const isTab = (v: string | null): v is InquiryTab => INQUIRY_TABS.some((t) => t === v)
-const isCat = (v: string | null): v is InquiryCategory =>
-  INQUIRY_CATEGORIES.some((c) => c === v)
-
-/** 훅이 이 값을 인자로 받으므로 모듈 함수로 둔다 (§14.2) */
-const filterOf = (p: URLSearchParams): InquiryFilter => {
-  const tab = p.get('tab')
-  const cat = p.get('cat')
-  return {
-    tab: isTab(tab) ? tab : '전체',
-    category: isCat(cat) ? cat : undefined,
-    q: p.get('q') ?? undefined,
-  }
-}
+import { inquiriesQueryOf, inquiryScopeLabel, parseInquiryQuery } from './query'
 
 export default function InquiriesPage() {
   const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
-  const { data, isPending, error } = useInquiries(filterOf(params))
+  const { data, isPending, error } = useInquiries(inquiriesQueryOf(params))
 
-  const f = filterOf(params)
+  const parsed = parseInquiryQuery(params)
+  const f = parsed.filter
 
   const patch = (k: string, v: string) => {
     const p = new URLSearchParams(params)
@@ -183,6 +168,29 @@ export default function InquiriesPage() {
           aria-label="분류"
         />
       </div>
+
+      {parsed.userUid && (
+        <div
+          className={css({
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            mb: '14px',
+            px: '13px',
+            py: '9px',
+            bg: 'soft',
+            border: '1px solid token(colors.liveBd)',
+            borderRadius: 'lg',
+          })}
+        >
+          <span className={css({ flex: '1', minWidth: '0', textStyle: 'label', color: 'ink' })}>
+            {inquiryScopeLabel(parsed.userUid, data?.filteredUser)}
+          </span>
+          <Button size="sm" onClick={() => patch('who', '')}>
+            전체 문의 보기
+          </Button>
+        </div>
+      )}
 
       {isPending ? (
         <SkeletonRows rows={8} />

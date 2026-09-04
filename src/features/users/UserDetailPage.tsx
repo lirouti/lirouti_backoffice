@@ -17,6 +17,7 @@ import { SkeletonHeader, SkeletonRows, SkeletonStats } from '@/shared/ui/Skeleto
 import { StatTile } from '@/shared/ui/StatTile'
 import { Table, type Column } from '@/shared/ui/Table'
 
+import { canAccess } from '@/domain/access'
 import { SCREENS } from '@/domain/screens'
 import {
   canBan,
@@ -30,6 +31,8 @@ import {
 } from '@/domain/user'
 
 import { useBanUser, useUser, type UserDetail } from '@/api/users'
+
+import { useViewer } from '@/stores/viewerStore'
 
 export default function UserDetailPage() {
   const { userId = '' } = useParams()
@@ -56,14 +59,21 @@ export default function UserDetailPage() {
 
 function Detail({ detail, userId }: { detail: UserDetail; userId: string }) {
   const navigate = useNavigate()
+  const viewer = useViewer()
   const ban = useBanUser()
 
   const { user, ledger, orders } = detail
   const banned = user.status === 'BANNED'
+  const canSeeInquiries = canAccess(viewer, SCREENS.qna.scope)
 
   const openGrant = () => {
     const search = new URLSearchParams({ who: user.uid })
     navigate({ pathname: SCREENS.grant.path, search: `?${search}` })
+  }
+
+  const openInquiries = () => {
+    const search = new URLSearchParams({ who: user.uid })
+    navigate({ pathname: SCREENS.qna.path, search: `?${search}` })
   }
 
   return (
@@ -76,8 +86,9 @@ function Detail({ detail, userId }: { detail: UserDetail; userId: string }) {
             <Button onClick={openGrant} disabled={user.status === 'LEFT'}>
               {user.status === 'LEFT' ? '재화 지급 · 탈퇴 계정' : '재화 지급'}
             </Button>
-            {/* TODO(문의 API 가 생기면): 1:1 문의로 연결한다 */}
-            <Button disabled>문의 남기기 · 준비 중</Button>
+            <Button onClick={openInquiries} disabled={!canSeeInquiries}>
+              {canSeeInquiries ? '문의 내역' : '문의 내역 · 권한 없음'}
+            </Button>
             <Button
               onClick={() => ban.mutate({ userId, ban: !banned })}
               disabled={!canBan(user) || ban.isPending}
