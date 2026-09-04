@@ -1,4 +1,5 @@
-import { useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
+import { flushSync } from 'react-dom'
 
 import { useLocation, useNavigate } from 'react-router'
 
@@ -6,11 +7,12 @@ import { css } from 'styled-system/css'
 
 import { LOGO } from '@/assets/brand'
 
+import { focusFirstError } from '@/shared/lib/focusFirstError'
 import { Button } from '@/shared/ui/Button'
 import { Checkbox } from '@/shared/ui/Checkbox'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 
-import type { Viewer } from '@/domain/access'
+import { validateCredentials, type Viewer } from '@/domain/access'
 import { matchScreen, SCREENS } from '@/domain/screens'
 
 import { IS_MOCK_LOGIN, useLogin } from '@/api/auth'
@@ -62,6 +64,9 @@ export default function LoginPage() {
   const [keepSignedIn, setKeepSignedIn] = useState(true)
   /** 1차를 통과하면 받는 일회용 토큰. 있으면 2차 화면이다. */
   const [challenge, setChallenge] = useState<string | null>(null)
+  // 제출을 눌러 보기 전에는 빨갛게 하지 않는다 (docs/ARCHITECTURE.md §44.4)
+  const [tried, setTried] = useState(false)
+  const formRef = useRef<HTMLFormElement>(null)
 
   /** 가드가 붙잡아 온 원래 목적지. 화면을 가리키지 않으면 지표로 (§16.4). */
   // ⚠️ **`as` 는 단언일 뿐 런타임 검증이 아니다.** `location.state` 는 히스토리에서 오므로
@@ -72,6 +77,9 @@ export default function LoginPage() {
   const state = location.state as { from?: unknown } | null
   const from = landingPath(typeof state?.from === 'string' ? state.from : undefined)
 
+  const errors = validateCredentials({ email, password })
+  const shown = tried ? errors : {}
+
   const finish = (viewer: Viewer) => {
     signIn(viewer)
     navigate(from, { replace: true })
@@ -79,6 +87,15 @@ export default function LoginPage() {
 
   const submit = (e: FormEvent) => {
     e.preventDefault()
+    // ⚠️ **`flushSync` 가 필요하다.** 오류 표시는 `tried` 를 켠 렌더에서야 DOM 에 붙어서,
+    //    그냥 `setTried(true)` 하면 아래 `focusFirstError` 가 대상을 못 찾는다 (§44.5).
+    flushSync(() => setTried(true))
+    if (Object.keys(errors).length > 0) {
+      focusFirstError(formRef.current)
+      return
+    }
+    // 이미 보내는 중이면 겹쳐 보내지 않는다 — 버튼의 `disabled` 는 Enter 를 막지 못한다.
+    if (isPending) return
     mutate(
       { email, password, keepSignedIn },
       {
@@ -191,6 +208,7 @@ export default function LoginPage() {
                 {error && <ErrorBanner message={error.message} />}
 
                 <form
+                  ref={formRef}
                   onSubmit={submit}
                   noValidate
                   className={css({ display: 'flex', flexDirection: 'column', gap: '14px' })}
@@ -205,6 +223,8 @@ export default function LoginPage() {
                     }}
                     placeholder="name@riruti.co"
                     autoComplete="username"
+                    error={shown.email}
+                    required
                     autoFocus
                   />
                   <PasswordField
@@ -214,6 +234,8 @@ export default function LoginPage() {
                       setPassword(v)
                       reset()
                     }}
+                    error={shown.password}
+                    required
                   />
 
                   <div className={css({ display: 'flex', alignItems: 'center', gap: '10px' })}>
