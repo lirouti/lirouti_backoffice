@@ -35,7 +35,7 @@ import { SCREENS } from '@/domain/screens'
 
 import { useInquiries } from '@/api/inquiries'
 
-import { inquiriesQueryOf, parseInquiryQuery } from './query'
+import { inquiriesQueryOf, inquiryScopeLabel, parseInquiryQuery } from './query'
 
 export default function InquiriesPage() {
   const navigate = useNavigate()
@@ -184,8 +184,7 @@ export default function InquiriesPage() {
           })}
         >
           <span className={css({ flex: '1', minWidth: '0', textStyle: 'label', color: 'ink' })}>
-            <strong>{data?.filteredUser?.nick ?? parsed.userUid}</strong>
-            {data?.filteredUser && ` · ${data.filteredUser.uid}`} 회원의 문의만 보고 있습니다.
+            {inquiryScopeLabel(parsed.userUid, data?.filteredUser)}
           </span>
           <Button size="sm" onClick={() => patch('who', '')}>
             전체 문의 보기

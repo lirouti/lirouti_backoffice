@@ -18,6 +18,8 @@ export type InquiryScreenQuery = {
   userUid: string
 }
 
+export type FilteredInquiryUser = { nick: string; uid: string } | null | undefined
+
 export function parseInquiryQuery(params: URLSearchParams): InquiryScreenQuery {
   const tab = params.get('tab')
   const category = params.get('cat')
@@ -35,4 +37,11 @@ export function parseInquiryQuery(params: URLSearchParams): InquiryScreenQuery {
 export function inquiriesQueryOf(params: URLSearchParams): InquiryFilter & { userUid: string } {
   const parsed = parseInquiryQuery(params)
   return { ...parsed.filter, userUid: parsed.userUid }
+}
+
+/** 회원 필터의 조회 상태를 거짓 없는 한 문장으로 바꾼다. */
+export function inquiryScopeLabel(requestedUid: string, user: FilteredInquiryUser): string {
+  if (user === undefined) return `${requestedUid} 회원 정보를 확인하는 중입니다.`
+  if (user === null) return `회원을 찾을 수 없습니다. · ${requestedUid}`
+  return `${user.nick} · ${user.uid} 회원의 문의만 보고 있습니다.`
 }
