@@ -56,12 +56,23 @@ export default function EventFormPage() {
   const [initial] = useState(emptyEvent)
   const [restored] = useState(() => restoreDraft(DRAFT, initial))
   const [form, setForm] = useState<EventInput>(restored ?? initial)
+  const [normalizedAt, setNormalizedAt] = useState(0)
   const [noticeOpen, setNoticeOpen] = useState(restored != null)
   const [tried, setTried] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
   const sending = useRef(false)
   const markSaved = useUnsavedGuard(changed(form, initial))
   const draft = useFormDraft(DRAFT, form, changed(form, initial))
+
+  if (formData.dataUpdatedAt !== normalizedAt) {
+    setNormalizedAt(formData.dataUpdatedAt)
+    if (
+      formData.data && form.rewardItemKey !== null &&
+      !formData.data.itemOptions.some((item) => item.key === form.rewardItemKey)
+    ) {
+      setForm((current) => ({ ...current, rewardItemKey: null }))
+    }
+  }
 
   if (formData.isPending) {
     return (
@@ -76,12 +87,7 @@ export default function EventFormPage() {
   }
 
   const reward = formData.data.itemOptions.find((item) => item.key === form.rewardItemKey)
-  const errors = {
-    ...validateEvent(form),
-    ...(form.rewardItemKey !== null && !reward
-      ? { rewardItemKey: '없는 아이템입니다. 목록에서 다시 고르세요.' }
-      : {}),
-  }
+  const errors = validateEvent(form)
   const itemOptions = formData.data.itemOptions.map((item) => ({ value: String(item.key), label: item.name }))
   const busy = save.isPending
 

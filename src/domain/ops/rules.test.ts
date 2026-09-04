@@ -236,6 +236,7 @@ describe('validateEvent', () => {
 
   it('강조색은 6자리 RGB만 받는다', () => {
     expect(isEventAccent('#2f7CEF')).toBe(true)
+    expect(isEventAccent('#2F7CEF\n')).toBe(false)
     expect(validateEvent(eventInput({ accent: '#FFF' })).accent).toBeTruthy()
     expect(validateEvent(eventInput({ accent: 'blue' })).accent).toBeTruthy()
   })
