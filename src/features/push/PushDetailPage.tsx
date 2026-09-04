@@ -78,8 +78,16 @@ function Detail({ detail: { push: p, hours, failures }, pushId }: { detail: Push
                 예약 취소
               </Button>
             )}
-            {/* TODO(재발송 API 가 생기면): 같은 내용으로 새 알림을 연다 (§18.8) */}
-            {sent && <Button disabled>같은 내용으로 재발송 · 준비 중</Button>}
+            {sent && (
+              <Button
+                onClick={() => {
+                  const search = new URLSearchParams({ from: pushId })
+                  navigate({ pathname: SCREENS.pushnew.path, search: `?${search}` })
+                }}
+              >
+                같은 내용으로 재발송
+              </Button>
+            )}
           </>
         }
       />

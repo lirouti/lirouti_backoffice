@@ -164,6 +164,21 @@ export function validatePush(
   return errors
 }
 
+/** 발송 기록을 새 작성 값으로 바꾼다. 과거 시각과 결과 수치는 복사하지 않는다 */
+export function repeatInputOf(push: Push): PushInput {
+  return {
+    kind: push.kind,
+    title: push.title,
+    body: push.body,
+    link: push.link,
+    audience: push.audience,
+    // 기록에는 직접 지정 UID가 없으므로 모르는 대상을 지어내지 않는다.
+    ids: '',
+    now: true,
+    at: '',
+  }
+}
+
 /** 목록 탭. 종류 탭과 상태 탭이 한 줄에 섞여 있다 — 원본 그대로다 */
 export const PUSH_TABS = ['전체', '예약', '발송 완료', '마케팅 알림'] as const
 export type PushTab = (typeof PUSH_TABS)[number]
