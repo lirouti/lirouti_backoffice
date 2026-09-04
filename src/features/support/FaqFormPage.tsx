@@ -170,9 +170,8 @@ function FaqForm({ faqId, initial }: { faqId: string; initial: FaqInput }) {
       )}
       <DraftSavedAt at={autosave.savedAt} />
 
-      {(save.error || remove.error) && (
-        <ErrorBanner message={(save.error ?? remove.error)!.message} />
-      )}
+      {save.error && <ErrorBanner message={save.error.message} />}
+      {remove.error && <ErrorBanner message={remove.error.message} />}
 
       <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '18px', alignItems: 'flex-start' })}>
         <Card className={css({ flex: '2 1 420px', minWidth: '0', p: '15px 17px' })}>

@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router'
 import { css } from 'styled-system/css'
 
 import { useFormDraft } from '@/shared/hooks/useFormDraft'
+import { isHexColor } from '@/shared/lib/color'
 import { changed, restoreDraft } from '@/shared/lib/draft'
 import { focusFirstError } from '@/shared/lib/focusFirstError'
 import { today } from '@/shared/lib/today'
@@ -26,7 +27,7 @@ import { Select } from '@/shared/ui/Select'
 import { SkeletonForm } from '@/shared/ui/Skeleton'
 import { Textarea } from '@/shared/ui/Textarea'
 
-import { isEventAccent, validateEvent, type EventInput } from '@/domain/ops'
+import { validateEvent, type EventInput } from '@/domain/ops'
 import { SCREENS } from '@/domain/screens'
 
 import { useEventFormData, useSaveEvent } from '@/api/ops'
@@ -215,9 +216,9 @@ export default function EventFormPage() {
                   required
                 />
                 <div
-                  aria-label={isEventAccent(form.accent) ? `강조색 미리보기 ${form.accent}` : '강조색 미리보기'}
+                  aria-label={isHexColor(form.accent) ? `강조색 미리보기 ${form.accent}` : '강조색 미리보기'}
                   className={css({ height: '46px', border: '1px solid token(colors.bd)', borderRadius: 'lg', bg: 'surf2' })}
-                  style={isEventAccent(form.accent) ? { background: form.accent } : undefined}
+                  style={isHexColor(form.accent) ? { background: form.accent } : undefined}
                 />
               </div>
             </div>

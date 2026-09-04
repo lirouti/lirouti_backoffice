@@ -120,7 +120,8 @@ function Detail({ detail: { inquiry: q, user, payments, past, now } }: { detail:
         }
       />
 
-      {(reply.error || hold.error) && <ErrorBanner message={(reply.error ?? hold.error)!.message} />}
+      {reply.error && <ErrorBanner message={reply.error.message} />}
+      {hold.error && <ErrorBanner message={hold.error.message} />}
 
       <div className={css({ display: 'flex', alignItems: 'center', gap: '8px', mb: '16px', flexWrap: 'wrap' })}>
         <Badge tone={INQUIRY_CATEGORY_TONE[q.category]}>{q.category}</Badge>

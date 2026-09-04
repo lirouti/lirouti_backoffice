@@ -100,9 +100,8 @@ export default function ShopDisplayPage() {
         <ErrorBanner message={error?.message ?? '진열을 불러오지 못했습니다.'} />
       ) : (
         <>
-          {(save.error || reset.error) && (
-            <ErrorBanner message={(save.error ?? reset.error)!.message} />
-          )}
+          {save.error && <ErrorBanner message={save.error.message} />}
+          {reset.error && <ErrorBanner message={reset.error.message} />}
 
           <div
             className={css({

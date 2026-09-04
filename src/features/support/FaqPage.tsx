@@ -100,9 +100,8 @@ export default function FaqPage() {
         <ErrorBanner message={error?.message ?? 'FAQ 를 불러오지 못했습니다.'} />
       ) : (
         <>
-          {(reorder.error || toggle.error) && (
-            <ErrorBanner message={(reorder.error ?? toggle.error)!.message} />
-          )}
+          {reorder.error && <ErrorBanner message={reorder.error.message} />}
+          {toggle.error && <ErrorBanner message={toggle.error.message} />}
 
           <div
             className={css({

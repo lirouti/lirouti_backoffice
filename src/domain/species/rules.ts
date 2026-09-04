@@ -1,3 +1,5 @@
+import { isHexColor } from '@/shared/lib/color'
+
 /**
  * 캐릭터 종 규칙.
  *
@@ -5,9 +7,6 @@
  */
 import { CURRENT_SEASON, seasonOptions } from '../season'
 import { RIG_SLOTS, SLOT_PARTS, type Species, type SpeciesInput } from './types'
-
-/** `#RRGGBB` 만 받는다. 세 자리 축약(`#abc`)은 넓히지 않고 막는다 — 값이 둘로 갈린다 */
-const HEX = /^#[0-9a-fA-F]{6}$/
 
 /**
  * 대표 색을 **배경으로** 쓸 때의 값.
@@ -54,7 +53,7 @@ export function validateSpecies(input: SpeciesInput, taken: string[] = []): Spec
   // 이미 저장된 값에도 공백이 섞여 있을 수 있다 — 양쪽을 같은 자로 잰다.
   else if (taken.some((t) => t.trim() === code)) errors.code = '이미 쓰고 있는 코드입니다.'
 
-  if (!HEX.test(input.tone)) errors.tone = '대표 색을 #RRGGBB 로 입력하세요.'
+  if (!isHexColor(input.tone)) errors.tone = '대표 색을 #RRGGBB 로 입력하세요.'
 
   // 0 이면 뽑기에서 절대 안 나온다 — 등록해 놓고 안 나오는 종이 생긴다.
   if (!Number.isFinite(input.weight) || input.weight <= 0) {
