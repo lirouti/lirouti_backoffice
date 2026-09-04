@@ -1,7 +1,7 @@
 name: Feature request
 description: Suggest an idea for this project
-title: '[Feature]: '
-labels: ['기능']
+title: "[Feature]: "
+labels: ["기능"]
 body:
   - type: markdown
     attributes:
@@ -28,6 +28,6 @@ body:
     attributes:
       label: 디자인 원본
       description: 대조할 디자인 파일이 있다면 적어주세요 (Claude Design "리루티" 의 파일명)
-      placeholder: 'riruti-admin-items.dc.html'
+      placeholder: "riruti-admin-items.dc.html"
     validations:
       required: false
