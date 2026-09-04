@@ -147,9 +147,8 @@ export default function GrantsPage() {
         <ErrorBanner message={error?.message ?? '이력을 불러오지 못했습니다.'} />
       ) : (
         <>
-          {(check.error || run.error) && (
-            <ErrorBanner message={(check.error ?? run.error)!.message} />
-          )}
+          {check.error && <ErrorBanner message={check.error.message} />}
+          {run.error && <ErrorBanner message={run.error.message} />}
 
           {/* 확인이 도는 사이에 입력을 바꾸면 그 확인은 버려진다. 조용히 넘기면 「눌러도 아무 일이 없다」 가 된다 */}
           {stale && (

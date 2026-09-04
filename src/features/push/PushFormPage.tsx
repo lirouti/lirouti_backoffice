@@ -190,7 +190,8 @@ function PushEditor({ sourceId }: { sourceId: string }) {
       )}
       <DraftSavedAt at={draft.savedAt} />
 
-      {(send.error || check.error) && <ErrorBanner message={(send.error ?? check.error)!.message} />}
+      {send.error && <ErrorBanner message={send.error.message} />}
+      {check.error && <ErrorBanner message={check.error.message} />}
 
       {/* 0명이면 확인할 것이 없다 — 창을 열지 않고 그 자리에서 이유를 말한다 (§25.3.2) */}
       {check.data && check.data.count === 0 && (

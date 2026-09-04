@@ -1,4 +1,6 @@
 /** 운영 규칙 — 공지 · 이벤트 · 지급/회수. */
+import { isHexColor } from '@/shared/lib/color'
+
 import { parseUserIds } from '../user/rules'
 import type { User } from '../user/types'
 import type {
@@ -101,9 +103,6 @@ export type EventErrors = Partial<
   Record<'title' | 'desc' | 'startAt' | 'endAt' | 'accent' | 'rewardItemKey', string>
 >
 
-/** 카드 장식에 쓸 수 있는 6자리 RGB 색인가 */
-export const isEventAccent = (value: string): boolean => /^#[0-9A-Fa-f]{6}$/.test(value)
-
 /** 이벤트 생성 폼 검증. 종료일을 비우면 상시다 */
 export function validateEvent(input: EventInput): EventErrors {
   const errors: EventErrors = {}
@@ -115,7 +114,7 @@ export function validateEvent(input: EventInput): EventErrors {
   else if (input.endAt && isDateValue(input.startAt) && input.endAt < input.startAt) {
     errors.endAt = '종료일은 시작일보다 빠를 수 없습니다.'
   }
-  if (!isEventAccent(input.accent)) errors.accent = '#RRGGBB 형식의 색을 입력하세요.'
+  if (!isHexColor(input.accent)) errors.accent = '#RRGGBB 형식의 색을 입력하세요.'
   if (input.rewardItemKey === null) errors.rewardItemKey = '보상 아이템을 고르세요.'
   return errors
 }

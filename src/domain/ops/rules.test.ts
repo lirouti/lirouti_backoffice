@@ -11,7 +11,6 @@ import {
   activeUserCount,
   checkGrantItem,
   checkTargets,
-  isEventAccent,
   isNoticeCategory,
   periodLabel,
   periodStatusOf,
@@ -235,8 +234,8 @@ describe('validateEvent', () => {
   })
 
   it('강조색은 6자리 RGB만 받는다', () => {
-    expect(isEventAccent('#2f7CEF')).toBe(true)
-    expect(isEventAccent('#2F7CEF\n')).toBe(false)
+    expect(validateEvent(eventInput({ accent: '#2f7CEF' })).accent).toBeUndefined()
+    expect(validateEvent(eventInput({ accent: '#2F7CEF\n' })).accent).toContain('#RRGGBB')
     expect(validateEvent(eventInput({ accent: '#FFF' })).accent).toBeTruthy()
     expect(validateEvent(eventInput({ accent: 'blue' })).accent).toBeTruthy()
   })

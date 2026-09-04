@@ -6,12 +6,13 @@
  */
 import { useMutation, useQuery } from '@tanstack/react-query'
 
+import { isHexColor } from '@/shared/lib/color'
+
 import type { Item } from '@/domain/item'
 import {
   activeUserCount,
   checkGrantItem,
   checkTargets,
-  isEventAccent,
   isNoticeCategory,
   periodStatusOf,
   sortEvents,
@@ -150,7 +151,7 @@ export async function saveEvent(input: EventInput): Promise<OpsEvent> {
     const errors = validateEvent(input)
     const first = Object.values(errors)[0]
     if (first) throw apiError('http', first, 400)
-    if (!isEventAccent(input.accent)) throw apiError('http', '#RRGGBB 형식의 색을 입력하세요.', 400)
+    if (!isHexColor(input.accent)) throw apiError('http', '#RRGGBB 형식의 색을 입력하세요.', 400)
     if (input.rewardItemKey === null) throw apiError('http', '보상 아이템을 고르세요.', 400)
     if (!allItems().some((item) => item.key === input.rewardItemKey)) {
       throw apiError('http', '없는 아이템입니다. 목록에서 다시 고르세요.', 404)

@@ -108,7 +108,8 @@ export function TotpCard() {
 
       {(start.error || regenerate.error) && (
         <div className={css({ mt: '14px' })}>
-          <ErrorBanner message={(start.error ?? regenerate.error)!.message} />
+          {start.error && <ErrorBanner message={start.error.message} />}
+          {regenerate.error && <ErrorBanner message={regenerate.error.message} />}
         </div>
       )}
 
