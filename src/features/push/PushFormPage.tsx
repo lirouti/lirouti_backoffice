@@ -6,7 +6,7 @@
  */
 import { useState } from 'react'
 
-import { useNavigate } from 'react-router'
+import { useNavigate, useSearchParams } from 'react-router'
 
 import { css } from 'styled-system/css'
 
@@ -34,6 +34,7 @@ import {
   PUSH_KIND_LABEL,
   PUSH_LIMITS,
   reachOf,
+  repeatInputOf,
   validatePush,
   type PushAudience,
   type PushInput,
@@ -42,22 +43,16 @@ import {
 } from '@/domain/push'
 import { SCREENS } from '@/domain/screens'
 
-import { useCheckDirect, useConsent, useSendPush } from '@/api/push'
+import { useCheckDirect, useConsent, usePush, useSendPush } from '@/api/push'
 
 import { useUnsavedGuard } from '@/stores/dirtyStore'
 import { useViewer } from '@/stores/viewerStore'
 
+import { pushDraftScope, pushEditorKey, pushSourceFrom } from './query'
+
 const KINDS: PushKind[] = ['service', 'marketing', 'routine']
 const AUDIENCES: PushAudience[] = ['전체', '30일 내 접속', '미인증 회원', '휴면 회원', '직접 지정']
 const LINKS: PushLink[] = ['앱 열기', '오늘의 루틴', '상점', '내 캐릭터', '월간 리포트', '1:1 문의']
-
-/**
- * 초안 칸 이름.
- *
- * ⚠️ **엔티티 이름을 붙인다.** 그냥 `'new'` 로 두면 화면마다의 `/…/new` 가 **같은 칸을
- *    써서 하나가 다른 하나를 덮어쓴다** (docs/ARCHITECTURE.md §33.2).
- */
-const DRAFT = 'push:new'
 
 const EMPTY: PushInput = {
   kind: 'service',
@@ -74,14 +69,25 @@ const EMPTY: PushInput = {
 const FORM_SUB = '잠금화면에 그대로 나갑니다. 보내면 되돌릴 수 없습니다.'
 
 export default function PushFormPage() {
+  const [params] = useSearchParams()
+  const sourceId = pushSourceFrom(params)
+
+  // ⚠️ query만 바뀌어도 편집기를 새로 만든다. 이전 원본의 폼이 새 초안 칸에 저장되면 안 된다.
+  return <PushEditor key={pushEditorKey(sourceId)} sourceId={sourceId} />
+}
+
+function PushEditor({ sourceId }: { sourceId: string }) {
   const navigate = useNavigate()
   const viewer = useViewer()
   const { data: consent, isPending, error } = useConsent()
+  const source = usePush(sourceId)
   const send = useSendPush()
   const check = useCheckDirect()
   // 폼을 만들기 **전에** 읽는다 — 만든 뒤에는 초기값을 갈아 끼울 수 없다.
-  const [restored] = useState(() => restoreDraft(DRAFT, EMPTY))
+  const [restored] = useState(() => restoreDraft(pushDraftScope(sourceId), EMPTY))
+  const [initial, setInitial] = useState<PushInput>(EMPTY)
   const [form, setForm] = useState<PushInput>(restored ?? EMPTY)
+  const [loadedSource, setLoadedSource] = useState('')
   // ⚠️ **알림 표시 여부는 따로 둔다.** `restored` 는 마운트 시점에 고정이라
   //    「새로 시작」 으로 버려도 계속 참이고 알림이 안 지워진다.
   const [noticeOpen, setNoticeOpen] = useState(restored != null)
@@ -90,22 +96,36 @@ export default function PushFormPage() {
   // ⚠️ **폼 전체를 본다.** 제목·본문만 보면 **대상·예약 시각·링크만 고친 사람이
   //    경고 없이 잃는다.** 자동 저장은 전체를 보므로, 좁게 보면 두 판정이 어긋나
   //    「초안은 남았는데 경고는 안 뜬다」 가 된다 (docs/ARCHITECTURE.md §33.8).
-  const markSaved = useUnsavedGuard(changed(form, EMPTY))
-  const draft = useFormDraft(DRAFT, form, changed(form, EMPTY))
+  const markSaved = useUnsavedGuard(changed(form, initial))
+  const draft = useFormDraft(pushDraftScope(sourceId), form, changed(form, initial))
 
-  if (isPending) {
+  const pageTitle = sourceId ? '알림 다시 보내기' : '알림 작성'
+
+  if (sourceId && source.data && loadedSource !== sourceId) {
+    const next = repeatInputOf(source.data.push)
+    setLoadedSource(sourceId)
+    setInitial(next)
+    if (restored === null) setForm(next)
+  }
+
+  if (isPending || (sourceId !== '' && source.isPending)) {
     // ⚠️ **헤더는 로딩 중에도 그린다** — 제목·부제가 데이터를 안 쓰므로 아는 값이다.
     //    지웠다 다시 그리면 아는 것까지 튄다 (docs/ARCHITECTURE.md §43.2).
     //    다만 **버튼은 빼둔다** — 아직 없는 데이터를 대상으로 하는 동작이다.
     return (
       <>
-        <PageHeader title="알림 작성" sub={FORM_SUB} />
+        <PageHeader title={pageTitle} sub={FORM_SUB} />
         <SkeletonForm fields={5} />
       </>
     )
   }
-  if (error || !consent)
-    return <ErrorBanner message={error?.message ?? '수신 동의 정보를 불러오지 못했습니다.'} />
+  if (error || !consent || (sourceId !== '' && (source.error || !source.data))) {
+    return (
+      <ErrorBanner
+        message={source.error?.message ?? error?.message ?? '알림 작성 정보를 불러오지 못했습니다.'}
+      />
+    )
+  }
 
   const set = <K extends keyof PushInput>(k: K, v: PushInput[K]) => setForm((f) => ({ ...f, [k]: v }))
 
@@ -144,12 +164,12 @@ export default function PushFormPage() {
   return (
     <>
       <PageHeader
-        title="알림 작성"
+        title={pageTitle}
         sub={FORM_SUB}
         actions={
           <>
             <Button onClick={() => navigate(SCREENS.push.path)}>취소</Button>
-            <Button onClick={draft.saveNow} disabled={!changed(form, EMPTY)}>
+            <Button onClick={draft.saveNow} disabled={!changed(form, initial)}>
               임시 저장
             </Button>
             <Button variant="primary" onClick={ask} disabled={send.isPending}>
@@ -163,7 +183,7 @@ export default function PushFormPage() {
         <DraftNotice
           onDiscard={() => {
             draft.clear()
-            setForm(EMPTY)
+            setForm(initial)
             setNoticeOpen(false)
           }}
         />

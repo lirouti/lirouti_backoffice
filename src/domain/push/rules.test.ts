@@ -17,6 +17,7 @@ import {
   openRate,
   PUSH_LIMITS,
   reachOf,
+  repeatInputOf,
   summarizePushes,
   validatePush,
 } from './rules'
@@ -247,6 +248,29 @@ describe('validatePush', () => {
   it('예약 시각 형식이 틀리면 막는다', () => {
     expect(validatePush(input({ now: false, at: '오늘 밤' }), consent, AT).at).toBeTruthy()
     expect(validatePush(input({ now: false, at: AT }), consent, AT).at).toBeUndefined()
+  })
+})
+
+describe('repeatInputOf', () => {
+  it('내용과 설정은 복사하되 과거 발송 시각과 결과는 새 입력에 넣지 않는다', () => {
+    expect(repeatInputOf(push({ kind: 'marketing', audience: '휴면 회원', link: '내 캐릭터' }))).toEqual({
+      kind: 'marketing',
+      title: '8/14 점검 안내',
+      body: '오늘 02시부터 04시까지 접속이 어렵습니다',
+      link: '내 캐릭터',
+      audience: '휴면 회원',
+      ids: '',
+      now: true,
+      at: '',
+    })
+  })
+
+  // 기록에는 직접 지정 ID가 없다. 전체 대상으로 넓히는 것보다 다시 입력하게 해야 안전하다.
+  it('⚠️ 직접 지정 대상은 종류만 유지하고 ID를 지운다', () => {
+    expect(repeatInputOf(push({ audience: '직접 지정' }))).toMatchObject({
+      audience: '직접 지정',
+      ids: '',
+    })
   })
 })
 
