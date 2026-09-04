@@ -3,7 +3,21 @@ import { afterEach, describe, expect, it } from 'vitest'
 
 import { findAdmin, setAdminMfa } from '@/mocks/admins'
 
-import { resetMfa } from './admins'
+import { requestPasswordReset, resetMfa } from './admins'
+
+describe('requestPasswordReset', () => {
+  it('없는 관리자에게는 메일을 보내지 않는다', async () => {
+    await expect(requestPasswordReset(999999)).rejects.toThrow('찾을 수 없습니다.')
+  })
+
+  it('⚠️ 최초 로그인 전 계정은 초기화 대신 초대 링크를 쓴다', async () => {
+    await expect(requestPasswordReset(7)).rejects.toThrow('초대 링크')
+  })
+
+  it('등록된 계정의 사내 이메일에는 초기화 메일을 보낼 수 있다', async () => {
+    await expect(requestPasswordReset(2)).resolves.toBeUndefined()
+  })
+})
 
 describe('resetMfa', () => {
   afterEach(() => setAdminMfa(2, '앱 OTP'))

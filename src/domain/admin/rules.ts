@@ -163,6 +163,12 @@ export function mfaResetBlockReason(target: Admin, meEmail: string): string | nu
   return null
 }
 
+/** 비밀번호 초기화 메일 발송이 막히는 이유. 막히지 않으면 `null`. */
+export function passwordResetBlockReason(target: Admin): string | null {
+  if (!hasSignedIn(target)) return '아직 로그인하지 않은 계정은 초대 링크로 시작합니다.'
+  return null
+}
+
 /**
  * 저장 직전에 다듬는다.
  *
