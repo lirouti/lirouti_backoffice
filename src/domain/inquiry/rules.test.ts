@@ -148,6 +148,11 @@ describe('filterInquiries', () => {
   it('공백만 있는 검색어는 무시한다', () => {
     expect(filterInquiries(list, { q: '  ' })).toHaveLength(3)
   })
+
+  it('회원 상세에서 넘어오면 그 회원의 문의만 남긴다', () => {
+    const withUsers = list.map((inquiry, userKey) => ({ ...inquiry, userKey }))
+    expect(filterInquiries(withUsers, { userKey: 1 }).map((i) => i.key)).toEqual([1])
+  })
 })
 
 describe('summarizeInquiries', () => {

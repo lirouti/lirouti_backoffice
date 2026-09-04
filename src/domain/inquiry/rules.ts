@@ -88,6 +88,8 @@ export type InquiryTab = (typeof INQUIRY_TABS)[number]
 export type InquiryFilter = {
   tab?: InquiryTab
   category?: InquiryCategory
+  /** 특정 회원이 보낸 문의만 */
+  userKey?: number
   /** 제목 · 담당자 부분 일치 */
   q?: string
 }
@@ -97,6 +99,7 @@ export function filterInquiries(list: Inquiry[], f: InquiryFilter): Inquiry[] {
   return list.filter((inq) => {
     if (f.tab && f.tab !== '전체' && inq.status !== f.tab) return false
     if (f.category && inq.category !== f.category) return false
+    if (f.userKey !== undefined && inq.userKey !== f.userKey) return false
     if (q && !inq.title.includes(q) && !inq.assignee.includes(q)) return false
     return true
   })

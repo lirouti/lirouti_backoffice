@@ -34,23 +34,35 @@ export type InquiriesResult = {
   summary: InquirySummary
   /** 지표를 낸 기준 시각. 화면이 대기 시간을 그릴 때 같은 값을 쓴다 */
   now: string
+  /** 회원 필터가 있을 때의 표시 정보. UID를 못 찾았으면 `null`, 필터가 없으면 생략한다. */
+  filteredUser?: Pick<User, 'nick' | 'uid'> | null
 }
 
-export async function getInquiries(filter: InquiryFilter): Promise<InquiriesResult> {
+export type InquiriesQuery = InquiryFilter & { userUid?: string }
+
+export async function getInquiries({ userUid, ...filter }: InquiriesQuery): Promise<InquiriesResult> {
   if (USE_MOCK) {
     await mockDelay()
     const all = allInquiries()
+    const user = userUid ? allUsers().find((candidate) => candidate.uid === userUid) : undefined
+    // UID가 있는데 회원을 못 찾으면 전체를 보여 주지 않는다. 잘못된 링크가 범위를 넓히면 안 된다.
+    const scoped = userUid ? { ...filter, userKey: user?.key ?? -1 } : filter
     // 지표는 **거르기 전 전체**로 낸다 — 탭마다 「답변 대기」 가 바뀌면 안 된다.
     const now = nowAt()
-    return { inquiries: filterInquiries(all, filter), summary: summarizeInquiries(all, now), now }
+    return {
+      inquiries: filterInquiries(all, scoped),
+      summary: summarizeInquiries(all, now),
+      now,
+      filteredUser: userUid ? (user ? { nick: user.nick, uid: user.uid } : null) : undefined,
+    }
   }
 
   // TODO(백엔드 스펙 확정 후): http.get<InquiryDto[]>('/admin/support/inquiries')
   throw new Error('문의 API 가 아직 연결되지 않았습니다. VITE_USE_MOCK=1 로 두세요.')
 }
 
-export function useInquiries(filter: InquiryFilter) {
-  return useQuery({ queryKey: qk.inquiries.list(filter), queryFn: () => getInquiries(filter) })
+export function useInquiries(query: InquiriesQuery) {
+  return useQuery({ queryKey: qk.inquiries.list(query), queryFn: () => getInquiries(query) })
 }
 
 export type InquiryDetail = {
