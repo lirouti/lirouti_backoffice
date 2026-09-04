@@ -48,7 +48,7 @@ import { useCheckDirect, useConsent, usePush, useSendPush } from '@/api/push'
 import { useUnsavedGuard } from '@/stores/dirtyStore'
 import { useViewer } from '@/stores/viewerStore'
 
-import { pushDraftScope, pushSourceFrom } from './query'
+import { pushDraftScope, pushEditorKey, pushSourceFrom } from './query'
 
 const KINDS: PushKind[] = ['service', 'marketing', 'routine']
 const AUDIENCES: PushAudience[] = ['전체', '30일 내 접속', '미인증 회원', '휴면 회원', '직접 지정']
@@ -69,15 +69,22 @@ const EMPTY: PushInput = {
 const FORM_SUB = '잠금화면에 그대로 나갑니다. 보내면 되돌릴 수 없습니다.'
 
 export default function PushFormPage() {
-  const navigate = useNavigate()
   const [params] = useSearchParams()
+  const sourceId = pushSourceFrom(params)
+
+  // ⚠️ query만 바뀌어도 편집기를 새로 만든다. 이전 원본의 폼이 새 초안 칸에 저장되면 안 된다.
+  return <PushEditor key={pushEditorKey(sourceId)} sourceId={sourceId} />
+}
+
+function PushEditor({ sourceId }: { sourceId: string }) {
+  const navigate = useNavigate()
   const viewer = useViewer()
   const { data: consent, isPending, error } = useConsent()
-  const source = usePush(pushSourceFrom(params))
+  const source = usePush(sourceId)
   const send = useSendPush()
   const check = useCheckDirect()
   // 폼을 만들기 **전에** 읽는다 — 만든 뒤에는 초기값을 갈아 끼울 수 없다.
-  const [restored] = useState(() => restoreDraft(pushDraftScope(pushSourceFrom(params)), EMPTY))
+  const [restored] = useState(() => restoreDraft(pushDraftScope(sourceId), EMPTY))
   const [initial, setInitial] = useState<PushInput>(EMPTY)
   const [form, setForm] = useState<PushInput>(restored ?? EMPTY)
   const [loadedSource, setLoadedSource] = useState('')
@@ -90,13 +97,8 @@ export default function PushFormPage() {
   //    경고 없이 잃는다.** 자동 저장은 전체를 보므로, 좁게 보면 두 판정이 어긋나
   //    「초안은 남았는데 경고는 안 뜬다」 가 된다 (docs/ARCHITECTURE.md §33.8).
   const markSaved = useUnsavedGuard(changed(form, initial))
-  const draft = useFormDraft(
-    pushDraftScope(pushSourceFrom(params)),
-    form,
-    changed(form, initial),
-  )
+  const draft = useFormDraft(pushDraftScope(sourceId), form, changed(form, initial))
 
-  const sourceId = pushSourceFrom(params)
   const pageTitle = sourceId ? '알림 다시 보내기' : '알림 작성'
 
   if (sourceId && source.data && loadedSource !== sourceId) {
