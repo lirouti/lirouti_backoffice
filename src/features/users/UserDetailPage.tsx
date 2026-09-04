@@ -1,9 +1,9 @@
 /**
- * 회원 상세 — 읽기 + 제재.
+ * 회원 상세 — 읽기 + 제재 + 후속 운영 화면 연결.
  *
- * 재화 지급·환불·문의는 서버가 있어야 하는 일이라 잠가 뒀다 (docs/ARCHITECTURE.md §18.8).
+ * 재화 지급은 지급·회수 화면에 UID를 넘겨 같은 검증 경로를 쓴다.
  */
-import { useParams } from 'react-router'
+import { useNavigate, useParams } from 'react-router'
 
 import { css } from 'styled-system/css'
 
@@ -17,6 +17,7 @@ import { SkeletonHeader, SkeletonRows, SkeletonStats } from '@/shared/ui/Skeleto
 import { StatTile } from '@/shared/ui/StatTile'
 import { Table, type Column } from '@/shared/ui/Table'
 
+import { SCREENS } from '@/domain/screens'
 import {
   canBan,
   SOCIAL_LABEL,
@@ -54,10 +55,16 @@ export default function UserDetailPage() {
 }
 
 function Detail({ detail, userId }: { detail: UserDetail; userId: string }) {
+  const navigate = useNavigate()
   const ban = useBanUser()
 
   const { user, ledger, orders } = detail
   const banned = user.status === 'BANNED'
+
+  const openGrant = () => {
+    const search = new URLSearchParams({ who: user.uid })
+    navigate({ pathname: SCREENS.grant.path, search: `?${search}` })
+  }
 
   return (
     <>
@@ -66,8 +73,9 @@ function Detail({ detail, userId }: { detail: UserDetail; userId: string }) {
         sub={user.email}
         actions={
           <>
-            {/* TODO(재화 지급 API 가 생기면): 지급 · 회수 화면과 같은 경로를 쓴다 */}
-            <Button disabled>재화 지급 · 준비 중</Button>
+            <Button onClick={openGrant} disabled={user.status === 'LEFT'}>
+              {user.status === 'LEFT' ? '재화 지급 · 탈퇴 계정' : '재화 지급'}
+            </Button>
             {/* TODO(문의 API 가 생기면): 1:1 문의로 연결한다 */}
             <Button disabled>문의 남기기 · 준비 중</Button>
             <Button
@@ -251,4 +259,3 @@ function Row({ k, v }: { k: string; v: string }) {
     </div>
   )
 }
-

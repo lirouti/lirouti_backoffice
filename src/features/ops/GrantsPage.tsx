@@ -6,6 +6,8 @@
  */
 import { useState } from 'react'
 
+import { useSearchParams } from 'react-router'
+
 import { css } from 'styled-system/css'
 
 import { num } from '@/shared/lib/format'
@@ -38,6 +40,8 @@ import { useCheckTargets, useGrants, useRunGrant } from '@/api/ops'
 
 import { useViewer } from '@/stores/viewerStore'
 
+import { grantWhoFrom } from './query'
+
 const KINDS: GrantKind[] = ['지급', '회수']
 /** ⚠️ 「등급」 은 뺐다 — 회원 등급이 아직 없어서 고를 것이 없다 (§25.3) */
 const TARGETS: GrantTarget[] = ['개별', '전체']
@@ -69,11 +73,12 @@ const COLUMNS: Column<GrantLog>[] = [
 ]
 
 export default function GrantsPage() {
+  const [params] = useSearchParams()
   const viewer = useViewer()
   const { data, isPending, error } = useGrants()
   const check = useCheckTargets()
   const run = useRunGrant()
-  const [form, setForm] = useState<GrantInput>(EMPTY)
+  const [form, setForm] = useState<GrantInput>(() => ({ ...EMPTY, who: grantWhoFrom(params) }))
   const [asking, setAsking] = useState(false)
   // ⚠️ 누르기 전에는 빨갛게 하지 않는다 — 열자마자 혼난 기분이 든다(§18.7).
   const [tried, setTried] = useState(false)
