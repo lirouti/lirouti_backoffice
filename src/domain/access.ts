@@ -52,19 +52,33 @@ export type LoginResult =
   | { status: 'authenticated'; viewer: Viewer }
   | { status: 'totp_required'; challenge: string }
 
+/** 로그인 입력 오류. 다른 `validate*` 와 같은 모양이다 */
+export type CredentialErrors = Partial<Record<'email' | 'password', string>>
+
 /**
- * 로그인 입력 검증. 통과하면 null, 아니면 사용자에게 보일 메시지.
+ * 로그인 입력 검증. 통과하면 빈 객체.
  *
  * 서버도 같은 검증을 하지만 여기서 먼저 걸러 왕복을 아낀다.
  * 규칙(회사 이메일 형식·8자 이상)은 디자인 원본에서 가져왔다.
  *
+ * ⚠️ **칸별로 나눠서 돌려준다.** 예전에는 문자열 하나였는데, 그러면 화면이
+ *    **어느 칸이 틀렸는지 말할 수 없어서** 배너 한 줄로만 알릴 수 있었다.
+ *    「아이디와 비밀번호를 모두 입력해 주세요」 처럼 둘을 뭉친 문구가 나온 것도 그래서다
+ *    (docs/ARCHITECTURE.md §52).
+ *
  * (2단계 인증 코드 검증은 `domain/totp.ts` — 인가가 아니라 인증 수단이다.)
  */
-export function validateCredentials(c: Credentials): string | null {
-  if (!c.email.trim() || !c.password) return '아이디와 비밀번호를 모두 입력해 주세요.'
-  if (!/\S+@\S+\.\S+/.test(c.email.trim())) return '아이디는 회사 이메일 형식이어야 합니다.'
-  if (c.password.length < 8) return '비밀번호는 8자 이상입니다. 다시 확인해 주세요.'
-  return null
+export function validateCredentials(c: Credentials): CredentialErrors {
+  const errors: CredentialErrors = {}
+  const email = c.email.trim()
+
+  if (!email) errors.email = '아이디를 입력해 주세요.'
+  else if (!/\S+@\S+\.\S+/.test(email)) errors.email = '아이디는 회사 이메일 형식이어야 합니다.'
+
+  if (!c.password) errors.password = '비밀번호를 입력해 주세요.'
+  else if (c.password.length < 8) errors.password = '비밀번호는 8자 이상입니다. 다시 확인해 주세요.'
+
+  return errors
 }
 
 /**

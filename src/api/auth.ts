@@ -53,8 +53,9 @@ function mockViewer(email: string): Viewer {
  * 세션 쿠키는 **2차까지 통과해야** 심긴다 — 1차만으로 들어올 수 있으면 2FA 가 무의미하다.
  */
 export async function login(c: Credentials): Promise<LoginResult> {
-  const invalid = validateCredentials(c)
-  if (invalid) throw apiError('http', invalid, 400)
+  // 화면도 같은 함수를 부르지만 여기서도 본다 — 파사드는 화면 하나만의 것이 아니다.
+  const first = Object.values(validateCredentials(c))[0]
+  if (first) throw apiError('http', first, 400)
 
   if (USE_MOCK) {
     await mockDelay(600)
