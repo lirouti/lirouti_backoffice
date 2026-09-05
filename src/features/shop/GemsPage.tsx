@@ -4,6 +4,8 @@
  * **판매 비중은 건수에서 계산한다** — 원본처럼 상수로 들면 파는 상품들의 합이
  * 100 이 안 된다 (docs/ARCHITECTURE.md §24.2).
  */
+import { useNavigate } from 'react-router'
+
 import { css } from 'styled-system/css'
 
 import { num } from '@/shared/lib/format'
@@ -16,6 +18,7 @@ import { SkeletonRows, SkeletonStats } from '@/shared/ui/Skeleton'
 import { StatTile } from '@/shared/ui/StatTile'
 import { Table, type Column } from '@/shared/ui/Table'
 
+import { SCREENS } from '@/domain/screens'
 import { GEM_STATUS_TONE, orderShares, pricePerGem, type GemProduct } from '@/domain/shop'
 
 import { useGems } from '@/api/shop'
@@ -26,6 +29,7 @@ const won = (n: number): string => `${num(n)}원`
 const mil = (n: number): string => `${(n / 1_000_000).toFixed(1)}백만원`
 
 export default function GemsPage() {
+  const navigate = useNavigate()
   const { data, isPending, error } = useGems()
 
   // 배분이라 행마다 따로 낼 수 없다 — 목록 전체로 한 번 낸다(§24.2).
@@ -110,16 +114,18 @@ export default function GemsPage() {
     },
   ]
 
+  const edit = (p: GemProduct) =>
+    navigate(SCREENS.gemedit.path.replace(':gemId', String(p.key)))
+
   return (
     <>
       <PageHeader
         title="젬 상품"
         sub="충전 패키지 구성입니다. 가격과 보너스는 스토어 심사 후 반영됩니다."
         actions={
-          <>
-            {/* TODO(상품 등록 API 가 생기면): 스토어 상품 id 를 함께 받는다 (§18.8) */}
-            <Button disabled>상품 추가 · 준비 중</Button>
-          </>
+          <Button variant="primary" onClick={() => navigate(SCREENS.gemnew.path)}>
+            상품 추가
+          </Button>
         }
       />
 
@@ -151,6 +157,7 @@ export default function GemsPage() {
             rows={data.products}
             minWidth={940}
             rowKey={(p) => String(p.key)}
+            onRowClick={edit}
           />
 
           <p className={css({ m: '14px 0 0', textStyle: 'caption', color: 'faint' })}>

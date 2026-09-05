@@ -7,10 +7,22 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 
 import type { Item } from '@/domain/item'
-import { summarizeGems, type GemProduct, type GemSummary, type ShopSlot } from '@/domain/shop'
+import {
+  summarizeGems,
+  type GemProduct,
+  type GemProductInput,
+  type GemSummary,
+  type ShopSlot,
+} from '@/domain/shop'
 
 import { allItems } from '@/mocks/items'
-import { allGemProducts, allShopSlots, resetShopSlots, saveShopSlots } from '@/mocks/shop'
+import {
+  allGemProducts,
+  allShopSlots,
+  resetShopSlots,
+  saveShopSlots,
+  upsertGemProduct,
+} from '@/mocks/shop'
 
 import { mockDelay, qk, queryClient, USE_MOCK } from './core'
 import { apiError } from './error'
@@ -32,6 +44,56 @@ export async function getGems(): Promise<GemsResult> {
 
 export function useGems() {
   return useQuery({ queryKey: qk.shop.gems(), queryFn: getGems })
+}
+
+export async function getGemProduct(gemId: string): Promise<GemProduct> {
+  if (USE_MOCK) {
+    await mockDelay()
+    const found = allGemProducts().find((p) => String(p.key) === gemId)
+    if (!found) throw apiError('http', `젬 상품 #${gemId} 을(를) 찾을 수 없습니다.`, 404)
+    return found
+  }
+
+  // TODO(백엔드 스펙 확정 후): http.get<GemProductDto>(`/admin/shop/gems/${gemId}`)
+  throw new Error('상점 API 가 아직 연결되지 않았습니다. VITE_USE_MOCK=1 로 두세요.')
+}
+
+export function useGemProduct(gemId: string) {
+  return useQuery({
+    queryKey: qk.shop.gem(gemId),
+    queryFn: () => getGemProduct(gemId),
+    // ⚠️ **등록 화면은 빈 id 를 넘긴다.** 그냥 두면 없는 상품을 찾아 404 를 던지고,
+    //    쓰이지도 않을 실패가 캐시에 남는다 (`useAchievement` 와 같은 이유).
+    enabled: gemId !== '',
+  })
+}
+
+export type SaveGemVars = { gemId?: string; input: GemProductInput }
+
+/**
+ * 젬 상품 등록·수정.
+ *
+ * ⚠️ **스토어 상품 id 는 아직 못 받는다.** 실제로 팔리려면 앱스토어·플레이에 등록된 상품과
+ *    이어져야 하는데 그 계약이 없다 — 그래서 새 상품은 「예약」 으로만 만들어진다
+ *    (docs/ARCHITECTURE.md §59.1).
+ *
+ * TODO(상품 등록 API 가 생기면): 스토어 상품 id 를 함께 받는다
+ */
+export async function saveGemProduct({ gemId, input }: SaveGemVars): Promise<GemProduct> {
+  if (USE_MOCK) {
+    await mockDelay()
+    return upsertGemProduct(input, gemId == null ? undefined : Number(gemId))
+  }
+
+  // TODO(백엔드 스펙 확정 후): gemId 유무로 POST / PATCH
+  throw new Error('상점 API 가 아직 연결되지 않았습니다. VITE_USE_MOCK=1 로 두세요.')
+}
+
+export function useSaveGemProduct() {
+  return useMutation({
+    mutationFn: saveGemProduct,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.shop.all }),
+  })
 }
 
 /** 진열 한 칸 + 그 자리에 놓인 아이템 */

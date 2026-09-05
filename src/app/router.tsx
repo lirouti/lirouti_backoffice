@@ -48,6 +48,8 @@ const IMPLEMENTED: Partial<Record<ScreenId, React.LazyExoticComponent<React.Comp
   faq: lazy(() => import('@/features/support/FaqPage')),
   faqnew: lazy(() => import('@/features/support/FaqFormPage')),
   gems: lazy(() => import('@/features/shop/GemsPage')),
+  gemnew: lazy(() => import('@/features/shop/GemFormPage')),
+  gemedit: lazy(() => import('@/features/shop/GemFormPage')),
   items: lazy(() => import('@/features/items/ItemsPage')),
   levels: lazy(() => import('@/features/levels/LevelsPage')),
   mod: lazy(() => import('@/features/moderation/ReportsPage')),
