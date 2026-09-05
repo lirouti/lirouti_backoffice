@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 /**
  * 아이템 목록 화면. **첫 목록 화면이라 나머지 목록 화면의 본이 된다.**
  *
@@ -8,7 +10,10 @@ import { useNavigate } from 'react-router'
 
 import { css } from 'styled-system/css'
 
+import { toCsv, type CsvColumn } from '@/shared/lib/csv'
+import { downloadCsv } from '@/shared/lib/download'
 import { count, gem, num, pct } from '@/shared/lib/format'
+import { today } from '@/shared/lib/today'
 import { AssetThumb } from '@/shared/ui/AssetThumb'
 import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
@@ -38,7 +43,7 @@ import {
 } from '@/domain/item'
 import { SCREENS } from '@/domain/screens'
 
-import { useItems } from '@/api/items'
+import { getItemsForExport, useItems } from '@/api/items'
 
 import { ItemGrid } from './ItemGrid'
 import { DEFAULT_QUERY, hasFilter, type ItemsView } from './query'
@@ -133,6 +138,8 @@ export default function ItemsPage() {
   const [query, setQuery] = useItemsQuery()
   // 입력창은 주소가 아니라 초안을 그린다 — 주소에 매면 친 글자가 사라진다 (§18.1)
   const [draft, setDraft] = useSearchDraft(query.q, (q) => setQuery({ q }))
+  const [sending, setSending] = useState(false)
+  const [failed, setFailed] = useState(false)
   const { data, isPending, error } = useItems({
     q: query.q,
     slot: query.slot,
@@ -143,6 +150,27 @@ export default function ItemsPage() {
 
   const items = data?.items ?? []
   const total = data?.total ?? 0
+
+  /**
+   * 내보내기는 **버튼을 누른 순간에만** 서버를 부른다 — `useQuery` 로 두면 아무도
+   * 안 누른 목록에서도 전체를 만들어 들고 있게 된다.
+   */
+  const exportCsv = async () => {
+    if (sending) return
+    // ⚠️ **지난 실패를 지우고 시작한다.** 안 지우면 다시 눌러 성공해도 배너가 그대로 남아
+    //    「또 실패했다」 로 읽힌다.
+    setFailed(false)
+    setSending(true)
+    try {
+      const all = await getItemsForExport({ q: query.q, slot: query.slot, tier: query.tier })
+      downloadCsv(`riruti-items-${today()}.csv`, toCsv(all, CSV_COLUMNS))
+    } catch {
+      // 실패는 아래 배너가 아니라 여기서 끝난다 — 목록 조회와 다른 요청이다.
+      setFailed(true)
+    } finally {
+      setSending(false)
+    }
+  }
 
   const open = (it: Item) => navigate(SCREENS.item.path.replace(':itemId', String(it.key)))
   const reset = () => setQuery(DEFAULT_QUERY)
@@ -155,13 +183,12 @@ export default function ItemsPage() {
         actions={
           <>
             {/*
-              내보낼 것은 지금 쪽이 아니라 **필터에 걸린 전체**여야 하는데, 그건
-              서버가 잘라 주기 시작하면 전용 엔드포인트 없이는 만들 수 없다.
-              눌러도 반쪽만 나오는 버튼보다 잠긴 버튼이 낫다 (지표 화면과 같은 처리).
-
-              TODO(내보내기 엔드포인트가 생기면): CSV 내보내기
+              ⚠️ **지금 쪽이 아니라 필터에 걸린 전체를 내보낸다.** 아이템만 파사드가 쪽을
+                 자르므로(§18.4) 화면에는 12건뿐이다 — `getItemsForExport` 로 다시 받는다.
             */}
-            <Button disabled>CSV 내보내기 · 준비 중</Button>
+            <Button disabled={sending} onClick={exportCsv}>
+              {sending ? '만드는 중…' : 'CSV 내보내기'}
+            </Button>
             <Button variant="primary" onClick={() => navigate(SCREENS.itemnew.path)}>
               아이템 등록
             </Button>
@@ -238,6 +265,8 @@ export default function ItemsPage() {
       </Card>
 
       {error && <ErrorBanner message={error.message} />}
+      {/* 내보내기 실패는 목록 조회와 다른 요청이라 배너를 따로 낸다 */}
+      {failed && <ErrorBanner message="CSV 를 만들지 못했습니다. 잠시 뒤 다시 눌러 주세요." />}
 
       {/*
         ⚠️ **아직 아무것도 못 받았으면 배너만 남긴다.** 조회가 실패해도 `isPending` 은
@@ -276,3 +305,17 @@ export default function ItemsPage() {
     </>
   )
 }
+
+/** 내보내는 값 — 표는 에셋 그림까지 그리지만 파일에는 계산에 쓸 값만 넣는다 (§56.1) *
+ * ⚠️ **열거형은 라벨을 거친다.** 원시 값(`PAID`·`KAKAO`·`TOSS`)이 그대로 나가면
+ *    운영자가 파일을 열었을 때 화면에서 보던 말과 다르다.
+ */
+const CSV_COLUMNS: CsvColumn<Item>[] = [
+  { header: '코드', value: (it) => it.code },
+  { header: '이름', value: (it) => it.name },
+  { header: '슬롯', value: (it) => SLOT_LABEL[it.slot] },
+  { header: '등급', value: (it) => TIER_LABEL[it.tier] },
+  { header: '가격(젬)', value: (it) => it.price },
+  { header: '판매', value: (it) => it.sold },
+  { header: '보유율(%)', value: (it) => it.own },
+]

@@ -8,7 +8,10 @@ import { Link, useSearchParams } from 'react-router'
 
 import { css } from 'styled-system/css'
 
+import { toCsv, type CsvColumn } from '@/shared/lib/csv'
+import { downloadCsv } from '@/shared/lib/download'
 import { num } from '@/shared/lib/format'
+import { today } from '@/shared/lib/today'
 import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
@@ -76,6 +79,11 @@ export default function AuditPage() {
     setParams(next, { replace: true })
   }
 
+  const exportCsv = () => {
+    if (!data) return
+    downloadCsv(`riruti-audit-${today()}.csv`, toCsv(data.logs, CSV_COLUMNS))
+  }
+
   return (
     <>
       <PageHeader
@@ -83,8 +91,9 @@ export default function AuditPage() {
         sub="관리자가 한 모든 조작이 남습니다. 수정과 삭제는 할 수 없습니다."
         actions={
           <>
-            {/* TODO(내보내기 엔드포인트가 생기면): CSV 내려받기 (§18.8) */}
-            <Button disabled>CSV 내려받기 · 준비 중</Button>
+            <Button disabled={!data} onClick={exportCsv}>
+              CSV 내려받기
+            </Button>
           </>
         }
       />
@@ -462,3 +471,24 @@ function Row({ k, v, mono }: { k: string; v: string; mono?: boolean }) {
     </div>
   )
 }
+
+/**
+ * 내보내는 값.
+ *
+ * ⚠️ **`from`·`to`·`ip` 까지 넣는다.** 감사 로그는 「무슨 일이 있었나」를 나중에 따지는
+ *    기록이라, 화면이 줄여 보여 주는 것과 파일에 남길 것이 다르다 (§56.1).
+ */
+const CSV_COLUMNS: CsvColumn<AuditLog>[] = [
+  { header: '일시', value: (l) => l.at },
+  { header: '로그 id', value: (l) => l.logId },
+  { header: '처리자', value: (l) => l.by },
+  { header: '당시 역할', value: (l) => l.role },
+  { header: '구분', value: (l) => l.kind },
+  { header: '대상', value: (l) => l.target },
+  { header: '바뀐 것', value: (l) => l.field },
+  { header: '이전', value: (l) => l.from },
+  { header: '이후', value: (l) => l.to },
+  { header: '증감', value: (l) => l.delta },
+  { header: '사유', value: (l) => l.why },
+  { header: 'IP', value: (l) => l.ip },
+]

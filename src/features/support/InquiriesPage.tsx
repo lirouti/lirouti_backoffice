@@ -8,7 +8,10 @@ import { useNavigate, useSearchParams } from 'react-router'
 
 import { css } from 'styled-system/css'
 
+import { toCsv, type CsvColumn } from '@/shared/lib/csv'
+import { downloadCsv } from '@/shared/lib/download'
 import { num } from '@/shared/lib/format'
+import { today } from '@/shared/lib/today'
 import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
@@ -125,6 +128,11 @@ export default function InquiriesPage() {
     { key: 'assignee', label: '담당', width: '90px', render: (i) => i.assignee || '미배정' },
   ]
 
+  const exportCsv = () => {
+    if (!data) return
+    downloadCsv(`riruti-inquiries-${today()}.csv`, toCsv(data.inquiries, CSV_COLUMNS))
+  }
+
   return (
     <>
       <PageHeader
@@ -132,8 +140,9 @@ export default function InquiriesPage() {
         sub="유저가 앱에서 보낸 문의입니다. 답변하면 앱 알림으로 전달됩니다."
         actions={
           <>
-            {/* TODO(내보내기 엔드포인트가 생기면): 필터에 걸린 전체를 뽑는다 (§18.8) */}
-            <Button disabled>CSV 내보내기 · 준비 중</Button>
+            <Button disabled={!data} onClick={exportCsv}>
+              CSV 내보내기
+            </Button>
           </>
         }
       />
@@ -240,3 +249,20 @@ export default function InquiriesPage() {
     </>
   )
 }
+
+/**
+ * 내보내는 값.
+ *
+ * ⚠️ **본문은 넣지 않는다.** 문의 본문은 여러 줄이고 개인정보가 섞여 있어서, 목록을 훑는
+ *    용도의 파일에 통째로 싣는 것은 필요 이상이다. 내용을 봐야 하면 상세로 들어간다
+ *    (docs/ARCHITECTURE.md §56.1).
+ */
+const CSV_COLUMNS: CsvColumn<Inquiry>[] = [
+  { header: '문의번호', value: (q) => q.code },
+  { header: '분류', value: (q) => q.category },
+  { header: '제목', value: (q) => q.title },
+  { header: '상태', value: (q) => q.status },
+  { header: '담당', value: (q) => q.assignee || '미배정' },
+  { header: '접수', value: (q) => q.at },
+  { header: '답변', value: (q) => q.answeredAt },
+]

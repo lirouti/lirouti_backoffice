@@ -10,7 +10,10 @@ import { useNavigate, useParams } from 'react-router'
 
 import { css } from 'styled-system/css'
 
+import { toCsv, type CsvColumn } from '@/shared/lib/csv'
+import { downloadCsv } from '@/shared/lib/download'
 import { num } from '@/shared/lib/format'
+import { today } from '@/shared/lib/today'
 import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
@@ -94,6 +97,10 @@ function Detail({
   const cap = firstComeCap(c.limits)
   const groups = days.map((d) => ({ label: d.date.slice(5).replace('-', '/'), a: d.used }))
 
+  // 파일명에도 「recent」 를 적는다 — 나중에 열었을 때 전체가 아니라는 것이 파일에 남아야 한다.
+  const exportCsv = () =>
+    downloadCsv(`riruti-coupon-${c.code}-recent-uses-${today()}.csv`, toCsv(logs, CSV_COLUMNS))
+
   return (
     <>
       <PageHeader
@@ -102,8 +109,15 @@ function Detail({
         actions={
           <>
             <Button onClick={() => navigate(SCREENS.coupons.path)}>목록</Button>
-            {/* TODO(내보내기 엔드포인트가 생기면): 발급한 개별 코드를 CSV 로 (§18.8) */}
-            <Button disabled>CSV 내려받기 · 준비 중</Button>
+            {/*
+              ⚠️ **화면에 있는 것만 나간다 — 그래서 이름에 「최근 N건」 을 적는다.**
+                 `logs` 는 아래 카드가 말하듯 최근 8건이고, 전체 이력도 발급된 코드 전체도
+                 목에 없다. 있지도 않은 것을 버튼 이름으로 약속하지 않는다 (§56.1).
+              TODO(사용 이력·발급 코드 목록 API 가 생기면): 전체를 받는 내보내기를 따로 둔다
+            */}
+            <Button disabled={logs.length === 0} onClick={exportCsv}>
+              최근 {logs.length}건 CSV
+            </Button>
             {/* 끝난 쿠폰은 버튼을 없애지 않고 잠가 이유를 라벨에 적는다 */}
             <Button
               variant={c.stopped ? 'primary' : 'danger'}
@@ -307,3 +321,12 @@ function Row({ k, v }: { k: string; v: string }) {
     </div>
   )
 }
+
+/** 내보내는 값 — 화면의 `LOG_COLUMNS` 와 같은 것을 원본 값으로 낸다 (§56.1) */
+const CSV_COLUMNS: CsvColumn<CouponUseLog>[] = [
+  { header: '일시', value: (l) => l.at },
+  { header: '코드', value: (l) => l.code },
+  { header: '회원', value: (l) => l.who },
+  { header: '지급', value: (l) => l.what },
+  { header: '결과', value: (l) => l.result },
+]

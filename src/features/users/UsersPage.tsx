@@ -8,7 +8,10 @@ import { useNavigate, useSearchParams } from 'react-router'
 
 import { css } from 'styled-system/css'
 
+import { toCsv, type CsvColumn } from '@/shared/lib/csv'
+import { downloadCsv } from '@/shared/lib/download'
 import { date, num } from '@/shared/lib/format'
+import { today } from '@/shared/lib/today'
 import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
 import { Checkbox } from '@/shared/ui/Checkbox'
@@ -83,6 +86,11 @@ export default function UsersPage() {
     setParams(next, { replace: true })
   }
 
+  const exportCsv = () => {
+    if (!data) return
+    downloadCsv(`riruti-users-${today()}.csv`, toCsv(data.users, CSV_COLUMNS))
+  }
+
   return (
     <>
       <PageHeader
@@ -90,12 +98,10 @@ export default function UsersPage() {
         sub="이메일과 닉네임으로 찾습니다. 탈퇴 회원은 기본으로 숨겨집니다."
         actions={
           <>
-            {/*
-              내려받을 것은 지금 화면이 아니라 필터에 걸린 전체여야 하는데, 서버가
-              쪽을 자르기 시작하면 전용 엔드포인트 없이 만들 수 없다 (§18.8).
-              TODO(내보내기 엔드포인트가 생기면): CSV 내려받기
-            */}
-            <Button disabled>CSV 내려받기 · 준비 중</Button>
+            {/* 파사드가 **필터에 걸린 전체**를 주므로 지금 화면의 쪽이 아니라 전부 나간다 */}
+            <Button disabled={!data} onClick={exportCsv}>
+              CSV 내려받기
+            </Button>
           </>
         }
       />
@@ -257,3 +263,28 @@ function Avatar({ nick }: { nick: string }) {
     </span>
   )
 }
+
+/**
+ * 내보내는 값.
+ *
+ * ⚠️ **표의 `COLUMNS` 와 다르다.** 저건 화면용이라 `render` 가 JSX 를 돌려주고, 재화처럼
+ *    두 값을 한 칸에 합쳐 그린다. 파일은 **한 칸에 한 값**이어야 계산에 쓸 수 있다
+ *    (docs/ARCHITECTURE.md §56.1).
+ *
+ * ⚠️ **열거형은 라벨을 거친다.** 원시 값(`PAID`·`KAKAO`·`TOSS`)이 그대로 나가면
+ *    운영자가 파일을 열었을 때 화면에서 보던 말과 다르다.
+ */
+const CSV_COLUMNS: CsvColumn<User>[] = [
+  { header: 'UID', value: (u) => u.uid },
+  { header: '닉네임', value: (u) => u.nick },
+  { header: '이메일', value: (u) => u.email },
+  { header: '소셜', value: (u) => SOCIAL_LABEL[u.social] },
+  { header: '상태', value: (u) => USER_STATUS_LABEL[u.status] },
+  { header: '파란보석', value: (u) => u.wallet.gem },
+  { header: '노란보석', value: (u) => u.wallet.topaz },
+  { header: '누적 결제(원)', value: (u) => u.paid },
+  { header: '누적 인증', value: (u) => u.certs },
+  { header: '가입일', value: (u) => u.joinedAt },
+  { header: '최근 접속', value: (u) => u.lastSeenAt },
+  { header: '탈퇴일', value: (u) => u.leftAt },
+]
