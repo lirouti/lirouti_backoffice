@@ -264,7 +264,7 @@ export default tseslint.config(
   // 아니라 덮어쓰기** 라, 여기에 vitest 를 넣으면 위에서 세운 레이어 규칙이 통째로 날아간다.
   {
     files: ['src/**/*.{ts,tsx}'],
-    ignores: ['src/**/*.test.ts'],
+    ignores: ['src/**/*.test.{ts,tsx}'],
     rules: {
       'no-restricted-syntax': [
         'error',

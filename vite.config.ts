@@ -33,13 +33,21 @@ export default defineConfig({
 
     env: { TZ: 'Asia/Seoul' },
 
-    // **`.test.ts` 만** 잡는다. `.tsx` 를 빼 둔 건 실수가 아니라 경계다 —
-    // 컴포넌트 테스트를 시작하려면 jsdom·Testing Library 를 같이 들여야 하므로,
-    // 그 결정을 하기 전까지는 순수 함수 테스트만 존재한다는 뜻이 된다.
+    // `.tsx` 도 잡는다 — jsdom·Testing Library 를 들였다 (§60).
+    //
+    // ⚠️ **환경은 `node` 로 둔다.** DOM 이 필요한 파일이 첫 줄에 `@vitest-environment
+    //    jsdom` 을 스스로 선언한다 — 설정에 glob 을 두면 「어느 파일이 DOM 을 쓰는가」가
+    //    파일 밖에 숨고, 순수 층 테스트 700여 개가 이유 없이 브라우저를 흉내 낸다.
+    //
+    // ⚠️ **`test` 스크립트가 `panda codegen` 을 먼저 돈다.** 컴포넌트 테스트는
+    //    `styled-system/css` 를 타는데 그건 **생성물이라 깨끗한 클론에 없다** — 붙이지
+    //    않으면 새 머신에서 `bun run test` 가 통째로 깨진다 (`typecheck` 와 같은 이유).
     //
     // `scripts/` 도 넣는다. 규약 검사기들은 **코드를 읽는 코드**라 눈으로 맞는지
     // 확인할 수가 없고, 실제로 주석 검사기가 오탐을 세 번 냈다. 환경(node)과
     // 성질(순수 함수)이 같아 위의 경계는 그대로다.
-    include: ['{src,scripts}/**/*.test.ts'],
+    include: ['{src,scripts}/**/*.test.{ts,tsx}'],
+
+    setupFiles: ['./vitest.setup.ts'],
   },
 })

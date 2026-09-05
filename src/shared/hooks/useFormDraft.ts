@@ -71,9 +71,9 @@ export function useFormDraft(scope: string, value: unknown, dirty: boolean): For
     const text = writeDraft(latest.current)
     // ⚠️ **쓴 뒤에 표시한다.** `setItem` 은 `QuotaExceededError` 를 던질 수 있는데
     //    (사파리 시크릿 모드·용량 초과), 먼저 표시하면 **저장되지 않은 값이 「이미 썼다」로
-    //    남는다.** `written` 은 다음 저장을 걸러내는 데만 쓰이므로 지금은 관측되는 고장이
-    //    없지만 — 되돌려 보니 재시도는 그대로 됐다 — 거짓을 담아 두는 것 자체가 틀렸고,
-    //    이 값을 나중에 다른 판단에 쓰면 그때 진짜 버그가 된다 (§59.7).
+    //    남아 다시는 안 써진다.** 브라우저에서는 값을 바꿔 가며 시험해서 못 찾았는데
+    //    (§59.7), **갈리는 것은 값이 그대로일 때뿐**이다 — 값이 다르면 어차피 새 예약이
+    //    걸린다. 옆 테스트가 그 경로를 고정한다 (§60.2).
     sessionStorage.setItem(key, text)
     written.current = text
     setSavedAt(new Date())
