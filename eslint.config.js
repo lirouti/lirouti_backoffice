@@ -264,14 +264,14 @@ export default tseslint.config(
   // 아니라 덮어쓰기** 라, 여기에 vitest 를 넣으면 위에서 세운 레이어 규칙이 통째로 날아간다.
   {
     files: ['src/**/*.{ts,tsx}'],
-    ignores: ['src/**/*.test.ts'],
+    ignores: ['src/**/*.test.{ts,tsx}'],
     rules: {
       'no-restricted-syntax': [
         'error',
         {
           selector: 'ImportDeclaration[source.value=/^(vitest|@vitest\\/)/]',
           message:
-            '테스트 러너는 `*.test.ts` 에서만 씁니다. 프로덕션 코드가 vitest 를 import 하면 번들에 딸려 들어갑니다.',
+            '테스트 러너는 `*.test.ts` · `*.test.tsx` 에서만 씁니다. 프로덕션 코드가 vitest 를 import 하면 번들에 딸려 들어갑니다.',
         },
       ],
     },
