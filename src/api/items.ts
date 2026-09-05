@@ -68,6 +68,29 @@ export async function getItems({ page, perPage, ...filter }: ItemsQuery): Promis
 }
 
 /**
+ * 내보내기용 — **필터에 걸린 전체**를 쪽 없이 준다.
+ *
+ * ⚠️ **화면이 가진 것으로 CSV 를 만들 수 없다.** 아이템만 파사드가 쪽을 자르므로(docs/ARCHITECTURE.md §18.4)
+ *    화면에는 12건뿐이다. 그것만 내보내면 「CSV 내보내기」 라는 이름과 다른 것을 준다 —
+ *    나머지 다섯 화면은 파사드가 전체를 주므로 이 함수가 필요 없다.
+ *
+ * ⚠️ **`useQuery` 로 두지 않는다.** 버튼을 누른 순간에만 필요한 값이라 캐시에 얹으면
+ *    아무도 안 누른 목록에서도 전체를 만들어 들고 있게 된다.
+ *
+ * TODO(내보내기 엔드포인트가 생기면): 서버가 CSV 를 직접 내려주면 이 함수는 사라진다 —
+ * 수만 건을 브라우저로 끌어와 만드는 것은 지금 규모에서만 맞다.
+ */
+export async function getItemsForExport(filter: ItemFilter): Promise<Item[]> {
+  if (USE_MOCK) {
+    await mockDelay()
+    return filterItems(allItems(), filter).map(withAssetSrc)
+  }
+
+  // TODO(백엔드 스펙 확정 후): http.get<ItemsDto>('/admin/items/export', { params: filter })
+  throw new Error('아이템 API 가 아직 연결되지 않았습니다. VITE_USE_MOCK=1 로 두세요.')
+}
+
+/**
  * ⚠️ **`placeholderData` 를 빼지 말 것.** 쪽을 넘길 때마다 결과가 `undefined` 가 되어
  *    표가 스켈레톤으로 깜빡인다. 이전 쪽을 그대로 두고 새 쪽으로 갈아 끼운다.
  */

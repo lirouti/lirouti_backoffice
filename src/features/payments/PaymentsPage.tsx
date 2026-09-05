@@ -8,7 +8,10 @@ import { useNavigate, useSearchParams } from 'react-router'
 
 import { css } from 'styled-system/css'
 
+import { toCsv, type CsvColumn } from '@/shared/lib/csv'
+import { downloadCsv } from '@/shared/lib/download'
 import { num } from '@/shared/lib/format'
+import { today } from '@/shared/lib/today'
 import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
@@ -79,6 +82,11 @@ export default function PaymentsPage() {
     setParams(next, { replace: true })
   }
 
+  const exportCsv = () => {
+    if (!data) return
+    downloadCsv(`riruti-payments-${today()}.csv`, toCsv(data.payments, CSV_COLUMNS))
+  }
+
   return (
     <>
       <PageHeader
@@ -86,8 +94,9 @@ export default function PaymentsPage() {
         sub="준비 상태로 멈춘 건은 돈이 나갔는데 재화가 안 들어간 사고 후보입니다. 위에 따로 모았습니다."
         actions={
           <>
-            {/* TODO(내보내기 엔드포인트가 생기면): CSV 내려받기 (§18.8) */}
-            <Button disabled>CSV 내려받기 · 준비 중</Button>
+            <Button disabled={!data} onClick={exportCsv}>
+              CSV 내려받기
+            </Button>
           </>
         }
       />
@@ -224,4 +233,26 @@ const COLUMNS: Column<Payment>[] = [
     width: '84px',
     render: (p) => <Badge tone={PAY_STATUS_TONE[p.status]}>{PAY_STATUS_LABEL[p.status]}</Badge>,
   },
+]
+
+/**
+ * 내보내는 값.
+ *
+ * ⚠️ **금액은 숫자 그대로 넣는다.** 화면은 `won()` 으로 「12,100원」 을 그리는데, 그대로
+ *    파일에 넣으면 엑셀이 **문자열로 읽어** 합계가 안 나온다 (§56.1).
+ *
+ * ⚠️ **열거형은 라벨을 거친다.** 원시 값(`PAID`·`KAKAO`·`TOSS`)이 그대로 나가면
+ *    운영자가 파일을 열었을 때 화면에서 보던 말과 다르다.
+ */
+const CSV_COLUMNS: CsvColumn<Payment>[] = [
+  { header: '일시', value: (p) => p.at },
+  { header: '주문번호', value: (p) => p.orderNo },
+  { header: '회원', value: (p) => p.who },
+  { header: '이메일', value: (p) => p.email },
+  { header: '상품', value: (p) => p.product },
+  { header: '금액(원)', value: (p) => p.amount },
+  { header: '결제사', value: (p) => PG_LABEL[p.pg] },
+  { header: '상태', value: (p) => PAY_STATUS_LABEL[p.status] },
+  { header: '지급 유상', value: (p) => p.give },
+  { header: '보너스 무상', value: (p) => p.bonus },
 ]
