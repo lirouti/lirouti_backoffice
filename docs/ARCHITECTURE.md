@@ -5964,3 +5964,87 @@ sessionStorage 에 {"status":"판매중"} 을 심고 등록  →  판매중으�
 **화면 테스트는 범위 밖이다.** `.tsx` 를 열었다고 화면을 렌더하지는 않는다 — 렌더 비용과
 목 정책(react-query·라우터)이 별도 결정이라, 필요해질 때 그 질문부터 답한다.
 
+---
+
+## 61. 폰트 self-host — 그리고 폰트가 안 쓰이고 있었다는 것
+
+`bun run font`(`scripts/fetch-font.ts`)가 Pretendard 를 내려받아 `public/fonts/` 에 놓는다.
+CDN 참조를 걷어내 **외부 요청이 0** 이 됐다.
+
+### 61.1 ⚠️ 첫 커밋 이후 줄곧 이 폰트가 한 글자도 안 쓰이고 있었다
+
+self-host 를 하려고 CDN 을 뜯어보다 나왔다.
+
+| | |
+|---|---|
+| CDN 이 선언하는 이름 | `'Pretendard Variable'` |
+| 우리 토큰(`panda.config.ts` 의 `sans`) | `Pretendard, -apple-system, …` |
+
+**`Pretendard` 는 어디에도 정의되지 않은 이름이다.** 2.0MB 짜리 CSS 를 받아 놓고 한 글자도
+쓰지 않은 채 `-apple-system` 으로 떨어지고 있었다.
+
+같은 글의 폭을 재서 확정했다.
+
+```text
+고치기 전                      고친 뒤
+  토큰 그대로      375.94px      토큰 그대로      380.31px  ← Pretendard 와 같다
+  fallback 만      376.63px      fallback 만      376.63px
+  Pretendard 강제  380.51px      Pretendard 강제  380.31px
+```
+
+⚠️ **맥에서는 눈치채기 어렵다.** `-apple-system` 이 한글을 `Apple SD Gothic Neo` 로 그려서
+그럴듯하게 보인다. **윈도우 운영자는 맑은 고딕으로 다른 화면을 보고 있었다.**
+
+`document.fonts.check('16px Pretendard')` 는 **`true` 를 준다** — 그 이름으로 그릴 수 있는가를
+묻는 것이라 fallback 으로 떨어져도 참이다. **이걸로 확인하면 안 된다.** 폭을 재거나
+`[...document.fonts]` 의 `family`·`status` 를 본다.
+
+self-host 는 우리가 `@font-face` 를 쓰므로 **이름을 `Pretendard` 로 맞췄다.** 토큰과 디자인
+원본을 건드리지 않는 쪽을 골랐다.
+
+### 61.2 ⚠️ SRI 가 고정할 수 없는 파일에 걸려 있었다
+
+CDN CSS 첫 줄에 제공자가 직접 적어 두었다.
+
+```text
+Minified by jsDelivr using clean-css v5.3.3.
+Do NOT use SRI with dynamically generated files!
+```
+
+jsDelivr 가 **요청 시점에 minify 해서 만드는 파일**이다. 그쪽이 minifier 를 올리면 바이트가
+바뀌고, **해시가 어긋나 브라우저가 CSS 를 통째로 거부한다** — 폰트가 사라진다. 확인해 보니
+해시는 지금도 맞지만, 그건 **아직 안 바뀌었을 뿐**이다.
+
+그리고 SRI 는 **CSS 만** 덮는다. 그 CSS 가 상대경로로 부르는 woff2 2.0MB 는 애초에 검증되지
+않았다 — 예전 주석도 그 점은 인정하고 있었다(「완전히 닫으려면 self-host」).
+
+### 61.3 단일 파일이 아니라 dynamic subset 92조각
+
+| | 저장소 | 로그인 화면이 받는 양 |
+|---|---|---|
+| 단일 `PretendardVariable.woff2` | 2.0MB · 파일 1개 | **2,009 KB** |
+| **dynamic subset** | 3.1MB · 파일 92개 | **204 KB** (조각 8개) |
+
+⚠️ **파일 수가 아니라 전송량으로 골랐다.** 조각은 `unicode-range` 로 갈려 있어 **화면에 실제로
+쓰인 글자의 조각만** 받는다. 저장소가 1MB 더 무거워지는 대신 첫 로드가 **10분의 1** 이다.
+
+소스 전체의 한글을 92개 범위에 대조하면 40조각(약 1.3MB)이 상한이다 — 그래도 단일보다 작다.
+
+**산출물을 커밋한다.** `src/assets` 와 같은 판단이다(§11 결정 내역 2번) — 저장소가 스스로 빌드되는 것이
+우선이고, 폰트가 없으면 화면이 다른 글꼴로 뜬다.
+
+⚠️ **npm 의 `pretendard` 를 의존성으로 넣지 않는다.** 압축 해제 크기가 **97MB** 다(모든 웨이트
+× otf/woff/woff2 × 서브셋 조합). 우리가 쓰는 variable 하나 때문에 모두가 그걸 받게 된다.
+
+### 61.4 검증
+
+- 빌드본(`vite preview`)에서 **외부 요청 0**, 조각 8개 **204 KB**, `document.fonts` 의 로드된
+  패밀리가 **`Pretendard`**
+- 폭: 토큰 그대로 **380.31px** = Pretendard 강제, fallback(376.63px)과 **다르다**
+- `dist/` 에 woff2 92개와 CSS 가 들어가고 `dist/index.html` 에 외부 참조가 없다
+- 번들 예산은 그대로(157.52 KB) — 폰트는 첫 로드 **JS** 예산 밖이다
+- `bun run font` 를 `public/fonts` 를 지우고 돌려 **처음부터 만들어지는지** 확인했다
+
+⚠️ 스크립트가 받은 파일의 **첫 4바이트(`wOF2`)를 확인한다.** CDN 이 404 를 HTML 로 주면 그대로
+저장돼 **브라우저에서만 조용히 깨진다.**
+
