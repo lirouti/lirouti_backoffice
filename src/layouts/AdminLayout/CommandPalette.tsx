@@ -18,6 +18,8 @@ import { searchScreens, type PaletteItem } from '@/domain/palette'
 
 import { useViewer } from '@/stores/viewerStore'
 
+import { MAIN_ID } from './SkipLink'
+
 const MAX = 8
 
 /**
@@ -30,6 +32,15 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
   const viewer = useViewer()
   const navigate = useNavigate()
   const ref = useRef<HTMLDialogElement>(null)
+  /**
+   * 화면을 옮겨서 닫혔는가.
+   *
+   * ⚠️ **셸은 라우트가 바뀌어도 남는다.** 팔레트를 연 검색 버튼은 `Topbar` 에 있어서
+   *    이동한 뒤에도 `isConnected` 가 참이다 — 그것만 보고 복귀시키면 **새 화면에 왔는데
+   *    포커스는 상단 검색 버튼에** 있다(실측: `/items` → `/achievements`).
+   *    §63.1 의 「이동하면 그 요소는 이미 사라졌다」 는 전제가 틀렸다.
+   */
+  const moved = useRef(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const [q, setQ] = useState('')
   const [at, setAt] = useState(0)
@@ -52,9 +63,33 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
 
   // 마운트가 곧 「열림」 이다. 닫기는 부모가 언마운트해서 하고, DOM 에서 빠지면
   // 브라우저가 top layer 도 같이 거둔다.
+  //
+  // ⚠️ **포커스는 우리가 돌려놔야 한다.** 네이티브 `<dialog>` 가 열기 전 자리로 포커스를
+  //    되돌리는 것은 **`close()` 를 불렀을 때**뿐이다 — 여기처럼 DOM 에서 그냥 빼면
+  //    top layer 는 거둬도 **포커스는 `body` 로 떨어진다.** 그러면 키보드로 쓰는 사람은
+  //    팔레트를 닫을 때마다 **Tab 을 17번 눌러 본문으로 돌아와야 한다**
+  //    (docs/ARCHITECTURE.md §63.1). `Dialog` 는 `close()` 를 부르므로 이 문제가 없다.
   useEffect(() => {
-    ref.current?.showModal()
+    const opener = document.activeElement
+    const dialog = ref.current
+    dialog?.showModal()
     inputRef.current?.focus()
+
+    return () => {
+      // ⚠️ **`close()` 를 먼저 불러야 한다.** 언마운트 정리는 DOM 제거 **전에** 도는데,
+      //    그때 `<dialog>` 는 아직 top layer 에 있어 **바깥 요소로 포커스를 줄 수 없다** —
+      //    실측으로 확인했다(그냥 `focus()` 만 부르면 `body` 로 떨어진다).
+      dialog?.close()
+
+      // ⚠️ **옮겼으면 가려던 화면의 본문으로 보낸다.** 옛 자리로 되돌리면 엉뚱한 곳이고
+      //    (§63.4), 아무 데도 안 보내면 `body` 로 떨어져 처음부터 Tab 해야 한다.
+      //    화면을 고른 사람의 다음 동작은 **그 화면을 쓰는 것**이다.
+      if (moved.current) {
+        document.getElementById(MAIN_ID)?.focus()
+        return
+      }
+      if (opener instanceof HTMLElement && opener.isConnected) opener.focus()
+    }
   }, [])
 
   // Esc 는 브라우저가 `cancel` 로 알려준다. 기본 동작(즉시 close)을 막고 우리 `open` 으로
@@ -65,6 +100,7 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
   }
 
   const go = (item: PaletteItem) => {
+    moved.current = true
     onClose()
     navigate(item.path)
   }
