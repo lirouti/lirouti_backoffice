@@ -29,6 +29,15 @@ export type GemProduct = {
 }
 
 /**
+ * 등록·수정 폼이 편집하는 부분.
+ *
+ * ⚠️ **실적(`orders` · `revenue`)은 없다.** 판 결과이지 설정이 아니다 — 입력으로 받으면
+ *    운영자가 매출을 적어 넣게 되고, 그 숫자로 판매 비중이 계산된다
+ *    (docs/ARCHITECTURE.md §59).
+ */
+export type GemProductInput = Pick<GemProduct, 'name' | 'gem' | 'bonus' | 'price' | 'status'>
+
+/**
  * 상점 첫 화면의 한 칸.
  *
  * 아이템을 가리키기만 한다 — 이름·가격·그림은 아이템의 것이라 여기 복사하지 않는다.

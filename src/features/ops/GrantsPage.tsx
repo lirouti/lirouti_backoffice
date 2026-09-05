@@ -11,6 +11,7 @@ import { useSearchParams } from 'react-router'
 import { css } from 'styled-system/css'
 
 import { num } from '@/shared/lib/format'
+import { parseCount } from '@/shared/lib/parseCount'
 import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
@@ -228,7 +229,7 @@ export default function GrantsPage() {
                   <Input
                     value={String(form.qty)}
                     // 숫자만 받는다 — 문자를 넣으면 NaN 이 되어 검증이 통과해 버린다.
-                    onChange={(v) => set('qty', Number(v.replace(/\D/g, '')) || 0)}
+                    onChange={(v) => set('qty', parseCount(v))}
                     label="수량"
                     inputMode="numeric"
                     error={tried ? errors.qty : undefined}

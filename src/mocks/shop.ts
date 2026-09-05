@@ -5,7 +5,7 @@
  *    합이 100 이다 — 「예약」 인 시즌 팩(7%)까지 넣은 값이라, 지금 파는 넷만 더하면
  *    93% 가 된다. 건수에서 계산한다 (docs/ARCHITECTURE.md §24.2).
  */
-import type { GemProduct, GemStatus, ShopSlot } from '@/domain/shop'
+import type { GemProduct, GemProductInput, GemStatus, ShopSlot } from '@/domain/shop'
 
 type Row = [
   name: string,
@@ -45,6 +45,29 @@ const PRODUCTS: GemProduct[] = ROWS.map(
 )
 
 export const allGemProducts = (): GemProduct[] => PRODUCTS
+
+/**
+ * 등록·수정. `key` 가 없으면 새 상품이다.
+ *
+ * ⚠️ **모듈 캐시라 새로고침하면 사라진다** — 목이라서다.
+ */
+export function upsertGemProduct(input: GemProductInput, key?: number): GemProduct {
+  if (key != null) {
+    const at = PRODUCTS.findIndex((p) => p.key === key)
+    if (at < 0) throw new Error(`수정할 상품이 없습니다: ${key}`)
+    // 실적은 폼이 안 건드린다 — 판 결과라 덮어쓰면 매출이 사라진다.
+    const next = { ...PRODUCTS[at]!, ...input }
+    PRODUCTS[at] = next
+    return next
+  }
+
+  // 새 번호는 **가장 큰 것 다음**이다. 길이로 잡으면 중간이 지워졌을 때 겹친다.
+  const nextKey = PRODUCTS.reduce((max, p) => Math.max(max, p.key), -1) + 1
+  // ⚠️ 갓 만든 상품은 아직 한 건도 안 팔렸다. 0 이 아니면 판매 비중이 거짓말을 한다.
+  const created: GemProduct = { ...input, key: nextKey, orders: 0, revenue: 0 }
+  PRODUCTS.push(created)
+  return created
+}
 
 /**
  * 상점 첫 화면 진열. 원본 `shopOrder: [0..7]` — 아이템 앞 8개다.

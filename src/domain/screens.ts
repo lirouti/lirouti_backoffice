@@ -114,6 +114,13 @@ export const SCREENS = {
   paydet: { path: '/payments/:payId', label: '결제 상세', scope: 'pay', section: 'pay' },
 
   gems: { path: '/shop/gems', label: '젬 상품', scope: 'shop' },
+  gemnew: { path: '/shop/gems/new', label: '상품 추가', scope: 'shop', section: 'gems' },
+  gemedit: {
+    path: '/shop/gems/:gemId/edit',
+    label: '젬 상품 수정',
+    scope: 'shop',
+    section: 'gems',
+  },
   shop: { path: '/shop/display', label: '상점 진열', scope: 'shop' },
 
   notice: { path: '/ops/notices', label: '공지', scope: 'ops' },

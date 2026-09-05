@@ -13,6 +13,7 @@ import { css } from 'styled-system/css'
 import { useFormDraft } from '@/shared/hooks/useFormDraft'
 import { restoreDraft } from '@/shared/lib/draft'
 import { focusFirstError } from '@/shared/lib/focusFirstError'
+import { parseCount } from '@/shared/lib/parseCount'
 import { AssetThumb } from '@/shared/ui/AssetThumb'
 import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
@@ -257,7 +258,7 @@ export default function SpeciesFormPage() {
             >
               <Input
                 value={String(input.weight)}
-                onChange={(v) => set('weight', Number(v.replace(/\D/g, '')) || 0)}
+                onChange={(v) => set('weight', parseCount(v))}
                 label="출현 가중치"
                 error={shown.weight}
                 required

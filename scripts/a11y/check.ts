@@ -61,6 +61,7 @@ const SAMPLE_ID: Record<string, string> = {
   ':codeId': '1',
   ':couponId': '1',
   ':adminId': '1',
+  ':gemId': '1',
 }
 
 /**

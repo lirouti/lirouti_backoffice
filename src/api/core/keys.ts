@@ -62,6 +62,8 @@ export const qk = {
     all: ['shop'] as const,
     /** 젬 충전 상품 */
     gems: () => ['shop', 'gems'] as const,
+    /** 젬 상품 하나 (수정 화면) */
+    gem: (id: number | string) => ['shop', 'gems', String(id)] as const,
     /** 상점 첫 화면 진열 + 그 자리에 놓인 아이템 */
     slots: () => ['shop', 'slots'] as const,
   },

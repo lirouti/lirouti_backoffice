@@ -6,8 +6,17 @@
  */
 import { describe, expect, it } from 'vitest'
 
-import { orderShares, pricePerGem, summarizeGems } from './rules'
-import type { GemProduct } from './types'
+import {
+  asNewGemProduct,
+  cheaperBetterDeal,
+  emptyGemProductInput,
+  orderShares,
+  pricePerGem,
+  summarizeGems,
+  toGemProductInput,
+  validateGemProduct,
+} from './rules'
+import type { GemProduct, GemProductInput } from './types'
 
 const gem = (over: Partial<GemProduct> = {}): GemProduct => ({
   key: 0,
@@ -95,5 +104,139 @@ describe('summarizeGems', () => {
   it('⚠️ 예약·중단 상품은 매출에도 건수에도 안 센다', () => {
     const s = summarizeGems(list)
     expect([s.selling, s.orders, s.revenue]).toEqual([2, 38, 13_300_000])
+  })
+})
+
+describe('validateGemProduct', () => {
+  const input = (over: Partial<GemProductInput> = {}): GemProductInput => ({
+    name: '초대형',
+    gem: 9000,
+    bonus: 2000,
+    price: 89000,
+    status: '예약',
+    ...over,
+  })
+
+  it('제대로 채우면 통과한다', () => {
+    expect(validateGemProduct(input())).toEqual({})
+  })
+
+  it('상품명은 필수다', () => {
+    expect(validateGemProduct(input({ name: '   ' })).name).toBeTruthy()
+  })
+
+  // 표에 이름 말고 상품을 가리키는 열이 없다 — 둘이 같으면 어느 쪽을 고쳤는지 알 수 없다.
+  it('⚠️ 이미 쓰는 이름은 막는다 (양쪽 공백을 같은 자로 잰다)', () => {
+    expect(validateGemProduct(input({ name: ' 대형 ' }), ['대형']).name).toBeTruthy()
+    expect(validateGemProduct(input({ name: '대형' }), [' 대형 ']).name).toBeTruthy()
+    expect(validateGemProduct(input({ name: '대형' }), ['소형']).name).toBeUndefined()
+  })
+
+  it('⚠️ 0 젬은 돈만 받고 아무것도 주지 않는 상품이다', () => {
+    expect(validateGemProduct(input({ gem: 0 })).gem).toBeTruthy()
+  })
+
+  it('보너스는 0 이어도 되지만 음수는 안 된다', () => {
+    expect(validateGemProduct(input({ bonus: 0 })).bonus).toBeUndefined()
+    expect(validateGemProduct(input({ bonus: -1 })).bonus).toBeTruthy()
+  })
+
+  it('⚠️ 0 원은 결제가 성립하지 않는다 — 그냥 주려면 쿠폰이다', () => {
+    expect(validateGemProduct(input({ price: 0 })).price).toBeTruthy()
+  })
+
+  // 소수 젬·소수 원은 어디에도 없다. `NaN` 은 빈 칸을 `Number()` 한 결과로 들어온다.
+  it('⚠️ 소수와 NaN 을 막는다', () => {
+    expect(validateGemProduct(input({ gem: 1.5 })).gem).toBeTruthy()
+    expect(validateGemProduct(input({ price: Number('') })).price).toBeTruthy()
+    expect(validateGemProduct(input({ bonus: Number.POSITIVE_INFINITY })).bonus).toBeTruthy()
+  })
+
+  // 목록이 값이라 타입이 못 막는다 — 초안이나 손으로 고친 값이 이 길로 들어온다.
+  it('⚠️ 모르는 상태를 막는다', () => {
+    const bad = { ...input(), status: '판매 중' as GemProduct['status'] }
+    expect(validateGemProduct(bad).status).toBeTruthy()
+  })
+
+  it('등록 초기값은 「예약」 이다 — 스토어 심사 전이다', () => {
+    expect(emptyGemProductInput().status).toBe('예약')
+  })
+
+  // ⚠️ 화면이 상태 칸을 안 그리는 것만으로는 못 막는다 — 초안(§33.1)이 그 값을 실어 온다.
+  //    `status: '판매중'` 인 초안은 모양 검사도 `validateGemProduct` 도 통과한다.
+  it('⚠️ 새 상품은 무엇이 오든 「예약」 이다', () => {
+    expect(asNewGemProduct(input({ status: '판매중' })).status).toBe('예약')
+    expect(asNewGemProduct(input({ status: '중단' })).status).toBe('예약')
+  })
+
+  it('나머지 칸은 건드리지 않는다', () => {
+    const v = input({ name: '초대형', gem: 9000, bonus: 2000, price: 89000 })
+    expect(asNewGemProduct(v)).toEqual({ ...v, status: '예약' })
+  })
+
+  it('수정 초기값은 실적을 뺀 다섯 칸이다', () => {
+    expect(toGemProductInput(gem())).toEqual({
+      name: '스타터',
+      gem: 300,
+      bonus: 0,
+      price: 3300,
+      status: '판매중',
+    })
+  })
+})
+
+describe('cheaperBetterDeal', () => {
+  // 젬당 11.0 · 10.35 · 9.5 — 클수록 유리한 정상 구성이다.
+  const list = [
+    gem({ key: 0, name: '스타터', gem: 300, bonus: 0, price: 3300 }),
+    gem({ key: 1, name: '소형', gem: 800, bonus: 50, price: 8800 }),
+    gem({ key: 2, name: '중형', gem: 1800, bonus: 200, price: 19000 }),
+  ]
+  const input = (over: Partial<GemProductInput>): GemProductInput => ({
+    name: '새 상품',
+    gem: 4000,
+    bonus: 600,
+    price: 39000,
+    status: '예약',
+    ...over,
+  })
+
+  it('순서를 지키면 경고하지 않는다', () => {
+    expect(cheaperBetterDeal(input({}), list)).toBeNull()
+  })
+
+  // 39,000원에 2,000젬이면 젬당 19.5원 — 셋 다 더 싸면서 더 유리하다. 살 이유가 없다.
+  it('⚠️ 더 싼 상품이 젬당 유리하면 그 상품을 돌려준다', () => {
+    expect(cheaperBetterDeal(input({ gem: 2000, bonus: 0 }), list)?.name).toBe('중형')
+  })
+
+  // 여럿이 걸리면 **가장 유리한 것**을 보여 준다 — 운영자가 가장 강한 반례를 봐야 한다.
+  it('젬당이 가장 낮은 것을 돌려준다', () => {
+    // 젬당 9.9원 — 중형(9.5)만 남는다. 소형(10.35)·스타터(11.0)는 이 상품보다 불리하다.
+    expect(cheaperBetterDeal(input({ gem: 3900, bonus: 0, price: 38610 }), list)?.name).toBe(
+      '중형',
+    )
+  })
+
+  // ⚠️ **목록 순서에 기대면 안 된다.** 「마지막에 걸린 것」 을 돌려주는 구현도 위 시험은
+  //    통과한다 — 거기서는 중형이 마지막이라 답이 우연히 같다. 순서를 뒤집어 고정한다.
+  it('⚠️ 목록 순서와 무관하다', () => {
+    const shuffled = [list[2]!, list[0]!, list[1]!]
+    expect(cheaperBetterDeal(input({ gem: 2000, bonus: 0 }), shuffled)?.name).toBe('중형')
+  })
+
+  // 중단된 상품과의 역전은 뜻이 없다 — 살 수 없는 것과 비교해 봐야 소용없다.
+  it('⚠️ 파는 것만 본다', () => {
+    const stopped = [gem({ key: 9, name: '옛 특가', gem: 5000, price: 3300, status: '중단' })]
+    expect(cheaperBetterDeal(input({ gem: 2000, bonus: 0 }), stopped)).toBeNull()
+  })
+
+  // 더 비싼 상품이 젬당 유리한 것은 정상이다 — 큰 팩이 싼 게 이 구성의 전제다.
+  it('비싼 쪽이 유리한 것은 경고가 아니다', () => {
+    expect(cheaperBetterDeal(input({ gem: 300, bonus: 0, price: 3300 }), list)).toBeNull()
+  })
+
+  it('주는 게 없으면 비교하지 않는다 — 그건 젬 칸이 잡는다', () => {
+    expect(cheaperBetterDeal(input({ gem: 0, bonus: 0 }), list)).toBeNull()
   })
 })
