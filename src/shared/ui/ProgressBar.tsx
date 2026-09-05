@@ -9,12 +9,24 @@ import { token } from 'styled-system/tokens'
  */
 export type ProgressTone = 'signal' | 'plain'
 
-/** 원본 규칙: 60% 이상 초록, 35% 이상 브랜드, 그 아래 주황 */
+/**
+ * 원본 규칙: 60% 이상 초록, 35% 이상 브랜드, 그 아래 주황.
+ *
+ * ⚠️ **주황만 원본에 이름이 없어서 리터럴이었다** — 원본도
+ *    `rate >= 35 ? C.pri : '#E8A33D'` 로 그 색만 값으로 박아 두었다. 그대로 옮긴 결과
+ *    **라이트에서 대비 2.03** 으로 비텍스트 기준(3:1)에 못 미쳤다. 진행률이 낮을수록
+ *    눈에 띄어야 하는 자리인데 오히려 안 보였다.
+ *
+ *    `check-contrast.ts` 가 못 잡은 이유는 **토큰만 보기 때문**이다. 지금은
+ *    `check-hardcoded-colors.ts` 가 이 자리를 본다 (docs/ARCHITECTURE.md §62).
+ *
+ *    경고 톤 토큰 `aFg` 로 바꿨다 — 라이트 5.10 · 다크 8.37 로 둘 다 넘는다.
+ */
 function barColor(rate: number, tone: ProgressTone): string {
   if (tone === 'plain') return token('colors.pri')
   if (rate >= 60) return token('colors.gFg')
   if (rate >= 35) return token('colors.pri')
-  return '#E8A33D'
+  return token('colors.aFg')
 }
 
 type ProgressBarProps = {

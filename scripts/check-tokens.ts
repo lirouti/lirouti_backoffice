@@ -83,12 +83,76 @@ const KEYWORDS = new Set([
  * 토큰 이름이 아니라 **날값**인가.
  *
  * `#fff` · `rgba(…)` · `var(--x)` · `12px` · `50%` 처럼 CSS 가 그대로 읽는 것들이다.
- * QR 의 `#FFFFFF` 처럼 **일부러 토큰을 안 쓰는 자리**가 있어서 막지 않는다 (§39.1).
+ * 「없는 토큰 이름」 검사의 대상이 아니라는 뜻이지 **허용한다는 뜻이 아니다** —
+ * 색 날값은 아래 `RAW_COLOR` 가 따로 본다.
  */
 const isRaw = (v: string): boolean =>
   /^(#|rgb|hsl|oklch|var\(|color-mix\(|calc\(|linear-gradient|radial-gradient|light-dark)/.test(
     v,
   ) || /^-?[\d.]+(px|rem|em|%|vh|vw|ch)?$/.test(v)
+
+/**
+ * 색 자리에 박아 넣은 **날색**.
+ *
+ * ⚠️ **`var(--…)` 는 뺀다** — `token('colors.x')` 헬퍼가 만드는 값이고, 그쪽은 이름을
+ *    타입체크한다. 그라디언트는 안쪽에 hex 가 섞여 있어서 문자열 어디든 본다.
+ */
+const RAW_COLOR = /#[0-9A-Fa-f]{3,8}\b|\b(rgba?|hsla?|oklch|color-mix)\(/i
+
+/**
+ * **글자 그대로의 문자열**인 노드.
+ *
+ * ⚠️ **백틱도 문자열이다.** `` `#f00` `` 는 `StringLiteral` 이 아니라
+ *    `NoSubstitutionTemplateLiteral` 이라, 앞의 것만 보면 **백틱으로 바꾸는 것만으로
+ *    검사를 통과한다.** 치환이 든 템플릿(`` `#${a}` ``)은 값이 실행 시점에 정해지므로
+ *    대상이 아니다 (docs/ARCHITECTURE.md §62.6).
+ */
+const asText = (n: ts.Node): ts.StringLiteralLike | null =>
+  ts.isStringLiteral(n) || ts.isNoSubstitutionTemplateLiteral(n) ? n : null
+
+/**
+ * **일부러 토큰을 안 쓰는 자리.** 값 단위로 등록한다 — 파일만 풀어 주면 그 파일의 **다른**
+ * 하드코딩까지 조용히 통과한다.
+ *
+ * ⚠️ **여기에 줄을 더하려면 이유를 함께 적어야 한다.** 그게 이 목록의 요점이다 —
+ *    「토큰을 안 쓴다」 는 판단이 리뷰에 걸리게 만드는 것 (docs/ARCHITECTURE.md §62).
+ */
+const ALLOWED: { file: string; value: string; why: string }[] = [
+  {
+    file: 'src/features/security/EnrollWizard.tsx',
+    value: '#FFFFFF',
+    why: 'QR 은 테마를 따르면 안 된다 — 어두운 배경의 검은 모듈은 스캐너가 못 읽는다. 여백까지 흰색이어야 해서 흰 카드를 깔고 그 위에 그린다 (§29.4)',
+  },
+  {
+    file: 'src/features/auth/BrandPanel.tsx',
+    value:
+      'linear-gradient(160deg,#5FD8EE 0%,#48B6EC 16%,#3B92EC 32%,#3070E2 50%,#2653CA 70%,#1D3C9E 88%,#17318A 100%)',
+    why: '브랜드 그라디언트 7색. 다른 데서 한 번도 안 쓰므로 토큰 7개를 만들면 이름만 늘어난다. 로고와 같은 색띠라 테마를 안 따르는 것이 맞다',
+  },
+  {
+    file: 'src/features/auth/BrandPanel.tsx',
+    value: '#fff',
+    why: '위 그라디언트 **위에** 얹히는 것들이라 테마를 따르면 안 된다 — 흰 글자 둘과 로고 카드. 로고가 이미 파란 그라디언트라 파란 배경에 묻혀서 흰 카드에 올린다 (§8.3)',
+  },
+  ...['rgba(160,240,255,', 'rgba(56,110,220,', 'rgba(255,255,255,'].map((value) => ({
+    file: 'src/features/auth/BrandPanel.tsx',
+    value,
+    why: '같은 브랜드 배경 위를 떠다니는 `Blob` 의 색. 그라디언트와 한 묶음이라 함께 고정한다 (투명도를 붙여 쓰므로 값이 열려 있다)',
+  })),
+  {
+    file: 'src/features/security/EnrollWizard.tsx',
+    value: '#000000',
+    why: 'QR 모듈 색. 흰 여백과 짝이라 함께 고정한다 (§29.4)',
+  },
+  {
+    file: 'src/features/ops/EventFormPage.tsx',
+    value: '#2F7CEF',
+    why: '**운영자가 고르는 이벤트 강조색의 기본값**이다. 토큰이 아니라 서버에 저장되는 값이라, 테마를 따르면 안 되고 따를 수도 없다 (§34.3)',
+  },
+]
+
+const isAllowed = (file: string, value: string): boolean =>
+  ALLOWED.some((a) => a.file === file && a.value === value)
 
 function sources(dir: string): string[] {
   return readdirSync(dir).flatMap((name) => {
@@ -107,8 +171,9 @@ function sources(dir: string): string[] {
  * `bg: { base: 'pri', md: 'priD' }` 와 `bg: ['pri', 'priD']`. 여기까지 안 보면
  * **반응형으로 쓴 오타가 통째로 새어 나간다** (docs/ARCHITECTURE.md §39.2).
  */
-function values(n: ts.Node): ts.StringLiteral[] {
-  if (ts.isStringLiteral(n)) return [n]
+function values(n: ts.Node): ts.StringLiteralLike[] {
+  const text = asText(n)
+  if (text) return [text]
   if (ts.isConditionalExpression(n)) return [...values(n.whenTrue), ...values(n.whenFalse)]
   if (ts.isBinaryExpression(n)) return [...values(n.left), ...values(n.right)]
   if (ts.isParenthesizedExpression(n)) return values(n.expression)
@@ -124,6 +189,9 @@ function values(n: ts.Node): ts.StringLiteral[] {
 type Issue = { file: string; line: number; prop: string; value: string; group: string }
 
 const issues: Issue[] = []
+
+/** 색 자리에 박아 넣은 날색 */
+const raws: Omit<Issue, 'group'>[] = []
 
 for (const file of sources('src')) {
   const sf = ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true)
@@ -161,19 +229,20 @@ for (const file of sources('src')) {
         for (const s of values(n.initializer)) {
           // Panda 의 `!` 는 `!important` 다 — 값의 일부가 아니다
           const value = s.text.replace(/\s*!$/, '')
-          if (
+          const line = sf.getLineAndCharacterOfPosition(s.getStart(sf)).line + 1
+
+          // ⚠️ **색 자리의 날색은 검사망 밖이었다.** `check-contrast.ts` 는 **토큰만** 보므로
+          //    여기 박힌 색은 아무도 재지 않는다 — 실제로 `ProgressBar` 의 주황이 라이트에서
+          //    대비 2.03 인 채로 남아 있었다 (§62).
+          if (group === 'colors' && RAW_COLOR.test(value) && !isAllowed(file, value)) {
+            raws.push({ file, line, prop, value })
+          } else if (
             value !== '' &&
             !TOKENS[group]!.has(value) &&
             !KEYWORDS.has(value) &&
             !isRaw(value)
           ) {
-            issues.push({
-              file,
-              line: sf.getLineAndCharacterOfPosition(s.getStart(sf)).line + 1,
-              prop,
-              value,
-              group,
-            })
+            issues.push({ file, line, prop, value, group })
           }
         }
         // 값은 다 봤다. 더 내려가면 같은 문자열을 두 번 센다.
@@ -200,18 +269,73 @@ for (const file of sources('src')) {
     ts.forEachChild(n, visit)
   }
   visit(sf)
+
+  // ⚠️ **데이터 층의 색은 검사하지 않는다.** `mocks/species.ts` 의 종 대표 색,
+  //    `mocks/ops.ts` 의 이벤트 강조색은 **운영자가 정해 서버에 저장하는 값**이라
+  //    토큰이 될 수 없다 — 테마를 따라서도 안 된다. 화면을 그리는 층만 본다 (§62.3).
+  if (!/^src\/(features|shared|layouts|entities|app)\//.test(file)) continue
+
+  /**
+   * 스타일 함수 **밖**의 색 리터럴.
+   *
+   * ⚠️ **이 검사가 없으면 실제로 났던 결함을 못 잡는다.** `ProgressBar` 의 색은
+   *    `css()` 가 아니라 **색을 돌려주는 함수**에서 나온다 — 같은 함수의 세 갈래는
+   *    `token()` 인데 한 갈래만 리터럴이었고, 라이트에서 대비 2.03 이었다 (§62.1).
+   *
+   * ⚠️ **색 자리가 아닌 문자열은 뺀다** — `placeholder="#2F7CEF"` 는 운영자에게
+   *    보여 주는 **예시 글자**이지 칠하는 색이 아니다. 오탐이 섞이면 사람이 검사를
+   *    끄고, 그러면 이 검사는 없느니만 못하다 (§39.2).
+   */
+  const NOT_A_COLOR = new Set(['placeholder', 'title', 'aria-label', 'alt', 'href'])
+  const outside = (n: ts.Node) => {
+    if (ts.isCallExpression(n)) {
+      const fn = ts.isPropertyAccessExpression(n.expression)
+        ? n.expression.name.text
+        : ts.isIdentifier(n.expression)
+          ? n.expression.text
+          : ''
+      // 스타일 함수 안은 위에서 이미 봤다 — 두 번 세지 않는다.
+      if (STYLE_FNS.has(fn)) return
+    }
+    if (ts.isJsxAttribute(n) && ts.isIdentifier(n.name) && NOT_A_COLOR.has(n.name.text)) return
+
+    const text = asText(n)
+    if (text && RAW_COLOR.test(text.text) && !isAllowed(file, text.text)) {
+      raws.push({
+        file,
+        line: sf.getLineAndCharacterOfPosition(text.getStart(sf)).line + 1,
+        prop: '(스타일 밖)',
+        value: text.text,
+      })
+    }
+    ts.forEachChild(n, outside)
+  }
+  outside(sf)
 }
 
-if (issues.length > 0) {
-  for (const i of issues) {
-    console.error(`${i.file.replace(/^src\//, '')}:${i.line}`)
-    console.error(
-      `  ${i.prop}: '${i.value}' — ${i.group} 토큰에 없습니다. 잘못된 CSS 가 그대로 나갑니다`,
-    )
-  }
-  console.error(`\n토큰 규약 위반 ${issues.length}건 — docs/ARCHITECTURE.md §39`)
+for (const i of issues) {
+  console.error(`${i.file.replace(/^src\//, '')}:${i.line}`)
+  console.error(
+    `  ${i.prop}: '${i.value}' — ${i.group} 토큰에 없습니다. 잘못된 CSS 가 그대로 나갑니다`,
+  )
+}
+
+for (const r of raws) {
+  console.error(`${r.file.replace(/^src\//, '')}:${r.line}`)
+  console.error(`  ${r.prop}: '${r.value.length > 60 ? `${r.value.slice(0, 57)}…` : r.value}'`)
+  console.error(
+    `  색을 박아 넣으면 **명암비 검사가 못 본다** — 토큰을 쓰거나, 토큰을 안 쓸 이유가 있으면`,
+  )
+  console.error(`  scripts/check-tokens.ts 의 ALLOWED 에 이유와 함께 등록하세요`)
+}
+
+const bad = issues.length + raws.length
+if (bad > 0) {
+  console.error(`\n토큰 규약 위반 ${bad}건 — docs/ARCHITECTURE.md §39 · §62`)
   process.exit(1)
 }
 
 const total = Object.values(TOKENS).reduce((n, s) => n + s.size, 0)
-console.log(`토큰 규약 준수 ✓ (스타일 prop 이 쓰는 이름 ${total}개와 대조)`)
+console.log(
+  `토큰 규약 준수 ✓ (이름 ${total}개와 대조 · 날색 예외 ${ALLOWED.length}건은 등록됨)`,
+)
