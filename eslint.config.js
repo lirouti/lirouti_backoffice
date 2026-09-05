@@ -271,7 +271,7 @@ export default tseslint.config(
         {
           selector: 'ImportDeclaration[source.value=/^(vitest|@vitest\\/)/]',
           message:
-            '테스트 러너는 `*.test.ts` 에서만 씁니다. 프로덕션 코드가 vitest 를 import 하면 번들에 딸려 들어갑니다.',
+            '테스트 러너는 `*.test.ts` · `*.test.tsx` 에서만 씁니다. 프로덕션 코드가 vitest 를 import 하면 번들에 딸려 들어갑니다.',
         },
       ],
     },

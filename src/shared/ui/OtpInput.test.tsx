@@ -27,11 +27,21 @@ function setup(value: string, onChange = vi.fn()) {
   return { input, onChange }
 }
 
+/**
+ * ⚠️ **횟수까지 잰다.** `toHaveBeenCalledWith` 는 **같은 인수로 두 번 불러도 통과한다** —
+ *    그런데 이 컴포넌트에서 실제로 났던 버그가 **헛되이 부른 것**이라(로그인 삼킴),
+ *    「무엇으로 불렀나」 보다 「몇 번 불렀나」 가 더 중요한 자리다.
+ */
+const calledOnceWith = (fn: ReturnType<typeof vi.fn>, arg: string) => {
+  expect(fn).toHaveBeenCalledTimes(1)
+  expect(fn).toHaveBeenCalledWith(arg)
+}
+
 describe('OtpInput', () => {
   it('숫자를 받으면 부모에게 넘긴다', () => {
     const { input, onChange } = setup('12')
     fireEvent.change(input, { target: { value: '123' } })
-    expect(onChange).toHaveBeenCalledWith('123')
+    calledOnceWith(onChange, '123')
   })
 
   /**
@@ -54,26 +64,26 @@ describe('OtpInput', () => {
   it('숫자가 아닌 글자는 버린다', () => {
     const { input, onChange } = setup('12')
     fireEvent.change(input, { target: { value: '12a3' } })
-    expect(onChange).toHaveBeenCalledWith('123')
+    calledOnceWith(onChange, '123')
   })
 
   // 붙여넣기도 이 한 곳을 지난다 — 「123 456」 은 `123456` 이어야 한다.
   it('붙여넣은 공백은 지우고 이어 붙인다', () => {
     const { input, onChange } = setup('')
     fireEvent.change(input, { target: { value: '123 456' } })
-    expect(onChange).toHaveBeenCalledWith('123456')
+    calledOnceWith(onChange, '123456')
   })
 
   it('자릿수를 넘기면 자른다', () => {
     const { input, onChange } = setup('')
     fireEvent.change(input, { target: { value: '12345678' } })
-    expect(onChange).toHaveBeenCalledWith('123456')
+    calledOnceWith(onChange, '123456')
   })
 
   it('지우는 것은 값이 바뀌므로 넘긴다', () => {
     const { input, onChange } = setup('123')
     fireEvent.change(input, { target: { value: '12' } })
-    expect(onChange).toHaveBeenCalledWith('12')
+    calledOnceWith(onChange, '12')
   })
 
   describe('onComplete', () => {
@@ -89,7 +99,7 @@ describe('OtpInput', () => {
         />,
       )
       fireEvent.change(container.querySelector('input')!, { target: { value: '123456' } })
-      expect(onComplete).toHaveBeenCalledWith('123456')
+      calledOnceWith(onComplete, '123456')
     })
 
     // ⚠️ 이미 다 찬 뒤 한 글자를 더 치면 값이 그대로라 **검증이 두 번 가면 안 된다.**
