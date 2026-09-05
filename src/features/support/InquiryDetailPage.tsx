@@ -10,11 +10,14 @@ import { useNavigate, useParams } from 'react-router'
 
 import { css } from 'styled-system/css'
 
+import { useFormDraft } from '@/shared/hooks/useFormDraft'
+import { changed, restoreDraft } from '@/shared/lib/draft'
 import { date, num } from '@/shared/lib/format'
 import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
 import { Dialog } from '@/shared/ui/Dialog'
+import { DraftNotice, DraftSavedAt } from '@/shared/ui/DraftNotice'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Select } from '@/shared/ui/Select'
@@ -68,8 +71,25 @@ export default function InquiryDetailPage() {
   if (error || !data)
     return <ErrorBanner message={error?.message ?? '문의를 불러오지 못했습니다.'} />
 
+  // ⚠️ **`key={qnaId}` 가 없어도 되는 이유는 keep-alive 다.** 문의를 옮겼는데 같은
+  //    인스턴스가 남으면 1번에 쓰다 만 답변이 `inquiries:2` 에 쓰인다(§33.7 이 FAQ 에서
+  //    겪은 것). 여기서 안 나는 것은 `KeepAlive` 의 `activeCacheKey` 가 **경로**라
+  //    상세마다 캐시 항목이 갈리기 때문이다 — 넣어 보고 뺐다(측정: 캐시된 2번으로 옮겨도
+  //    입력칸이 비어 있고 `inquiries:2` 가 생기지 않는다).
   return <Detail detail={data} />
 }
+
+/**
+ * 작성 중인 답변.
+ *
+ * ⚠️ **문의마다 따로 남긴다.** 한 칸을 나눠 쓰면 A 문의에 쓰다 만 답변이 B 문의를 열었을 때
+ *    입력창에 들어앉는다 — 남의 문의에 남의 답을 보내게 된다 (docs/ARCHITECTURE.md §58).
+ */
+type ReplyDraft = { text: string; notify: boolean }
+
+const draftScope = (qnaId: number): string => `inquiries:${qnaId}`
+
+const EMPTY_DRAFT: ReplyDraft = { text: '', notify: true }
 
 function Detail({
   detail: { inquiry: q, user, payments, past, now },
@@ -81,10 +101,19 @@ function Detail({
   const { data: faqs } = useFaqs()
   const reply = useReplyInquiry()
   const hold = useHoldInquiry()
-  const [text, setText] = useState('')
-  const [notify, setNotify] = useState(true)
+  const [restored] = useState(() => restoreDraft(draftScope(q.key), EMPTY_DRAFT))
+  const [text, setText] = useState(restored?.text ?? EMPTY_DRAFT.text)
+  const [notify, setNotify] = useState(restored?.notify ?? EMPTY_DRAFT.notify)
   const [asking, setAsking] = useState(false)
   const [tried, setTried] = useState(false)
+  // ⚠️ **알림 표시 여부는 따로 둔다.** `restored` 는 마운트 시점에 고정이라
+  //    「새로 시작」 으로 버려도 계속 참이고 알림이 안 지워진다.
+  const [noticeOpen, setNoticeOpen] = useState(restored != null)
+  const draft = useFormDraft(
+    draftScope(q.key),
+    { text, notify },
+    changed({ text, notify }, EMPTY_DRAFT),
+  )
 
   const errors = validateReply(text)
   const waited = waitMinutes(q, now)
@@ -104,6 +133,11 @@ function Detail({
           setAsking(false)
           setTried(false)
           setText('')
+          setNotify(EMPTY_DRAFT.notify)
+          // ⚠️ **보낸 뒤에는 반드시 지운다.** 안 지우면 다음에 이 문의를 열었을 때
+          //    **이미 보낸 답변**이 입력창에 남아, 두 번 보내기 쉬워진다.
+          draft.clear()
+          setNoticeOpen(false)
         },
       },
     )
@@ -226,6 +260,17 @@ function Detail({
               />
             </div>
 
+            {noticeOpen && (
+              <DraftNotice
+                onDiscard={() => {
+                  draft.clear()
+                  setText(EMPTY_DRAFT.text)
+                  setNotify(EMPTY_DRAFT.notify)
+                  setNoticeOpen(false)
+                }}
+              />
+            )}
+
             <div className={css({ mt: '13px' })}>
               <Textarea
                 value={text}
@@ -249,8 +294,17 @@ function Detail({
             >
               <Switch checked={notify} onChange={setNotify} label="앱 알림 발송" />
               <span className={css({ flex: '1' })} />
-              {/* TODO(임시 저장 API 가 생기면): 초안을 서버에 남긴다 (§18.8) */}
-              <Button disabled>임시 저장 · 준비 중</Button>
+              {/*
+                ⚠️ **브라우저에만 남는다.** 다른 기기에서는 안 보이고 새 탭에서도 안 보인다
+                   — 「쓰다 만 것을 잃지 않게」 가 목적이지 공유가 아니다 (§58).
+                TODO(임시 저장 API 가 생기면): 서버에 남겨 기기 간에 이어 쓰게 한다
+              */}
+              <Button
+                onClick={draft.saveNow}
+                disabled={!changed({ text, notify }, EMPTY_DRAFT)}
+              >
+                임시 저장
+              </Button>
               <Button
                 variant="primary"
                 onClick={ask}
@@ -259,6 +313,8 @@ function Detail({
                 {canReply(q.status) ? '답변 발송' : '보류 중'}
               </Button>
             </div>
+
+            <DraftSavedAt at={draft.savedAt} />
             {!canReply(q.status) && (
               <p className={css({ m: '10px 0 0', textStyle: 'caption', color: 'sub' })}>
                 보류를 푼 뒤에 답할 수 있습니다.

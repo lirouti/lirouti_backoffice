@@ -41,26 +41,55 @@ export function useFormDraft(scope: string, value: unknown, dirty: boolean): For
   //    만들어지면 아래 타이머가 매 타건마다 다시 걸려 **조용해질 때까지 기다리는
   //    의미가 사라진다.**
   const latest = useRef(value)
+  /**
+   * 걸려 있는 저장 예약.
+   *
+   * ⚠️ **`clear()` 가 이걸 끄지 않으면 지운 초안이 되살아난다.** 예약이 남은 채로 지우면
+   *    500ms 뒤 타이머가 깨어나 **`latest.current` 에 남은 옛 값**을 다시 쓴다 — 답변을
+   *    보낸 뒤 화면에 그대로 머무는 문의 상세에서 실제로 났다. 이미 보낸 답변이 초안으로
+   *    돌아와, 다음에 열면 입력창에 앉아 있다 (docs/ARCHITECTURE.md §58.1).
+   *
+   *    다른 폼들이 멀쩡했던 것은 저장 뒤 **화면을 떠나서** 언마운트 정리가 대신 껐기
+   *    때문이지, 규칙이 지켜져서가 아니었다.
+   */
+  const timer = useRef<number | null>(null)
+  /** 마지막으로 실제로 쓴 내용. 같은 것을 다시 쓰지 않기 위한 것 */
+  const written = useRef<string | null>(null)
 
   useEffect(() => {
     latest.current = value
   })
 
+  const cancel = useCallback(() => {
+    if (timer.current === null) return
+    window.clearTimeout(timer.current)
+    timer.current = null
+  }, [])
+
   const saveNow = useCallback(() => {
-    sessionStorage.setItem(key, writeDraft(latest.current))
+    cancel()
+    const text = writeDraft(latest.current)
+    written.current = text
+    sessionStorage.setItem(key, text)
     setSavedAt(new Date())
-  }, [key])
+  }, [key, cancel])
 
   const clear = useCallback(() => {
+    cancel()
+    written.current = null
     sessionStorage.removeItem(key)
     setSavedAt(null)
-  }, [key])
+  }, [key, cancel])
 
   useEffect(() => {
     if (!dirty) return
-    const id = window.setTimeout(saveNow, QUIET_MS)
-    return () => window.clearTimeout(id)
-  }, [dirty, value, saveNow])
+    // ⚠️ **이미 쓴 것과 같으면 다시 예약하지 않는다.** `saveNow` 가 `savedAt` 을 바꾸면
+    //    리렌더가 일어나고, `value` 는 매 렌더 새 객체라 이 효과가 다시 돈다 — 그대로 두면
+    //    폼이 더러운 동안 **500ms 마다 영원히** 같은 내용을 다시 쓴다.
+    if (writeDraft(value) === written.current) return
+    timer.current = window.setTimeout(saveNow, QUIET_MS)
+    return cancel
+  }, [dirty, value, saveNow, cancel])
 
   return { saveNow, clear, savedAt }
 }
