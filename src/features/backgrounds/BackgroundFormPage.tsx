@@ -21,6 +21,7 @@ import { css } from 'styled-system/css'
 import { useFormDraft } from '@/shared/hooks/useFormDraft'
 import { restoreDraft } from '@/shared/lib/draft'
 import { focusFirstError } from '@/shared/lib/focusFirstError'
+import { parseCount } from '@/shared/lib/parseCount'
 import { AssetThumb } from '@/shared/ui/AssetThumb'
 import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
@@ -302,7 +303,7 @@ function BackgroundForm({ bgId, initial }: { bgId?: string; initial: BackgroundI
               <Input
                 value={String(values.price)}
                 // 숫자만 받는다 — 젬 가격에 문자가 들어가면 상점이 값을 못 읽는다.
-                onChange={(v) => set('price', Number(v.replace(/\D/g, '')) || 0)}
+                onChange={(v) => set('price', parseCount(v))}
                 label="가격"
                 hint="젬"
                 inputMode="numeric"

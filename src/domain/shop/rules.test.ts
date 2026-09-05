@@ -7,6 +7,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  asNewGemProduct,
   cheaperBetterDeal,
   emptyGemProductInput,
   orderShares,
@@ -159,6 +160,18 @@ describe('validateGemProduct', () => {
 
   it('등록 초기값은 「예약」 이다 — 스토어 심사 전이다', () => {
     expect(emptyGemProductInput().status).toBe('예약')
+  })
+
+  // ⚠️ 화면이 상태 칸을 안 그리는 것만으로는 못 막는다 — 초안(§33.1)이 그 값을 실어 온다.
+  //    `status: '판매중'` 인 초안은 모양 검사도 `validateGemProduct` 도 통과한다.
+  it('⚠️ 새 상품은 무엇이 오든 「예약」 이다', () => {
+    expect(asNewGemProduct(input({ status: '판매중' })).status).toBe('예약')
+    expect(asNewGemProduct(input({ status: '중단' })).status).toBe('예약')
+  })
+
+  it('나머지 칸은 건드리지 않는다', () => {
+    const v = input({ name: '초대형', gem: 9000, bonus: 2000, price: 89000 })
+    expect(asNewGemProduct(v)).toEqual({ ...v, status: '예약' })
   })
 
   it('수정 초기값은 실적을 뺀 다섯 칸이다', () => {

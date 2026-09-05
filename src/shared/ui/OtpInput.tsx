@@ -83,6 +83,8 @@ export function OtpInput({
 
   const change = (raw: string) => {
     // 숫자만, 자릿수까지. 붙여넣기도 이 한 곳을 지난다.
+    // ⚠️ **여기서는 이어 붙이는 것이 맞다** — 「123 456」 을 붙여 넣으면 `123456` 이어야
+    //    한다. 개수·금액 칸은 반대라 `parseCount` 를 쓴다 (docs/ARCHITECTURE.md §59.6).
     const next = raw.replace(/\D/g, '').slice(0, length)
     // ⚠️ **값이 그대로면 부모를 아예 부르지 않는다.** 다 찬 뒤의 7번째 숫자나 문자는
     //    잘려서 같은 값이 되는데, 그래도 `onChange` 를 부르면 호출부의 `reset()` 이 돌고

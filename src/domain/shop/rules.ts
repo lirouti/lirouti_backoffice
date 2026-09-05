@@ -144,6 +144,20 @@ export function cheaperBetterDeal(
   return worst
 }
 
+/**
+ * **새 상품이 실제로 저장될 모습** — 상태를 「예약」 으로 **덮어쓴다.**
+ *
+ * ⚠️ **화면이 상태 칸을 안 그리는 것만으로는 못 막는다.** 등록 폼의 값은
+ *    `sessionStorage` 초안에서도 온다(§33.1). 모양 검사는 타입만 보므로
+ *    `status: '판매중'` 이 든 초안이 그대로 폼에 들어가고, `GEM_STATUSES` 에 있는 값이라
+ *    검증도 통과한다 — **스토어에 없는 상품이 판매중으로 등록된다.**
+ *    불변식은 그것을 아는 자리(파사드)에서 강제한다 (docs/ARCHITECTURE.md §59.1).
+ */
+export const asNewGemProduct = (input: GemProductInput): GemProductInput => ({
+  ...input,
+  status: '예약',
+})
+
 /** 등록 화면의 초기값. **「예약」 으로 시작한다** — 스토어 심사 전이다 (§59.1) */
 export function emptyGemProductInput(): GemProductInput {
   return { name: '', gem: 0, bonus: 0, price: 0, status: '예약' }

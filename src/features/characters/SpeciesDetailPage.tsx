@@ -10,6 +10,7 @@ import { useParams } from 'react-router'
 import { css } from 'styled-system/css'
 
 import { date, num, pct } from '@/shared/lib/format'
+import { parseCount } from '@/shared/lib/parseCount'
 import { AssetThumb } from '@/shared/ui/AssetThumb'
 import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
@@ -259,8 +260,8 @@ function Detail({ detail, speciesId }: { detail: SpeciesDetail; speciesId: strin
                 <>
                   <Input
                     value={String(draft.weight)}
-                    // 숫자만 남긴다 — 원본이 `replace(/\D/g,'')` 로 같은 일을 한다.
-                    onChange={(v) => set('weight', Number(v.replace(/\D/g, '')) || 0)}
+                    // 숫자만 남긴다. ⚠️ 지우고 이어 붙이면 `1.5` 가 `15` 가 된다 (§59.6).
+                    onChange={(v) => set('weight', parseCount(v))}
                     label="출현 가중치"
                     error={errors.weight}
                     hint={`같은 희귀도끼리 견준 비율이 확률입니다`}

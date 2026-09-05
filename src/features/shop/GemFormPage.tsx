@@ -26,6 +26,7 @@ import { useFormDraft } from '@/shared/hooks/useFormDraft'
 import { restoreDraft } from '@/shared/lib/draft'
 import { focusFirstError } from '@/shared/lib/focusFirstError'
 import { num } from '@/shared/lib/format'
+import { parseCount } from '@/shared/lib/parseCount'
 import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
@@ -38,6 +39,7 @@ import { SkeletonForm } from '@/shared/ui/Skeleton'
 
 import { SCREENS } from '@/domain/screens'
 import {
+  asNewGemProduct,
   cheaperBetterDeal,
   emptyGemProductInput,
   GEM_STATUS_TONE,
@@ -80,9 +82,6 @@ const setter =
  *    지우고 쓰게 된다. 이 셋은 앞자리가 0 인 값이 없으므로 잃는 입력이 없다.
  */
 const shownNum = (n: number): string => (n === 0 ? '' : String(n))
-
-/** 숫자만 남긴다. 빈 칸·문자만 있으면 0 (검증이 잡는다) */
-const toNum = (v: string): number => Number(v.replace(/\D/g, '')) || 0
 
 /** 로딩 중에도 그리므로 두 곳이 같은 문장을 쓰게 상수로 둔다 (§43.2) */
 const FORM_SUB = '충전 패키지 구성입니다. 가격과 보너스는 스토어 심사 후 반영됩니다.'
@@ -141,7 +140,11 @@ function GemForm({ gemId, initial }: { gemId?: string; initial: GemProductInput 
   const draft = useFormDraft(draftScope(gemId), form.watch(), form.formState.isDirty)
   const markSaved = useUnsavedGuard(form.formState.isDirty)
 
-  const values = form.watch()
+  const raw = form.watch()
+  // ⚠️ **화면은 「저장될 값」 을 보여 준다.** 등록이면 상태가 「예약」 으로 덮어써지는데
+  //    (§59.1), 폼 값을 그대로 그리면 미리보기 배지가 **저장되지 않을 상태**를 말한다 —
+  //    초안에 `status: '판매중'` 이 들어 있으면 실제로 그렇게 떴다.
+  const values = gemId ? raw : asNewGemProduct(raw)
   // ⚠️ **자기 이름은 빼고 센다.** 안 빼면 수정 화면이 열리자마자 「이미 쓰고 있는 이름」 이
   //    되어 자기 자신을 저장할 수 없다.
   const others = (list.data?.products ?? []).filter((p) => String(p.key) !== gemId)
@@ -262,7 +265,7 @@ function GemForm({ gemId, initial }: { gemId?: string; initial: GemProductInput 
             />
             <Input
               value={shownNum(values.gem)}
-              onChange={(v) => set('gem', toNum(v))}
+              onChange={(v) => set('gem', parseCount(v))}
               label="젬"
               inputMode="numeric"
               placeholder="예: 9000"
@@ -272,7 +275,7 @@ function GemForm({ gemId, initial }: { gemId?: string; initial: GemProductInput 
             />
             <Input
               value={shownNum(values.bonus)}
-              onChange={(v) => set('bonus', toNum(v))}
+              onChange={(v) => set('bonus', parseCount(v))}
               label="보너스"
               inputMode="numeric"
               placeholder="예: 2000"
@@ -281,7 +284,7 @@ function GemForm({ gemId, initial }: { gemId?: string; initial: GemProductInput 
             />
             <Input
               value={shownNum(values.price)}
-              onChange={(v) => set('price', toNum(v))}
+              onChange={(v) => set('price', parseCount(v))}
               label="가격 (원)"
               inputMode="numeric"
               placeholder="예: 89000"

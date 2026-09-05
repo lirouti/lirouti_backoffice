@@ -13,6 +13,7 @@ import { css } from 'styled-system/css'
 import { useFormDraft } from '@/shared/hooks/useFormDraft'
 import { restoreDraft } from '@/shared/lib/draft'
 import { focusFirstError } from '@/shared/lib/focusFirstError'
+import { parseCount } from '@/shared/lib/parseCount'
 import { AssetThumb } from '@/shared/ui/AssetThumb'
 import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
@@ -241,7 +242,7 @@ function ChallengeForm({ chalId, initial }: { chalId?: string; initial: Challeng
                 />
                 <Input
                   value={String(input.goal)}
-                  onChange={(v) => set('goal', Number(v.replace(/\D/g, '')) || 0)}
+                  onChange={(v) => set('goal', parseCount(v))}
                   label="목표치"
                   error={shown.goal}
                   required
@@ -249,7 +250,7 @@ function ChallengeForm({ chalId, initial }: { chalId?: string; initial: Challeng
                 />
                 <Input
                   value={String(input.gem)}
-                  onChange={(v) => set('gem', Number(v.replace(/\D/g, '')) || 0)}
+                  onChange={(v) => set('gem', parseCount(v))}
                   label="젬 보상"
                   suffix="젬"
                   error={shown.gem}

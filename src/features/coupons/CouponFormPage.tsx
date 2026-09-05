@@ -13,6 +13,7 @@ import { css } from 'styled-system/css'
 import { useFormDraft } from '@/shared/hooks/useFormDraft'
 import { changed, restoreDraft } from '@/shared/lib/draft'
 import { num } from '@/shared/lib/format'
+import { parseCount } from '@/shared/lib/parseCount'
 import { today } from '@/shared/lib/today'
 import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
@@ -240,7 +241,7 @@ export default function CouponFormPage() {
               ) : (
                 <Input
                   value={form.qty === 0 ? '' : String(form.qty)}
-                  onChange={(v) => set('qty', Number(v.replace(/\D/g, '')) || 0)}
+                  onChange={(v) => set('qty', parseCount(v))}
                   label="발급 수량"
                   placeholder="1000"
                   inputMode="numeric"
@@ -330,7 +331,7 @@ export default function CouponFormPage() {
                   <div className={css({ flex: '0 1 90px', minWidth: '0' })}>
                     <Input
                       value={r.qty === 0 ? '' : String(r.qty)}
-                      onChange={(v) => setReward(i, { qty: Number(v.replace(/\D/g, '')) || 0 })}
+                      onChange={(v) => setReward(i, { qty: parseCount(v) })}
                       label={i === 0 ? '수량' : undefined}
                       aria-label={`${i + 1}번 보상 수량`}
                       inputMode="numeric"
@@ -379,7 +380,7 @@ export default function CouponFormPage() {
               {form.limits.firstCome && (
                 <Input
                   value={form.limits.firstComeQty === 0 ? '' : String(form.limits.firstComeQty)}
-                  onChange={(v) => setLimit('firstComeQty', Number(v.replace(/\D/g, '')) || 0)}
+                  onChange={(v) => setLimit('firstComeQty', parseCount(v))}
                   label="선착순 인원"
                   placeholder="500"
                   inputMode="numeric"

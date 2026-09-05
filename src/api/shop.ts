@@ -8,6 +8,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 
 import type { Item } from '@/domain/item'
 import {
+  asNewGemProduct,
   summarizeGems,
   type GemProduct,
   type GemProductInput,
@@ -80,9 +81,13 @@ export type SaveGemVars = { gemId?: string; input: GemProductInput }
  * TODO(상품 등록 API 가 생기면): 스토어 상품 id 를 함께 받는다
  */
 export async function saveGemProduct({ gemId, input }: SaveGemVars): Promise<GemProduct> {
+  // ⚠️ **분기 밖에서 덮어쓴다.** 목 안에 두면 실서버로 바꿀 때 같이 사라진다 —
+  //    「스토어 상품 id 가 없다」 는 것을 아는 자리가 여기다.
+  const body = gemId == null ? asNewGemProduct(input) : input
+
   if (USE_MOCK) {
     await mockDelay()
-    return upsertGemProduct(input, gemId == null ? undefined : Number(gemId))
+    return upsertGemProduct(body, gemId == null ? undefined : Number(gemId))
   }
 
   // TODO(백엔드 스펙 확정 후): gemId 유무로 POST / PATCH
