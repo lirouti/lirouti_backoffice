@@ -111,7 +111,7 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
         mt: '12vh',
         mx: 'auto',
         boxShadow: '0 16px 48px rgba(16, 24, 40, 0.18)',
-        _backdrop: { bg: 'rgba(16, 24, 40, 0.32)' },
+        _backdrop: { bg: 'dimSoft' },
       })}
     >
       <div className={css({ p: '12px 14px', borderBottom: '1px solid token(colors.ln)' })}>

@@ -101,7 +101,7 @@ export function Dialog({
         //    브라우저 기본 스타일의 `margin: auto` 가 하는데, Panda 의 리셋이
         //    모든 요소에 `margin: 0` 을 깔아 그걸 덮는다. 빼면 좌상단에 붙는다.
         m: 'auto',
-        _backdrop: { bg: 'rgba(16,24,40,.42)' },
+        _backdrop: { bg: 'dim' },
       })}
     >
       <div
