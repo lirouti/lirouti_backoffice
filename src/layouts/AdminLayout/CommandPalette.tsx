@@ -18,6 +18,8 @@ import { searchScreens, type PaletteItem } from '@/domain/palette'
 
 import { useViewer } from '@/stores/viewerStore'
 
+import { MAIN_ID } from './SkipLink'
+
 const MAX = 8
 
 /**
@@ -30,6 +32,15 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
   const viewer = useViewer()
   const navigate = useNavigate()
   const ref = useRef<HTMLDialogElement>(null)
+  /**
+   * 화면을 옮겨서 닫혔는가.
+   *
+   * ⚠️ **셸은 라우트가 바뀌어도 남는다.** 팔레트를 연 검색 버튼은 `Topbar` 에 있어서
+   *    이동한 뒤에도 `isConnected` 가 참이다 — 그것만 보고 복귀시키면 **새 화면에 왔는데
+   *    포커스는 상단 검색 버튼에** 있다(실측: `/items` → `/achievements`).
+   *    §63.1 의 「이동하면 그 요소는 이미 사라졌다」 는 전제가 틀렸다.
+   */
+  const moved = useRef(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const [q, setQ] = useState('')
   const [at, setAt] = useState(0)
@@ -70,9 +81,13 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
       //    실측으로 확인했다(그냥 `focus()` 만 부르면 `body` 로 떨어진다).
       dialog?.close()
 
-      // ⚠️ **화면을 옮겼으면 되돌리지 않는다.** 팔레트로 이동하면 그 요소는 이미
-      //    사라졌고(`isConnected` 가 거짓), 남아 있더라도 새 화면에서 옛 자리로
-      //    포커스를 던지면 엉뚱한 곳으로 튄다.
+      // ⚠️ **옮겼으면 가려던 화면의 본문으로 보낸다.** 옛 자리로 되돌리면 엉뚱한 곳이고
+      //    (§63.4), 아무 데도 안 보내면 `body` 로 떨어져 처음부터 Tab 해야 한다.
+      //    화면을 고른 사람의 다음 동작은 **그 화면을 쓰는 것**이다.
+      if (moved.current) {
+        document.getElementById(MAIN_ID)?.focus()
+        return
+      }
       if (opener instanceof HTMLElement && opener.isConnected) opener.focus()
     }
   }, [])
@@ -85,6 +100,7 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
   }
 
   const go = (item: PaletteItem) => {
+    moved.current = true
     onClose()
     navigate(item.path)
   }
