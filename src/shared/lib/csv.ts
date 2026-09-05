@@ -30,10 +30,22 @@ const FORMULA_LEAD = /^[=+\-@\t\r]/
  */
 function cell(raw: string | number | null | undefined): string {
   // `null`·`undefined` 는 빈 칸이다. `0` 과 `''` 은 값이므로 그대로 둔다.
-  const text = raw == null ? '' : String(raw)
+  if (raw == null) return ''
+
+  // ⚠️ **숫자는 손대지 않는다.** `-120` 은 `-` 로 시작하니 아래 수식 방지에 걸리는데,
+  //    `'-120` 이 되면 **엑셀이 문자열로 읽어 합계에서 빠진다.** 수식 주입은 사람이 적은
+  //    **문자열**의 문제이지 숫자의 문제가 아니다.
+  if (typeof raw === 'number') return String(raw)
+
   // ⚠️ 수식 방지는 **감싸기 전에** 한다 — 따옴표 안이어도 엑셀은 수식으로 읽는다.
-  const safe = FORMULA_LEAD.test(text) ? `'${text}` : text
-  return /[",\n\r]/.test(safe) ? `"${safe.replaceAll('"', '""')}"` : safe
+  const guarded = FORMULA_LEAD.test(raw) ? `'${raw}` : raw
+
+  // ⚠️ **칸 안의 줄바꿈도 CRLF 로 맞춘다.** 감싸기만으로는 부족하다 — RFC 4180 의 문법이
+  //    CRLF 라, 문의 본문처럼 `\n` 이 섞인 값을 그대로 두면 엄격한 파서가 레코드를 잘못
+  //    나눈다. 파일 전체가 한 가지 줄 끝만 쓰게 한다.
+  const text = guarded.replace(/\r\n|[\r\n]/g, '\r\n')
+
+  return /[",\r\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text
 }
 
 /**

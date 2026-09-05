@@ -97,8 +97,9 @@ function Detail({
   const cap = firstComeCap(c.limits)
   const groups = days.map((d) => ({ label: d.date.slice(5).replace('-', '/'), a: d.used }))
 
+  // 파일명에도 「recent」 를 적는다 — 나중에 열었을 때 전체가 아니라는 것이 파일에 남아야 한다.
   const exportCsv = () =>
-    downloadCsv(`riruti-coupon-${c.code}-uses-${today()}.csv`, toCsv(logs, CSV_COLUMNS))
+    downloadCsv(`riruti-coupon-${c.code}-recent-uses-${today()}.csv`, toCsv(logs, CSV_COLUMNS))
 
   return (
     <>
@@ -109,12 +110,13 @@ function Detail({
           <>
             <Button onClick={() => navigate(SCREENS.coupons.path)}>목록</Button>
             {/*
-              ⚠️ **「발급한 개별 코드」 가 아니라 「사용 내역」 이다.** 발급된 코드 전체는
-                 목에도 계약에도 없다 — 있지도 않은 것을 버튼 이름으로 약속하지 않는다.
-              TODO(발급 코드 목록 API 가 생기면): 안 쓴 코드까지 포함한 내보내기를 따로 둔다
+              ⚠️ **화면에 있는 것만 나간다 — 그래서 이름에 「최근 N건」 을 적는다.**
+                 `logs` 는 아래 카드가 말하듯 최근 8건이고, 전체 이력도 발급된 코드 전체도
+                 목에 없다. 있지도 않은 것을 버튼 이름으로 약속하지 않는다 (§56.1).
+              TODO(사용 이력·발급 코드 목록 API 가 생기면): 전체를 받는 내보내기를 따로 둔다
             */}
             <Button disabled={logs.length === 0} onClick={exportCsv}>
-              사용 내역 CSV
+              최근 {logs.length}건 CSV
             </Button>
             {/* 끝난 쿠폰은 버튼을 없애지 않고 잠가 이유를 라벨에 적는다 */}
             <Button

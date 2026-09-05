@@ -157,6 +157,9 @@ export default function ItemsPage() {
    */
   const exportCsv = async () => {
     if (sending) return
+    // ⚠️ **지난 실패를 지우고 시작한다.** 안 지우면 다시 눌러 성공해도 배너가 그대로 남아
+    //    「또 실패했다」 로 읽힌다.
+    setFailed(false)
     setSending(true)
     try {
       const all = await getItemsForExport({ q: query.q, slot: query.slot, tier: query.tier })
