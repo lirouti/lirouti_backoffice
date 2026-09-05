@@ -31,7 +31,8 @@ const HEAD = `/*
  * ⚠️ **이 파일은 손으로 고치지 말 것.** \`scripts/fetch-font.ts\` 가 만든다
  *    (docs/ARCHITECTURE.md §61).
  *
- * ⚠️ **패밀리 이름을 \`Pretendard\` 로 선언한다.** 원본 CDN 은 \`Pretendard Variable\` 로
+ * ⚠️ **패밀리 이름을 \`Pretendard\` 로 선언한다**(따옴표 없이 — 공백이 없어 필요가 없다).
+ *    원본 CDN 은 \`Pretendard Variable\` 로
  *    선언하는데 우리 토큰(\`panda.config.ts\` 의 \`sans\`)은 \`Pretendard\` 를 요구해서,
  *    **첫 커밋 이후 줄곧 이 폰트가 한 글자도 안 쓰이고 있었다** (§61.1). self-host 는
  *    우리가 \`@font-face\` 를 쓰므로 이름을 맞출 수 있다.
@@ -83,9 +84,12 @@ async function main(): Promise<void> {
     }),
   )
 
+  // ⚠️ **이름에 따옴표를 두르지 않는다.** `Pretendard` 는 공백이 없어 필요가 없고,
+  //    토큰(`panda.config.ts` 의 `sans`)이 **필요할 때만** 감싸는 것과 표기를 맞춘다
+  //    (거기서도 `Pretendard` 는 맨몸, `'Apple SD Gothic Neo'` 만 감싼다).
   const css = faces.map(
     ({ n, range }) => `@font-face {
-  font-family: 'Pretendard';
+  font-family: Pretendard;
   font-style: normal;
   font-weight: 45 920;
   font-display: swap;
