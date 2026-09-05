@@ -6,6 +6,9 @@
  */
 import { css } from 'styled-system/css'
 
+import { csvSection, joinCsvSections, type CsvColumn } from '@/shared/lib/csv'
+import { downloadCsv } from '@/shared/lib/download'
+import { today } from '@/shared/lib/today'
 import { Button } from '@/shared/ui/Button'
 import { Card, CardTitle } from '@/shared/ui/Card'
 import { BarChart } from '@/shared/ui/chart/BarChart'
@@ -14,6 +17,9 @@ import { PageHeader } from '@/shared/ui/PageHeader'
 import { SkeletonBlock, SkeletonRows, SkeletonStats } from '@/shared/ui/Skeleton'
 import { StatCard } from '@/shared/ui/StatCard'
 
+import { CHALLENGE_KIND_LABEL, type Challenge } from '@/domain/challenge'
+import type { Kpi, SeriesPoint } from '@/domain/dashboard'
+import { SLOT_LABEL, TIER_LABEL, type Item } from '@/domain/item'
 import { CURRENT_SEASON, seasonLabel } from '@/domain/season'
 
 import { useDashboard } from '@/api/dashboard'
@@ -24,6 +30,26 @@ import { TopItemsCard } from './TopItemsCard'
 export default function DashboardPage() {
   const { data, isPending, error } = useDashboard()
 
+  /**
+   * 화면의 넷을 **한 파일에** 담는다 — 구역마다 제목을 두고 빈 줄로 나눈다.
+   *
+   * ⚠️ **엄격한 CSV 가 아니다**(§57.2). 구역마다 열 수가 달라서 파서에 그대로 물리면
+   *    깨진다 — 운영자가 엑셀로 한 번에 열어 보는 용도다.
+   */
+  const exportCsv = () => {
+    if (!data) return
+    downloadCsv(
+      `riruti-dashboard-${today()}.csv`,
+      joinCsvSections([
+        csvSection('지표', data.kpis, KPI_COLUMNS),
+        csvSection('일간 활성 유저 (천 명)', data.dau.points, DAU_COLUMNS),
+        csvSection('젬 유입 · 소비 (백만)', data.gemFlow.groups, GEM_COLUMNS),
+        csvSection('인기 아이템', data.topItems, TOP_ITEM_COLUMNS),
+        csvSection('진행 중 챌린지', data.liveChallenges, CHALLENGE_COLUMNS),
+      ]),
+    )
+  }
+
   return (
     <>
       {/*
@@ -32,8 +58,7 @@ export default function DashboardPage() {
         **비활성으로 표시**한다. 지우지 않는 이유는 자리와 크기가 디자인 대조에
         쓰이고, 붙일 곳이 명확해서다 (로그인 화면의 "비밀번호 재설정"과 같은 처리).
 
-        TODO(대시보드에 기간 필터가 생기면): 기간 설정
-        TODO(서버 집계 엔드포인트가 생기면): 리포트 내보내기
+        TODO(대시보드에 기간 필터가 생기면): 기간 설정 — 목이 14일치뿐이라 아직 고를 것이 없다
       */}
       <PageHeader
         title="지표"
@@ -41,8 +66,8 @@ export default function DashboardPage() {
         actions={
           <>
             <Button disabled>기간 설정 · 준비 중</Button>
-            <Button variant="primary" disabled>
-              리포트 내보내기 · 준비 중
+            <Button variant="primary" disabled={!data} onClick={exportCsv}>
+              리포트 내보내기
             </Button>
           </>
         }
@@ -74,7 +99,7 @@ export default function DashboardPage() {
             <Card className={css({ flex: '1 1 520px', p: '17px 19px 12px' })}>
               <CardTitle title="일간 활성 유저" sub="최근 14일 · 천 명" />
               <LineChart
-                values={data.dau.values}
+                values={data.dau.points.map((p) => p.value)}
                 domain={data.dau.domain}
                 ticks={data.dau.ticks}
               />
@@ -131,3 +156,44 @@ function ScreenState({ children, tone }: { children: React.ReactNode; tone?: 'da
     </div>
   )
 }
+
+/**
+ * 파일에 담을 열.
+ *
+ * ⚠️ **화면이 그리는 것과 같은 값이어야 한다.** KPI 는 이미 서식을 갖춘 문자열이라
+ *    그대로 쓰고(`24,180`), 차트 값은 숫자라 숫자로 넣는다 — 엑셀에서 계산에 쓰려면
+ *    숫자여야 한다 (docs/ARCHITECTURE.md §56.1).
+ */
+const KPI_COLUMNS: CsvColumn<Kpi>[] = [
+  { header: '지표', value: (k) => k.label },
+  { header: '값', value: (k) => k.value },
+  { header: '변화', value: (k) => k.delta },
+  { header: '기준', value: (k) => k.note },
+]
+
+const DAU_COLUMNS: CsvColumn<{ date: string; value: number }>[] = [
+  { header: '날짜', value: (d) => d.date },
+  { header: '활성 유저(천 명)', value: (d) => d.value },
+]
+
+const GEM_COLUMNS: CsvColumn<SeriesPoint>[] = [
+  { header: '주차', value: (g) => g.label },
+  { header: '유입(백만)', value: (g) => g.a },
+  { header: '소비(백만)', value: (g) => g.b },
+]
+
+const TOP_ITEM_COLUMNS: CsvColumn<Item>[] = [
+  { header: '아이템', value: (it) => it.name },
+  { header: '슬롯', value: (it) => SLOT_LABEL[it.slot] },
+  { header: '등급', value: (it) => TIER_LABEL[it.tier] },
+  { header: '판매', value: (it) => it.sold },
+  { header: '보유율(%)', value: (it) => it.own },
+]
+
+const CHALLENGE_COLUMNS: CsvColumn<Challenge>[] = [
+  { header: '챌린지', value: (c) => c.title },
+  { header: '구분', value: (c) => CHALLENGE_KIND_LABEL[c.kind] },
+  { header: '조건', value: (c) => c.cond },
+  { header: '목표', value: (c) => c.goal },
+  { header: '달성률(%)', value: (c) => c.rate },
+]

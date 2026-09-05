@@ -57,3 +57,29 @@ export function toCsv<T>(rows: readonly T[], columns: readonly CsvColumn<T>[]): 
   const body = rows.map((row) => columns.map((c) => cell(c.value(row))).join(','))
   return [head, ...body].join('\r\n')
 }
+
+/**
+ * 구역 하나 — 제목 줄 + 그 아래 표.
+ *
+ * ⚠️ **제목도 `toCsv` 를 거친다.** 제목에 쉼표가 들어가면 감싸야 하는데 그냥 이어 붙이면
+ *    그 줄만 규격을 벗어난다.
+ */
+export function csvSection<T>(
+  title: string,
+  rows: readonly T[],
+  columns: readonly CsvColumn<T>[],
+): string {
+  return `${toCsv([], [{ header: title, value: () => '' }])}\r\n${toCsv(rows, columns)}`
+}
+
+/**
+ * 구역들을 **한 파일로** 잇는다. 빈 줄 하나로 나눈다.
+ *
+ * ⚠️ **엄격한 CSV 가 아니다.** 구역마다 열 수가 다르므로 파서에 그대로 물리면 깨진다 —
+ *    **사람이 엑셀에서 한 번에 열어 보는 용도**다. 도구에 물릴 값이면 `toCsv` 로 표
+ *    하나씩 내보낸다 (docs/ARCHITECTURE.md §57.2).
+ *
+ * 구역마다 타입이 다르므로 **문자열로 받는다** — 하나의 제네릭으로는 묶이지 않는다.
+ */
+export const joinCsvSections = (sections: readonly string[]): string =>
+  sections.join('\r\n\r\n')
