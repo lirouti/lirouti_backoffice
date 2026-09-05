@@ -17,7 +17,7 @@ import { PageHeader } from '@/shared/ui/PageHeader'
 import { SkeletonBlock, SkeletonRows, SkeletonStats } from '@/shared/ui/Skeleton'
 import { StatCard } from '@/shared/ui/StatCard'
 
-import type { Challenge } from '@/domain/challenge'
+import { CHALLENGE_KIND_LABEL, type Challenge } from '@/domain/challenge'
 import type { Kpi, SeriesPoint } from '@/domain/dashboard'
 import { SLOT_LABEL, TIER_LABEL, type Item } from '@/domain/item'
 import { CURRENT_SEASON, seasonLabel } from '@/domain/season'
@@ -192,7 +192,7 @@ const TOP_ITEM_COLUMNS: CsvColumn<Item>[] = [
 
 const CHALLENGE_COLUMNS: CsvColumn<Challenge>[] = [
   { header: '챌린지', value: (c) => c.title },
-  { header: '구분', value: (c) => c.kind },
+  { header: '구분', value: (c) => CHALLENGE_KIND_LABEL[c.kind] },
   { header: '조건', value: (c) => c.cond },
   { header: '목표', value: (c) => c.goal },
   { header: '달성률(%)', value: (c) => c.rate },
