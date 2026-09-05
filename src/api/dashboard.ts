@@ -9,6 +9,8 @@
  */
 import { useQuery } from '@tanstack/react-query'
 
+import { daysAgo } from '@/shared/lib/today'
+
 import { activeChallenges, type Challenge } from '@/domain/challenge'
 import type { Kpi, SeriesPoint } from '@/domain/dashboard'
 import { topSelling, type Item } from '@/domain/item'
@@ -28,7 +30,11 @@ import { mockDelay, qk, USE_MOCK } from './core'
 
 export type DashboardData = {
   kpis: Kpi[]
-  dau: { values: number[]; domain: [number, number]; ticks: number[] }
+  /**
+   * 최근 14일. **날짜를 값과 함께 준다** — 차트는 안 쓰지만 파일로 내보낼 때 필요하고,
+   * 「몇 번째 값이 오늘인가」 를 화면이 혼자 알고 있으면 조용히 어긋난다 (docs/ARCHITECTURE.md §57.1).
+   */
+  dau: { points: { date: string; value: number }[]; domain: [number, number]; ticks: number[] }
   gemFlow: { groups: SeriesPoint[]; max: number }
   topItems: Item[]
   liveChallenges: Challenge[]
@@ -39,7 +45,15 @@ export async function getDashboard(): Promise<DashboardData> {
     await mockDelay()
     return {
       kpis: KPIS,
-      dau: { values: DAU_SERIES, domain: DAU_DOMAIN, ticks: DAU_TICKS },
+      dau: {
+        // 마지막 값이 오늘이다 — 목이 「최근 14일」 로 만든 순서를 그대로 날짜에 붙인다.
+        points: DAU_SERIES.map((value, i) => ({
+          date: daysAgo(DAU_SERIES.length - 1 - i),
+          value,
+        })),
+        domain: DAU_DOMAIN,
+        ticks: DAU_TICKS,
+      },
       gemFlow: { groups: GEM_FLOW, max: GEM_FLOW_MAX },
       topItems: topSelling(allItems(), 5),
       liveChallenges: activeChallenges(allChallenges(), 6),
