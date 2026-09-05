@@ -23,6 +23,7 @@ import { useViewer } from '@/stores/viewerStore'
 
 import { CommandPalette } from './CommandPalette'
 import { Sidebar } from './Sidebar'
+import { MAIN_ID, SkipLink } from './SkipLink'
 import { TabBar } from './TabBar'
 import { Topbar } from './Topbar'
 import { usePaletteHotkey } from './usePaletteHotkey'
@@ -110,6 +111,8 @@ export function AdminLayout() {
 
   return (
     <div className={css({ display: 'flex', minHeight: '100vh' })}>
+      {/* ⚠️ **DOM 에서 맨 앞이어야 한다** — Tab 한 번에 잡혀야 뜻이 있다 (§63.2) */}
+      <SkipLink />
       <Sidebar />
       <div
         className={css({ flex: '1', minWidth: '0', display: 'flex', flexDirection: 'column' })}
@@ -128,7 +131,21 @@ export function AdminLayout() {
           <ViewerBanner />
         </div>
 
-        <main className={css({ flex: '1', p: '22px clamp(14px, 2vw, 28px) 64px' })}>
+        {/*
+          ⚠️ **`tabIndex={-1}` 이 없으면 건너뛰기가 주소만 바꾸고 포커스는 안 옮긴다.**
+             `<main>` 은 원래 포커스를 못 받는다 — 음수 tabindex 는 **Tab 순서에는 안
+             들어가면서** 스크립트·프래그먼트로는 포커스를 받게 한다 (§63.2).
+        */}
+        <main
+          id={MAIN_ID}
+          tabIndex={-1}
+          className={css({
+            flex: '1',
+            p: '22px clamp(14px, 2vw, 28px) 64px',
+            // 건너뛰어 왔을 때 본문 전체에 포커스 링을 두르면 오히려 놀란다.
+            outline: 'none',
+          })}
+        >
           <div className={css({ maxWidth: '1700px' })}>
             {/*
               열린 탭의 화면을 언마운트하지 않고 살려둔다.
