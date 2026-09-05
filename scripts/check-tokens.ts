@@ -97,7 +97,18 @@ const isRaw = (v: string): boolean =>
  * ⚠️ **`var(--…)` 는 뺀다** — `token('colors.x')` 헬퍼가 만드는 값이고, 그쪽은 이름을
  *    타입체크한다. 그라디언트는 안쪽에 hex 가 섞여 있어서 문자열 어디든 본다.
  */
-const RAW_COLOR = /#[0-9A-Fa-f]{3,8}\b|\b(rgba?|hsla?|oklch)\(/
+const RAW_COLOR = /#[0-9A-Fa-f]{3,8}\b|\b(rgba?|hsla?|oklch|color-mix)\(/i
+
+/**
+ * **글자 그대로의 문자열**인 노드.
+ *
+ * ⚠️ **백틱도 문자열이다.** `` `#f00` `` 는 `StringLiteral` 이 아니라
+ *    `NoSubstitutionTemplateLiteral` 이라, 앞의 것만 보면 **백틱으로 바꾸는 것만으로
+ *    검사를 통과한다.** 치환이 든 템플릿(`` `#${a}` ``)은 값이 실행 시점에 정해지므로
+ *    대상이 아니다 (docs/ARCHITECTURE.md §62.6).
+ */
+const asText = (n: ts.Node): ts.StringLiteralLike | null =>
+  ts.isStringLiteral(n) || ts.isNoSubstitutionTemplateLiteral(n) ? n : null
 
 /**
  * **일부러 토큰을 안 쓰는 자리.** 값 단위로 등록한다 — 파일만 풀어 주면 그 파일의 **다른**
@@ -160,8 +171,9 @@ function sources(dir: string): string[] {
  * `bg: { base: 'pri', md: 'priD' }` 와 `bg: ['pri', 'priD']`. 여기까지 안 보면
  * **반응형으로 쓴 오타가 통째로 새어 나간다** (docs/ARCHITECTURE.md §39.2).
  */
-function values(n: ts.Node): ts.StringLiteral[] {
-  if (ts.isStringLiteral(n)) return [n]
+function values(n: ts.Node): ts.StringLiteralLike[] {
+  const text = asText(n)
+  if (text) return [text]
   if (ts.isConditionalExpression(n)) return [...values(n.whenTrue), ...values(n.whenFalse)]
   if (ts.isBinaryExpression(n)) return [...values(n.left), ...values(n.right)]
   if (ts.isParenthesizedExpression(n)) return values(n.expression)
@@ -287,12 +299,13 @@ for (const file of sources('src')) {
     }
     if (ts.isJsxAttribute(n) && ts.isIdentifier(n.name) && NOT_A_COLOR.has(n.name.text)) return
 
-    if (ts.isStringLiteral(n) && RAW_COLOR.test(n.text) && !isAllowed(file, n.text)) {
+    const text = asText(n)
+    if (text && RAW_COLOR.test(text.text) && !isAllowed(file, text.text)) {
       raws.push({
         file,
-        line: sf.getLineAndCharacterOfPosition(n.getStart(sf)).line + 1,
+        line: sf.getLineAndCharacterOfPosition(text.getStart(sf)).line + 1,
         prop: '(스타일 밖)',
-        value: n.text,
+        value: text.text,
       })
     }
     ts.forEachChild(n, outside)
