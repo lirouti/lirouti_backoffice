@@ -31,26 +31,29 @@
     </script>
 
     <!--
-      Pretendard — 지금은 CDN.
+      Pretendard — **self-host**. 파일은 `public/fonts/`, 만드는 것은 `bun run font`
+      (docs/ARCHITECTURE.md §61).
 
-      `/gh/` 경로는 GitHub 저장소의 **태그를 그대로** 서빙한다. 태그는 옮길 수 있으므로
-      같은 URL 이 다른 내용을 줄 수 있고, 어드민 로그인 화면에 임의 CSS 가 들어오면
-      폼 위에 가짜를 덮거나 속성 선택자 + background-image 로 값을 새어 보낼 수 있다.
-      그래서 **SRI 로 바이트를 고정**한다 — 내용이 1비트라도 바뀌면 브라우저가 거부한다.
-      (cross-origin 에 SRI 를 걸려면 `crossorigin` 이 함께 있어야 한다.)
+      ⚠️ **CDN 이었을 때 두 가지가 깨져 있었다.**
 
-      ⚠️ SRI 는 이 CSS 만 고정한다. CSS 가 상대경로로 부르는 woff2(2.0MB)는 못 덮는다.
-         완전히 닫으려면 self-host 여야 한다 — 폐쇄망 요구와 함께 처리한다.
-         TODO(docs/ARCHITECTURE.md §11-3)
+      ① **폰트가 한 글자도 안 쓰이고 있었다.** CDN 이 선언하는 이름은
+         `Pretendard Variable` 인데 우리 토큰(`sans`)은 `Pretendard` 를 요구한다 —
+         어디에도 없는 이름이라 첫 커밋 이후 줄곧 `-apple-system` 으로 떨어졌다.
+         측정: 같은 글에서 폭 375.94px(그때) 대 380.51px(Pretendard 강제).
+
+      ② **SRI 가 고정할 수 없는 파일에 걸려 있었다.** jsDelivr 가 clean-css 로 **동적
+         생성**하는 파일이라 그쪽이 파일 안에 「Do NOT use SRI with dynamically
+         generated files!」 라고 적어 두었다. minifier 가 바뀌면 해시가 어긋나 CSS 가
+         통째로 거부되고 폰트가 사라진다. 게다가 SRI 는 CSS 만 덮어서, 그 CSS 가 부르는
+         woff2 2.0MB 는 애초에 검증되지 않았다.
+
+      self-host 는 셋을 한 번에 닫는다 — 이름을 우리가 정하고, 외부 요청이 0이 되고,
+      폐쇄망에서도 뜬다.
+
+      ⚠️ **`<link>` 로 둔다.** `src/` 에서 import 하면 JS 번들을 기다리므로 글자가 늦게
+         제 모습을 갖춘다.
     -->
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css"
-      integrity="sha384-f9iEnfDmuRSuBrXQjpPibejnfJMrZ2yI+715EjxlzBsPFIpaD1NxMh1MIzthxtCh"
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer"
-    />
+    <link rel="stylesheet" href="/fonts/pretendard.css" />
   </head>
   <body>
     <div id="root"></div>
