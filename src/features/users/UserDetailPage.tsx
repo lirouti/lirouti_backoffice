@@ -306,7 +306,7 @@ function Section({
 }) {
   return (
     <Card className={css({ p: '0', overflow: 'hidden' })}>
-      <div className={css({ p: '17px 20px 0' })}>
+      <div className={css({ p: '17px 20px 14px' })}>
         <CardTitle title={title} sub={sub} />
       </div>
       {children}
