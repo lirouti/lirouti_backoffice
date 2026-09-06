@@ -6280,3 +6280,63 @@ Tab 으로만 오므로 `:focus-visible` 로 충분하다.
 
 화면 전체를 렌더하는 테스트를 열면 분기만은 고정할 수 있지만, 그러려면 라우터·스토어 목
 정책부터 정해야 한다(§60.4 에서 범위 밖으로 둔 것). **브라우저 실측으로 남긴다.**
+
+---
+
+## 64. 탭 도구막대 — 기능은 더하고 모양은 원본으로
+
+「모두 닫기」와 좌우 이동 버튼을 더하면서 탭의 **생김새까지** 바꿨다가 되돌렸다. 기능은
+남기고 치수·색은 원본(`리루티 운영 어드민.dc.html`)으로 돌려놓는다.
+
+```html
+<!-- 원본 -->
+<div style="display:flex;align-items:stretch;background:var(--surf);
+     padding:0 clamp(10px,1.6vw,22px);min-height:37px">
+  <div style="...gap:6px;padding:0 11px;border-bottom:2px solid {{t.bd}};background:{{t.bg}}">
+```
+
+| | 원본 | 바꿨던 값 |
+|---|---|---|
+| 스트립 배경 | `surf` | `surf2` |
+| 스트립 높이 | **37px** | 43px |
+| 정렬 | `stretch` | `center` |
+| 좌우 여백 | `clamp(10px,1.6vw,22px)` | `clamp(8px,1.2vw,16px)` |
+| **활성 표시** | **밑줄 2px + `priD` 글자** | 카드(테두리+라운드+그림자) |
+
+⚠️ **`stretch` 를 `center` 로 바꾸면 밑줄이 스트립 바닥에서 뜬다.** 활성 표시가 밑줄인
+이상 탭은 스트립 높이를 채워야 한다.
+
+28px 짜리 도구 버튼 셋은 37px 스트립에 그대로 들어간다(실측: 도구 영역 37px).
+
+### 64.1 ⚠️ `px` 는 값을 **둘까지만** 받는다
+
+```ts
+px: '10px 8px 10px 11px'   // ✗ paddingInline 에 네 값
+```
+
+Panda 의 `px` 는 `padding-inline` 이라 값이 둘을 넘으면 **유효하지 않은 CSS 가 되고
+브라우저가 통째로 버린다.** 실측: `paddingLeft: 0px` · `paddingRight: 0px`.
+
+그러면 탭 글자와 닫기 `×` 가 맞붙어 **여러 탭이 한 덩어리로 읽힌다.** 네 값을 주려면
+`p:` 다. ⚠️ **`check-tokens.ts` 는 이걸 못 잡는다** — 색이 아니라 길이라서다.
+
+### 64.2 ⚠️ `font: 'inherit'` 이 `textStyle` 을 덮고 있었다
+
+**이 PR 이전부터 있던 결함이다.** 탭 글자가 12px 이어야 하는데 **16px 로 렌더되고
+있었다.**
+
+```ts
+font: 'inherit',      // 축약형 — font-size 까지 물려받는다
+textStyle: 'label',   // fontSize: 12px … 밀려서 적용 안 됨
+```
+
+`font` 는 축약형이라 `font-size`·`line-height`·`font-family` 를 한꺼번에 정한다.
+`<button>` 이 부모(16px)를 물려받아 `textStyle` 의 12px 을 덮었다.
+
+의도는 **버튼이 시스템 폰트로 떨어지는 것을 막는 것**이므로 `fontFamily: 'inherit'` 로
+충분하다. 원본 탭 글자는 12.5px, 우리 `label` 은 12px — 16px 은 **3.5px 크다.**
+
+⚠️ **같은 조합이 저장소에 아홉 곳 있다** — `TabBar` 둘은 여기서 고쳤고, 나머지 일곱은
+`Topbar` · `ViewerBanner` · `CommandPalette` · `TotpStep`(둘) · `FilePicker` 다.
+전부 고치면 **화면 곳곳의 글자 크기가 한꺼번에 바뀌므로** 별도로 다룬다.
+

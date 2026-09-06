@@ -24,14 +24,15 @@ import { useViewer } from '@/stores/viewerStore'
  */
 const strip = css({
   display: 'flex',
-  alignItems: 'center',
-  gap: '5px',
+  // ⚠️ **`stretch` 다**(원본). `center` 로 바꾸면 탭이 스트립 높이를 채우지 않아
+  //    밑줄이 스트립 바닥에서 떠 버린다.
+  alignItems: 'stretch',
   // 활성 탭을 끌어올 때 `offsetLeft` 를 쓴다. 그 값은 **가장 가까운 위치 지정
   // 조상** 기준이라, 스트립에 position 이 없으면 바깥 요소(셸의 sticky 헤더)가
   // 기준이 되어 scrollLeft 와 좌표계가 어긋난다. 여기로 고정한다.
   position: 'relative',
-  px: 'clamp(8px, 1.2vw, 16px)',
-  minHeight: '43px',
+  px: 'clamp(10px, 1.6vw, 22px)',
+  minHeight: '37px',
   overflowX: 'auto',
   // 끝에서 계속 밀어도 브라우저 뒤로가기(가로 오버스크롤)가 발동하지 않게
   overscrollBehaviorX: 'contain',
@@ -57,7 +58,7 @@ const strip = css({
  *
  * ### 가로 스크롤을 손으로 만든 이유
  *
- * 탭이 `MAX_TABS`(12)까지 열리므로 넘치는 게 예외가 아니라 기본이다. 그런데 43px 짜리
+ * 탭이 `MAX_TABS`(12)까지 열리므로 넘치는 게 예외가 아니라 기본이다. 그런데 37px 짜리
  * 스트립에 네이티브 스크롤바가 들어가면 높이의 1/4 을 잡아먹는다. 숨기는 건 쉽지만,
  * **숨기기만 하면 마우스로는 스크롤할 방법이 사라진다** — 브라우저는 세로 휠을 가로
  * 스크롤로 바꿔주지 않고, 드래그할 스크롤바도 없어지기 때문이다. 트랙패드만 쓰는 사람은
@@ -210,7 +211,11 @@ export function TabBar() {
     // 스크롤 요소가 배경까지 들고 있으면 가장자리에서 배경에 구멍이 뚫린다.
     <nav
       aria-label="열린 화면"
-      className={css({ display: 'flex', bg: 'surf2', borderBottom: '1px solid token(colors.bd)' })}
+      className={css({
+        display: 'flex',
+        bg: 'surf',
+        borderBottom: '1px solid token(colors.bd)',
+      })}
     >
       <div
         ref={stripRef}
@@ -227,16 +232,18 @@ export function TabBar() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
-                height: '32px',
-                px: '10px 8px 10px 11px',
+                // ⚠️ **원본 그대로다** — `padding: 0 11px` · `border-bottom: 2px solid`.
+                //    카드형(테두리+라운드+그림자)으로 바꿨다가 되돌렸다: 원본이 밑줄이고,
+                //    ⚠️ **`px` 는 `padding-inline` 이라 값을 둘까지만 받는다** — 넷을 주면
+                //    브라우저가 통째로 버려 **좌우 여백이 0 이 된다**(실측: `paddingLeft: 0px`).
+                //    그러면 탭 글자와 닫기 × 가 붙어 여러 탭이 한 덩어리로 읽힌다
+                //    (docs/ARCHITECTURE.md §64).
+                px: '11px',
                 flex: 'none',
                 whiteSpace: 'nowrap',
-                border: '1px solid',
-                borderColor: on ? 'bd' : 'transparent',
-                borderRadius: 'md',
-                bg: on ? 'surf' : 'transparent',
-                boxShadow: on ? '0 1px 3px rgba(16,24,40,.08)' : 'none',
-                _hover: { bg: on ? 'surf' : 'hov' },
+                borderBottom: '2px solid',
+                borderBottomColor: on ? 'pri' : 'transparent',
+                bg: on ? 'prev2' : 'transparent',
               })}
             >
               <button
@@ -249,11 +256,17 @@ export function TabBar() {
                   bg: 'transparent',
                   cursor: 'pointer',
                   p: '0',
-                  font: 'inherit',
+                  // ⚠️ **`font: 'inherit'` 이 아니라 `fontFamily` 다.** `font` 는 축약형이라
+                  //    **`font-size` 까지** 물려받아 바로 아래 `textStyle` 을 덮는다 —
+                  //    12px 이어야 할 탭 글자가 **16px 로 렌더됐다**(실측). 버튼이 시스템
+                  //    폰트로 떨어지는 것만 막으면 되므로 `fontFamily` 로 충분하다
+                  //    (docs/ARCHITECTURE.md §64.2).
+                  fontFamily: 'inherit',
                   textStyle: 'label',
                   fontWeight: on ? '700' : '500',
-                  color: on ? 'ink' : 'sub',
-                  maxWidth: '180px',
+                  // 활성 탭은 **파란 글자**다(원본). `ink` 로 바꾸면 밑줄만 남아 약해진다.
+                  color: on ? 'priD' : 'sub',
+                  maxWidth: '200px',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                 })}
@@ -313,10 +326,9 @@ export function TabBar() {
           alignItems: 'center',
           gap: '3px',
           flex: 'none',
-          minHeight: '43px',
+          minHeight: '37px',
           px: '8px',
           borderLeft: fade === 'none' ? '0' : '1px solid token(colors.bd)',
-          bg: 'surf2',
         })}
       >
         {fade !== 'none' && (
@@ -398,7 +410,7 @@ export function TabBar() {
               bg: 'surf',
               color: 'sub',
               cursor: 'pointer',
-              font: 'inherit',
+              fontFamily: 'inherit',
               textStyle: 'caption',
               fontWeight: '600',
               whiteSpace: 'nowrap',
