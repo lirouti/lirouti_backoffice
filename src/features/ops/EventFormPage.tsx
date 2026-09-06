@@ -255,7 +255,9 @@ export default function EventFormPage() {
                   error={tried ? errors.accent : undefined}
                   required
                 />
+                {/* 내용 없는 견본이라 이미지 역할이 있어야 아래 접근 이름을 읽는다 */}
                 <div
+                  role="img"
                   aria-label={
                     isHexColor(form.accent)
                       ? `강조색 미리보기 ${form.accent}`
