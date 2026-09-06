@@ -199,6 +199,7 @@ const COLUMNS: Column<User>[] = [
     key: 'social',
     label: '소셜',
     width: '84px',
+    align: 'center',
     render: (u) => <Badge tone={SOCIAL_TONE[u.social]}>{SOCIAL_LABEL[u.social]}</Badge>,
   },
   {
@@ -228,6 +229,7 @@ const COLUMNS: Column<User>[] = [
     key: 'status',
     label: '상태',
     width: '84px',
+    align: 'center',
     render: (u) => (
       <Badge tone={USER_STATUS_TONE[u.status]}>{USER_STATUS_LABEL[u.status]}</Badge>
     ),
