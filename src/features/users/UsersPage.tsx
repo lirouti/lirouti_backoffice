@@ -204,16 +204,10 @@ const COLUMNS: Column<User>[] = [
   {
     key: 'wallet',
     label: '보유 재화',
-    width: '150px',
+    width: '142px',
     align: 'right',
     // ⚠️ 둘을 합쳐 보이지 않는다 — 유상(파란)만 환불 대상이라 합계는 오해를 만든다.
-    render: (u) => (
-      <span className={css({ display: 'block', textAlign: 'right' })}>
-        <span className={css({ color: 'priD', fontWeight: '700' })}>{num(u.wallet.gem)}</span>
-        <span className={css({ color: 'faint' })}> · </span>
-        <span className={css({ color: 'aFg', fontWeight: '700' })}>{num(u.wallet.topaz)}</span>
-      </span>
-    ),
+    render: (u) => <WalletCell user={u} />,
   },
   {
     key: 'paid',
@@ -261,6 +255,70 @@ function Avatar({ nick }: { nick: string }) {
     >
       {nick.charAt(0)}
     </span>
+  )
+}
+
+/** 유상·무상 재화를 색뿐 아니라 라벨과 행으로도 구분한다 */
+function WalletCell({ user }: { user: User }) {
+  return (
+    <span
+      className={css({
+        display: 'inline-grid',
+        gridTemplateColumns: '13px 24px minmax(52px, 1fr)',
+        columnGap: '5px',
+        rowGap: '2px',
+        alignItems: 'center',
+        minWidth: '104px',
+        textAlign: 'left',
+      })}
+    >
+      <GemMark className={css({ color: 'priD' })} />
+      <span className={css({ textStyle: 'micro', color: 'sub' })}>유상</span>
+      <span
+        className={css({
+          textAlign: 'right',
+          color: 'ink',
+          fontWeight: '700',
+          fontVariantNumeric: 'tabular-nums',
+        })}
+      >
+        {num(user.wallet.gem)}
+      </span>
+      <GemMark className={css({ color: 'aFg' })} />
+      <span className={css({ textStyle: 'micro', color: 'sub' })}>무상</span>
+      <span
+        className={css({
+          textAlign: 'right',
+          color: 'ink',
+          fontWeight: '700',
+          fontVariantNumeric: 'tabular-nums',
+        })}
+      >
+        {num(user.wallet.topaz)}
+      </span>
+    </span>
+  )
+}
+
+/** 작은 보석 윤곽. 두 재화는 같은 모양이고 색과 옆 라벨로 종류를 가른다 */
+function GemMark({ className }: { className: string }) {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 12 12"
+      aria-hidden="true"
+      className={className}
+    >
+      <path
+        d="M3.3 2.2h5.4l2 3.1L6 10.2 1.3 5.3l2-3.1Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        strokeLinejoin="round"
+      />
+      <path d="m3.4 2.4 2.6 7.4 2.6-7.4M1.6 5.2h8.8" fill="none" stroke="currentColor" />
+    </svg>
   )
 }
 
