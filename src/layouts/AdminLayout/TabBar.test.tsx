@@ -99,5 +99,6 @@ describe('TabBar 전체 닫기', () => {
 
     fireEvent.click(screen.getAllByRole('button', { name: '모두 닫기' }).at(-1)!)
     expect(useTabsStore.getState().tabs).toEqual([])
+    expect(useDirtyStore.getState().dirty).toEqual({})
   })
 })

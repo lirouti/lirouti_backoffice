@@ -95,8 +95,9 @@ export function TabBar() {
   const { pathname } = useLocation()
   const tabs = useTabsStore((s) => s.tabs)
   const close = useTabsStore((s) => s.close)
-  const reset = useTabsStore((s) => s.reset)
+  const resetTabs = useTabsStore((s) => s.reset)
   const dirty = useDirtyStore((s) => s.dirty)
+  const resetDirty = useDirtyStore((s) => s.reset)
   const viewer = useViewer()
   const [fade, setFade] = useState<'none' | 'left' | 'right' | 'both'>('none')
   /** 미저장인데 닫으려는 탭. 확인 창이 떠 있는 동안만 값이 있다 */
@@ -193,7 +194,10 @@ export function TabBar() {
   }
 
   const closeAll = () => {
-    reset()
+    resetTabs()
+    // KeepAlive 파기는 한 틱 뒤라 cleanup 에만 맡기면 같은 화면을 즉시 다시 열 때
+    // 폐기한 미저장 표시가 되살아날 수 있다. 모두 닫기는 두 상태를 함께 비운다.
+    resetDirty()
     navigate('/')
   }
 
