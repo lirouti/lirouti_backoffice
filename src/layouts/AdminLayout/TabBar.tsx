@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 
 import { useLocation, useNavigate } from 'react-router'
 
-import { css } from 'styled-system/css'
+import { css, cx } from 'styled-system/css'
 
 import { Dialog } from '@/shared/ui/Dialog'
 
@@ -24,13 +24,14 @@ import { useViewer } from '@/stores/viewerStore'
  */
 const strip = css({
   display: 'flex',
-  alignItems: 'stretch',
+  alignItems: 'center',
+  gap: '5px',
   // 활성 탭을 끌어올 때 `offsetLeft` 를 쓴다. 그 값은 **가장 가까운 위치 지정
   // 조상** 기준이라, 스트립에 position 이 없으면 바깥 요소(셸의 sticky 헤더)가
   // 기준이 되어 scrollLeft 와 좌표계가 어긋난다. 여기로 고정한다.
   position: 'relative',
-  px: 'clamp(10px, 1.6vw, 22px)',
-  minHeight: '37px',
+  px: 'clamp(8px, 1.2vw, 16px)',
+  minHeight: '43px',
   overflowX: 'auto',
   // 끝에서 계속 밀어도 브라우저 뒤로가기(가로 오버스크롤)가 발동하지 않게
   overscrollBehaviorX: 'contain',
@@ -51,21 +52,22 @@ const strip = css({
 /**
  * 열린 화면 탭 스트립.
  *
- * 탭 키는 **전체 경로**다 (`/items/3`). 같은 화면이라도 대상이 다르면 별개 탭이라,
- * 아이템 두 개를 나란히 열어두고 편집할 수 있다.
+ * 탭 키는 **사이드바의 서브 메뉴**다. 상세·등록·수정 화면은 부모 탭 안에서 바뀌며,
+ * 탭 이름은 서브 메뉴 이름을 유지한다 (docs/ARCHITECTURE.md §6.3).
  *
  * ### 가로 스크롤을 손으로 만든 이유
  *
- * 탭이 `MAX_TABS`(12)까지 열리므로 넘치는 게 예외가 아니라 기본이다. 그런데 37px 짜리
+ * 탭이 `MAX_TABS`(12)까지 열리므로 넘치는 게 예외가 아니라 기본이다. 그런데 43px 짜리
  * 스트립에 네이티브 스크롤바가 들어가면 높이의 1/4 을 잡아먹는다. 숨기는 건 쉽지만,
  * **숨기기만 하면 마우스로는 스크롤할 방법이 사라진다** — 브라우저는 세로 휠을 가로
  * 스크롤로 바꿔주지 않고, 드래그할 스크롤바도 없어지기 때문이다. 트랙패드만 쓰는 사람은
  * 눈치채지 못하는 종류의 고장이다.
  *
- * 그래서 셋을 묶어서 한다:
+ * 그래서 넷을 묶어서 한다:
  *   1. 스크롤바를 숨기고
  *   2. 세로 휠을 가로 스크롤로 바꾸고 (마우스 사용자)
  *   3. 넘친 쪽 가장자리를 흐리게 해서 "더 있다"를 보여준다 (스크롤바가 하던 일)
+ *   4. 고정된 좌우 버튼으로 휠이 없는 입력 장치에서도 옮길 수 있게 한다
  *
  * 추가로 **활성 탭이 화면 밖이면 끌어온다.** 사이드바로 이동했는데 그 탭이 스크롤 밖에
  * 있으면 지금 어디에 있는지 알 수 없다.
@@ -92,11 +94,13 @@ export function TabBar() {
   const { pathname } = useLocation()
   const tabs = useTabsStore((s) => s.tabs)
   const close = useTabsStore((s) => s.close)
+  const reset = useTabsStore((s) => s.reset)
   const dirty = useDirtyStore((s) => s.dirty)
   const viewer = useViewer()
   const [fade, setFade] = useState<'none' | 'left' | 'right' | 'both'>('none')
   /** 미저장인데 닫으려는 탭. 확인 창이 떠 있는 동안만 값이 있다 */
   const [pending, setPending] = useState<OpenTab | null>(null)
+  const [closeAllOpen, setCloseAllOpen] = useState(false)
   const stripRef = useRef<HTMLDivElement>(null)
 
   const shown = tabs.filter((t) => canAccess(viewer, SCREENS[t.screen].scope))
@@ -104,6 +108,7 @@ export function TabBar() {
   const activeSection = sectionOfPath(pathname)
   /** 이 탭이 들고 있는 화면 중 하나라도 저장 안 됐는가 */
   const isDirty = (t: OpenTab) => livePaths(t).some((p) => dirty[p])
+  const dirtyCount = shown.filter(isDirty).length
 
   // 어느 쪽으로 더 스크롤할 수 있는지 → 가장자리 흐림. 스크롤바가 알려주던 정보다.
   useEffect(() => {
@@ -186,11 +191,32 @@ export function TabBar() {
     else closeTab(tab)
   }
 
+  const closeAll = () => {
+    reset()
+    navigate('/')
+  }
+
+  const onCloseAll = () => {
+    if (dirtyCount) setCloseAllOpen(true)
+    else closeAll()
+  }
+
+  const scroll = (direction: -1 | 1) => {
+    stripRef.current?.scrollBy({ left: direction * 220, behavior: 'smooth' })
+  }
+
   return (
     // 배경·아래 테두리는 **바깥**이 갖는다. 흐림(mask)은 칠해진 픽셀을 투명하게 만드는 것이라
     // 스크롤 요소가 배경까지 들고 있으면 가장자리에서 배경에 구멍이 뚫린다.
-    <div className={css({ bg: 'surf', borderBottom: '1px solid token(colors.bd)' })}>
-      <div ref={stripRef} data-fade={fade} className={strip}>
+    <nav
+      aria-label="열린 화면"
+      className={css({ display: 'flex', bg: 'surf2', borderBottom: '1px solid token(colors.bd)' })}
+    >
+      <div
+        ref={stripRef}
+        data-fade={fade}
+        className={cx(strip, css({ flex: '1', minWidth: '0' }))}
+      >
         {shown.map((t) => {
           const on = t.screen === activeSection
           return (
@@ -201,17 +227,22 @@ export function TabBar() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
-                px: '11px',
+                height: '32px',
+                px: '10px 8px 10px 11px',
                 flex: 'none',
                 whiteSpace: 'nowrap',
-                borderBottom: '2px solid',
-                borderBottomColor: on ? 'pri' : 'transparent',
-                bg: on ? 'prev2' : 'transparent',
+                border: '1px solid',
+                borderColor: on ? 'bd' : 'transparent',
+                borderRadius: 'md',
+                bg: on ? 'surf' : 'transparent',
+                boxShadow: on ? '0 1px 3px rgba(16,24,40,.08)' : 'none',
+                _hover: { bg: on ? 'surf' : 'hov' },
               })}
             >
               <button
                 type="button"
                 onClick={() => navigate(t.path)}
+                aria-current={on ? 'page' : undefined}
                 title={t.path}
                 className={css({
                   border: '0',
@@ -221,8 +252,8 @@ export function TabBar() {
                   font: 'inherit',
                   textStyle: 'label',
                   fontWeight: on ? '700' : '500',
-                  color: on ? 'priD' : 'sub',
-                  maxWidth: '200px',
+                  color: on ? 'ink' : 'sub',
+                  maxWidth: '180px',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                 })}
@@ -276,6 +307,109 @@ export function TabBar() {
         })}
       </div>
 
+      <div
+        className={css({
+          display: 'flex',
+          alignItems: 'center',
+          gap: '3px',
+          flex: 'none',
+          minHeight: '43px',
+          px: '8px',
+          borderLeft: fade === 'none' ? '0' : '1px solid token(colors.bd)',
+          bg: 'surf2',
+        })}
+      >
+        {fade !== 'none' && (
+          <>
+            <button
+              type="button"
+              aria-label="이전 탭 보기"
+              disabled={fade === 'right'}
+              onClick={() => scroll(-1)}
+              className={css({
+                width: '28px',
+                height: '28px',
+                border: '0',
+                borderRadius: 'sm',
+                bg: 'transparent',
+                color: 'sub',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                _hover: { bg: 'hov', color: 'ink' },
+                _disabled: { color: 'faint2', cursor: 'default', opacity: '.55' },
+              })}
+            >
+              <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+                <path
+                  d="M7.5,2 L3.5,6 L7.5,10"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+            <button
+              type="button"
+              aria-label="다음 탭 보기"
+              disabled={fade === 'left'}
+              onClick={() => scroll(1)}
+              className={css({
+                width: '28px',
+                height: '28px',
+                border: '0',
+                borderRadius: 'sm',
+                bg: 'transparent',
+                color: 'sub',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                _hover: { bg: 'hov', color: 'ink' },
+                _disabled: { color: 'faint2', cursor: 'default', opacity: '.55' },
+              })}
+            >
+              <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+                <path
+                  d="M4.5,2 L8.5,6 L4.5,10"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          </>
+        )}
+
+        {shown.length > 1 && (
+          <button
+            type="button"
+            onClick={onCloseAll}
+            className={css({
+              height: '28px',
+              px: '9px',
+              border: '1px solid token(colors.bd)',
+              borderRadius: 'sm',
+              bg: 'surf',
+              color: 'sub',
+              cursor: 'pointer',
+              font: 'inherit',
+              textStyle: 'caption',
+              fontWeight: '600',
+              whiteSpace: 'nowrap',
+              _hover: { bg: 'hov', color: 'ink' },
+            })}
+          >
+            모두 닫기
+          </button>
+        )}
+      </div>
+
       <Dialog
         open={pending !== null}
         onCancel={() => setPending(null)}
@@ -289,6 +423,20 @@ export function TabBar() {
         confirmLabel="닫기"
         cancelLabel="계속 편집"
       />
-    </div>
+
+      <Dialog
+        open={closeAllOpen}
+        onCancel={() => setCloseAllOpen(false)}
+        onConfirm={() => {
+          closeAll()
+          setCloseAllOpen(false)
+        }}
+        tone="danger"
+        title="열린 탭을 모두 닫을까요?"
+        body={`저장하지 않은 탭 ${dirtyCount}개가 있습니다. 모두 닫으면 작성 중인 내용이 사라집니다.`}
+        confirmLabel="모두 닫기"
+        cancelLabel="계속 편집"
+      />
+    </nav>
   )
 }
