@@ -20,6 +20,7 @@ type ColumnStyle = {
   /** 고정 폭. 숫자·날짜처럼 폭이 정해진 열에 준다 */
   width?: string
   minWidth?: string
+  /** 본문 셀 정렬. 헤더는 열 종류와 무관하게 항상 중앙이다 */
   align?: 'left' | 'right' | 'center'
   /** 식별자 열처럼 굵게 */
   strong?: boolean
@@ -73,7 +74,7 @@ type IsAny<T> = 0 extends 1 & T ? true : false
  *
  * ⚠️ **`any` 도 막는다.** `any` 는 아래 검사를 그냥 통과하는데, 실제로 들어 있는 값이
  *    `boolean` 이면 **똑같이 빈 칸**이 된다 — 보증에 예외를 하나 남기면 그 예외가
- *    다음 사고의 자리가 된다 (docs/ARCHITECTURE.md §35.2).
+ *    다음 사고의 자리가 된다 (docs/ARCHITECTURE.md §35.3).
  */
 type FieldKey<Row> = {
   [K in keyof Row]-?: K extends string
@@ -115,7 +116,7 @@ const head = css({
   textStyle: 'label',
   fontWeight: '700',
   color: 'sub',
-  textAlign: 'left',
+  textAlign: 'center',
   bg: 'surf2',
   borderBottom: '1px solid token(colors.bd)',
   whiteSpace: 'nowrap',
@@ -161,7 +162,7 @@ export function Table<Row>({
                   key={c.key}
                   scope="col"
                   className={head}
-                  style={{ width: c.width, minWidth: c.minWidth, textAlign: c.align }}
+                  style={{ width: c.width, minWidth: c.minWidth }}
                 >
                   {/*
                     감출 때도 **글자는 DOM 에 남긴다.** 안 그리면 `<th>` 가 비어서 헤더로

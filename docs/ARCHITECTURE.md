@@ -3920,7 +3920,21 @@ export type Column<Row> = ColumnStyle &
 `render?: never` 가 판별자다. 이게 없으면 「필드 이름 + render 없음」 을 첫 가지가
 받아 버려 좁혀지지 않는다.
 
-### 35.2 ⚠️ `ReactNode` 로 좁히면 부족하다
+### 35.2 헤더와 본문은 정렬 기준이 다르다
+
+**헤더는 전부 중앙 정렬한다.** 짧은 한국어 열 제목이 좌·중·우로 섞이면 헤더 띠가
+울퉁불퉁하게 읽힌다. 반면 본문은 값의 비교 방식이 우선이라 `Column.align` 을 따른다.
+
+| 자리 | 정렬 |
+|---|---|
+| 헤더 | 항상 중앙 |
+| 이름·설명·날짜 | 좌측 |
+| 숫자·금액·비율 | 우측 |
+| 배지·상태·동작 | 중앙 |
+
+`align` 은 **본문 셀의 계약**이다. `<th>` 에 전달하지 않는다.
+
+### 35.3 ⚠️ `ReactNode` 로 좁히면 부족하다
 
 처음엔 `Row[K] extends ReactNode` 로 썼는데, **`ReactNode` 에는 `boolean` 이 들어 있고
 React 는 `true`/`false` 를 아무것도 그리지 않는다** — 타입은 통과하는데 칸은 비는,
@@ -3951,7 +3965,7 @@ type IsAny<T> = 0 extends 1 & T ? true : false
 > 더 막아야 한다. 시험하려면 `any` 가 필요해서 타입 테스트에서만 규칙을 끄고, 그 이유를
 > 그 자리에 적었다. **보증에 예외를 하나 남기면 그 예외가 다음 사고의 자리가 된다.**
 
-### 35.3 검사기는 `typecheck` 다
+### 35.4 검사기는 `typecheck` 다
 
 `Table.types.test.ts` 는 런타임에 아무것도 하지 않는다. **`@ts-expect-error` 는 오류가
 나지 않으면 그 자체로 오류**라, 타입이 헐거워지는 순간 `bun run typecheck` 이 깨진다.
@@ -3965,7 +3979,7 @@ type IsAny<T> = 0 extends 1 & T ? true : false
 **기존 위반은 0건이었다.** 「최근 접속」 이 유일했고 그때 고쳤다 — 이 절은 **다시 나지
 않게 하는 것**이지 새 버그를 고친 것이 아니다.
 
-### 35.4 미결 — `rowKey` 없는 표가 20개다
+### 35.5 미결 — `rowKey` 없는 표가 20개다
 
 `rowKey` 를 안 주면 React 키가 배열 인덱스가 된다. 문서에는 「정렬·필터에서 어긋난다」 고
 적혀 있는데, **지금 눈에 보이는 고장은 찾지 못했다** — 셀이 전부 무상태 렌더라 인덱스
@@ -4163,7 +4177,7 @@ type SwitchProps = SwitchBase &
 ```
 
 `Switch.types.test.ts` 가 `@ts-expect-error` 로 고정한다 — `hint?: never` 를 `hint?: string`
-으로 되돌리면 **`Unused '@ts-expect-error'`** 로 `typecheck` 이 깨진다. `Column`(§35.3)과
+으로 되돌리면 **`Unused '@ts-expect-error'`** 로 `typecheck` 이 깨진다. `Column`(§35.4)과
 같은 방식이고, 같은 이유다: **주석은 규칙의 제일 약한 형태다.**
 
 
