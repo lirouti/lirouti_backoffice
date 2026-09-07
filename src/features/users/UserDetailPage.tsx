@@ -34,6 +34,12 @@ import { useBanUser, useUser, type UserDetail } from '@/api/users'
 
 import { useViewer } from '@/stores/viewerStore'
 
+const embeddedTable = css({
+  borderWidth: '0',
+  borderRadius: '0',
+  '& tbody tr:last-child td': { borderBottom: '0' },
+})
+
 export default function UserDetailPage() {
   const { userId = '' } = useParams()
   const { data, isPending, error } = useUser(userId)
@@ -216,7 +222,7 @@ function Detail({ detail, userId }: { detail: UserDetail; userId: string }) {
               columns={LEDGER_COLUMNS}
               rows={ledger}
               minWidth={720}
-              className={css({ border: '0' })}
+              className={embeddedTable}
             />
           </Section>
 
@@ -226,7 +232,7 @@ function Detail({ detail, userId }: { detail: UserDetail; userId: string }) {
                 columns={ORDER_COLUMNS}
                 rows={orders}
                 minWidth={680}
-                className={css({ border: '0' })}
+                className={embeddedTable}
               />
             ) : (
               <Empty>결제 내역이 없습니다.</Empty>
