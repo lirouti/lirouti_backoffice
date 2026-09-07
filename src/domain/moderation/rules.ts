@@ -1,8 +1,8 @@
 /** 모더레이션 도메인 규칙. */
 import type { AiDay, AiReview, AiVerdict, Report, ReportState } from './types'
 
-/** 신고 목록 탭. **「대기」 가 기본**이다 — 이 화면에 오는 이유가 그것이다 */
-export const REPORT_TABS = ['대기', '처리 완료', '전체'] as const
+/** 신고 목록 탭. **「미검토」 가 기본**이다 — 이 화면에 오는 이유가 그것이다 */
+export const REPORT_TABS = ['미검토', '검토 완료', '전체'] as const
 export type ReportTab = (typeof REPORT_TABS)[number]
 
 /**
@@ -13,53 +13,101 @@ export type ReportTab = (typeof REPORT_TABS)[number]
  */
 export const reportCount = (r: Report): number => r.reporters.length
 
+/**
+ * 이 수 이상 신고가 쌓이면 **먼저 볼 것**이 된다.
+ *
+ * **고정이 소수여야 고정이다.** 3으로 낮추면 목 8건 중 6건이 걸리는데, 목록 대부분에
+ * 붙은 표시는 아무것도 구별하지 못한다.
+ *
+ * ⚠️ **넘겼다고 가려지지 않는다.** 이건 처분이 아니라 **보라는 신호**다 — 자동 숨김을
+ *    걷어낸 것이 이 정책의 출발점이다(§23.0).
+ * TODO(운영 설정 API 가 생기면): `ops` 설정 테이블의 한 행으로 뺀다
+ */
+export const REPORT_THRESHOLD = 5
+
+/**
+ * 기준치를 넘겼는가.
+ *
+ * ⚠️ **단조 증가다.** 신고를 취소하는 경로가 없어서 한 번 넘으면 계속 넘는다 —
+ *    「기준 초과」 는 시점이 아니라 **누적된 사실**이라, 검토를 마친 건에서도 지우지 않는다.
+ */
+export const isOverThreshold = (r: Report): boolean => reportCount(r) >= REPORT_THRESHOLD
+
 export function filterReports(list: Report[], tab: ReportTab): Report[] {
-  if (tab === '대기') return list.filter((r) => r.state === '대기')
-  if (tab === '처리 완료') return list.filter((r) => r.state !== '대기')
+  if (tab === '미검토') return list.filter((r) => r.state === '미검토')
+  if (tab === '검토 완료') return list.filter((r) => r.state !== '미검토')
   return list
+}
+
+/**
+ * 큐 순서. **먼저 볼 것이 위로 온다.**
+ *
+ * 자동 숨김이 없어진 뒤로 「빨리 보는 것」 이 유일한 방어선이라, 기준을 넘긴 미검토 건을
+ * 맨 위로 끌어올린다 (docs/ARCHITECTURE.md §23.4).
+ *
+ * ⚠️ **검토가 끝난 건은 기준을 넘겼어도 올리지 않는다.** 판단이 끝나 급할 것이 없고,
+ *    올리면 「먼저 볼 것」 신호가 희석된다.
+ *
+ * ⚠️ **원본 배열을 건드리지 않는다.** `Array#sort` 는 제자리 정렬이라 캐시된 배열을 그대로
+ *    넘기면 **다음 조회의 순서까지 바뀐다** (§25.2 에서 이미 밟은 함정).
+ */
+export function sortReports(list: Report[]): Report[] {
+  return [...list].sort(
+    (a, b) =>
+      queueRank(a) - queueRank(b) ||
+      reportCount(b) - reportCount(a) ||
+      b.at.localeCompare(a.at) ||
+      // 동률을 key 로 고정한다 — 새로고침마다 순서가 바뀌면 안 된다.
+      a.key - b.key,
+  )
 }
 
 /** 목록 위 지표 */
 export type ReportSummary = {
+  /**
+   * 기준 초과 & 미검토. **`waiting` 의 부분집합이다** — 둘을 더하면 안 된다.
+   * 이 화면에 온 이유라서 첫 칸에 놓는다.
+   */
+  urgent: number
   /** 아직 사람이 안 본 건수 */
   waiting: number
   /** 오늘 올라온 인증 중 신고된 건수 */
   today: number
-  kept: number
-  freed: number
+  /** 관리자가 실제로 내린 건수 */
+  hidden: number
 }
 
 /**
- * 지표. **거르기 전 전체로 낸다** — 탭마다 「검토 대기」 가 바뀌면 밀린 양이 아니라
+ * 지표. **거르기 전 전체로 낸다** — 탭마다 「우선 검토」 가 바뀌면 밀린 양이 아니라
  * 지금 보고 있는 탭의 행 수가 된다.
  *
  * @param today `YYYY-MM-DD`. 안에서 읽으면 테스트가 실행한 날에 따라 달라진다.
  */
 export function summarizeReports(list: Report[], today: string): ReportSummary {
-  const count = (s: ReportState): number => list.filter((r) => r.state === s).length
+  const waiting = list.filter((r) => r.state === '미검토')
   return {
-    waiting: count('대기'),
+    urgent: waiting.filter(isOverThreshold).length,
+    waiting: waiting.length,
     today: list.filter((r) => r.at.startsWith(today)).length,
-    kept: count('숨김 유지'),
-    freed: count('숨김 해제'),
+    hidden: list.filter((r) => r.state === '숨김').length,
   }
 }
 
 /**
  * 이 결정을 내릴 수 있는가.
  *
- * **이미 그 상태면 못 누른다.** 「숨김 유지」 인 건에 다시 「숨김 유지」 를 누르면
- * 아무 일도 안 일어나는데 버튼은 반응한 것처럼 보인다.
+ * **이미 그 상태면 못 누른다.** 「숨김」 인 건에 다시 「숨김」 을 누르면 아무 일도
+ * 안 일어나는데 버튼은 반응한 것처럼 보인다.
  *
- * ⚠️ **반대 결정은 막지 않는다.** 「오신고는 여기서 되돌립니다」 가 이 화면의 목적이라,
- *    한 번 유지로 확정한 건도 해제로 바꿀 수 있어야 한다.
+ * ⚠️ **반대 결정은 막지 않는다.** 잘못 내린 건을 되돌리는 것이 이 화면의 목적이라,
+ *    한 번 숨긴 건도 다시 노출로 바꿀 수 있어야 한다.
  */
 export const canDecide = (r: Report, next: ReportState): boolean => r.state !== next
 
 /**
  * 지금 보던 행이 목록에서 빠졌을 때 다음에 고를 행.
  *
- * 「대기」 탭에서 처리하면 그 행이 목록에서 사라진다. 아무것도 안 고르면 오른쪽이
+ * 「미검토」 탭에서 처리하면 그 행이 목록에서 사라진다. 아무것도 안 고르면 오른쪽이
  * 빈 화면이 되어 **매번 다음 건을 손으로 눌러야 한다** — 밀린 걸 훑는 화면에서
  * 그건 일을 두 배로 만든다.
  *
@@ -130,4 +178,10 @@ export function summarizeAi(days: AiDay[], list: AiReview[], today: string): AiS
     queued: list.filter((r) => r.verdict === '대기').length,
     avgSec: avgTookSec(list),
   }
+}
+
+/** 큐 묶음 번호. 낮을수록 위로 온다 */
+function queueRank(r: Report): number {
+  if (r.state !== '미검토') return 2
+  return isOverThreshold(r) ? 0 : 1
 }

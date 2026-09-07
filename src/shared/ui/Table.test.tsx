@@ -17,7 +17,9 @@ const columns: Column<Row>[] = [
 
 describe('Table 정렬', () => {
   it('헤더는 모두 중앙이고 본문만 열 정렬을 따른다', () => {
-    const { container } = render(<Table columns={columns} rows={[{ name: '깃털', count: 12 }]} />)
+    const { container } = render(
+      <Table columns={columns} rows={[{ name: '깃털', count: 12 }]} />,
+    )
     const heads = [...container.querySelectorAll('th')]
     const cells = [...container.querySelectorAll('td')]
 

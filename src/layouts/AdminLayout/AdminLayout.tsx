@@ -15,6 +15,7 @@ import { Dialog } from '@/shared/ui/Dialog'
 import { SkeletonPage } from '@/shared/ui/Skeleton'
 
 import { canAccess } from '@/domain/access'
+import type { NavAlerts } from '@/domain/nav'
 import { SCREENS } from '@/domain/screens'
 
 import { useBeforeUnloadWhenDirty } from '@/stores/dirtyStore'
@@ -31,7 +32,7 @@ import { useCurrentScreen, useFirstScreen } from './useScopedNav'
 import { useUnsavedNavGuard } from './useUnsavedNavGuard'
 import { ViewerBanner } from './ViewerBanner'
 
-export function AdminLayout() {
+export function AdminLayout({ alerts }: { alerts?: NavAlerts }) {
   const current = useCurrentScreen()
   const { pathname, search } = useLocation()
   const viewer = useViewer()
@@ -113,7 +114,7 @@ export function AdminLayout() {
     <div className={css({ display: 'flex', minHeight: '100vh' })}>
       {/* ⚠️ **DOM 에서 맨 앞이어야 한다** — Tab 한 번에 잡혀야 뜻이 있다 (§63.2) */}
       <SkipLink />
-      <Sidebar />
+      <Sidebar alerts={alerts} />
       <div
         className={css({ flex: '1', minWidth: '0', display: 'flex', flexDirection: 'column' })}
       >

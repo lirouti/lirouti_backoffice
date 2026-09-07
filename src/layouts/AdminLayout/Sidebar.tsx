@@ -3,7 +3,8 @@
  *
  * 트리는 `domain/nav` 에서 오고 권한 필터는 `useScopedNav` 가 한다.
  * ⚠️ **`layouts` 는 `api` 를 부를 수 없다** (docs/ARCHITECTURE.md §4.3). 로그아웃은 `setSignOutHandler`
- *    로 주입받는다 — 401 핸들러와 같은 패턴이다.
+ *    로 주입받는다 — 401 핸들러와 같은 패턴이고, 밀린 건수(`alerts`)도 같은 이유로
+ *    `app` 이 주입한다.
  */
 import { NavLink, useNavigate } from 'react-router'
 
@@ -13,15 +14,15 @@ import { LOGO } from '@/assets/brand'
 
 import { Icon } from '@/shared/ui/Icon'
 
-import { groupOf, type NavGroup } from '@/domain/nav'
-import { LOGIN_PATH, SCREENS, sectionOf } from '@/domain/screens'
+import { groupOf, type NavAlerts, type NavGroup } from '@/domain/nav'
+import { LOGIN_PATH, SCREENS, sectionOf, type ScreenId } from '@/domain/screens'
 
 import { useNavStore } from '@/stores/navStore'
 import { useViewer, useViewerStore } from '@/stores/viewerStore'
 
 import { useCurrentScreen, useScopedNav } from './useScopedNav'
 
-export function Sidebar() {
+export function Sidebar({ alerts }: { alerts?: NavAlerts }) {
   const navigate = useNavigate()
   const nav = useScopedNav()
   const current = useCurrentScreen()
@@ -79,7 +80,12 @@ export function Sidebar() {
         })}
       >
         {nav.map((g) => (
-          <Group key={g.label} group={g} isActiveGroup={activeGroup?.label === g.label} />
+          <Group
+            key={g.label}
+            group={g}
+            isActiveGroup={activeGroup?.label === g.label}
+            alerts={alerts}
+          />
         ))}
       </nav>
 
@@ -158,7 +164,15 @@ export function Sidebar() {
   )
 }
 
-function Group({ group, isActiveGroup }: { group: NavGroup; isActiveGroup: boolean }) {
+function Group({
+  group,
+  isActiveGroup,
+  alerts,
+}: {
+  group: NavGroup
+  isActiveGroup: boolean
+  alerts?: NavAlerts
+}) {
   const navigate = useNavigate()
   const current = useCurrentScreen()
   const open = useNavStore((s) => s.open[group.label])
@@ -270,26 +284,52 @@ function Group({ group, isActiveGroup }: { group: NavGroup; isActiveGroup: boole
               }}
             >
               <span>{SCREENS[c.screen].label}</span>
-              {c.count != null && (
-                <span
-                  className={css({
-                    ml: 'auto',
-                    textStyle: 'micro',
-                    fontWeight: '700',
-                    color: 'sub',
-                    bg: 'nBg',
-                    p: '1px 6px',
-                    borderRadius: 'xs',
-                  })}
-                >
-                  {c.count}
-                </span>
-              )}
+              <ChildBadge screen={c.screen} count={c.count} alert={alerts?.[c.screen]} />
             </NavLink>
           ))}
         </div>
       )}
     </div>
+  )
+}
+
+/**
+ * 서브 메뉴 오른쪽 숫자.
+ *
+ * **기다리는 건수가 있으면 그것만 그린다.** 둘을 나란히 놓으면 「50 · 3」 처럼 보여
+ * 어느 쪽이 지금 봐야 할 수인지 알 수 없다 (docs/ARCHITECTURE.md §23.6).
+ *
+ * ⚠️ **`0` 은 배지를 아예 안 그린다.** 「0건이 기다린다」 는 알릴 것이 없다는 뜻이다.
+ */
+function ChildBadge({
+  screen,
+  count,
+  alert,
+}: {
+  screen: ScreenId
+  count?: number
+  alert?: number
+}) {
+  const waiting = alert != null && alert > 0
+
+  if (!waiting && count == null) return null
+
+  return (
+    <span
+      // 색만으로 급한 것을 말하지 않는다 — 스크린리더는 「3」 만 읽으므로 뜻을 붙인다.
+      aria-label={waiting ? `${SCREENS[screen].label} 검토 대기 ${alert}건` : undefined}
+      className={css({
+        ml: 'auto',
+        textStyle: 'micro',
+        fontWeight: '700',
+        color: waiting ? 'rFg' : 'sub',
+        bg: waiting ? 'rBg' : 'nBg',
+        p: '1px 6px',
+        borderRadius: 'xs',
+      })}
+    >
+      {waiting ? alert : count}
+    </span>
   )
 }
 

@@ -72,10 +72,16 @@ describe('isRisky', () => {
 })
 
 describe('isUnchanged', () => {
-  // 「숨김 유지」 는 살펴보고 그대로 두기로 한 조작이다. 화살표로 그리면 바뀐 것처럼 읽힌다.
+  // 「노출 유지」 는 살펴보고 그대로 두기로 한 조작이다. 화살표로 그리면 바뀐 것처럼 읽힌다.
   it('⚠️ 앞뒤가 같으면 바뀐 것이 아니다', () => {
-    expect(isUnchanged(log({ kind: '숨김 유지', from: '숨김', to: '숨김' }))).toBe(true)
+    expect(isUnchanged(log({ kind: '노출 유지', from: '노출', to: '노출' }))).toBe(true)
     expect(isUnchanged(log({ from: '완료', to: '환불' }))).toBe(false)
+  })
+
+  // 자동 숨김을 걷어내면서 「그대로 두는 쪽」 이 반대로 뒤집혔다 —
+  // 이제 「숨김」 은 사진을 실제로 내리는 조작이라 화살표가 있어야 한다.
+  it('⚠️ 「숨김」 은 실제로 바뀌는 조작이다', () => {
+    expect(isUnchanged(log({ kind: '숨김', from: '노출', to: '숨김' }))).toBe(false)
   })
 })
 
