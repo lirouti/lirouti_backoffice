@@ -305,13 +305,7 @@ function WalletCell({ user }: { user: User }) {
 /** 작은 보석 윤곽. 두 재화는 같은 모양이고 색과 옆 라벨로 종류를 가른다 */
 function GemMark({ className }: { className: string }) {
   return (
-    <svg
-      width="12"
-      height="12"
-      viewBox="0 0 12 12"
-      aria-hidden="true"
-      className={className}
-    >
+    <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" className={className}>
       <path
         d="M3.3 2.2h5.4l2 3.1L6 10.2 1.3 5.3l2-3.1Z"
         fill="none"
