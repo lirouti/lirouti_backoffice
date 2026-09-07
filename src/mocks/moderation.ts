@@ -136,7 +136,7 @@ export function decideReport(key: number, next: ReportState): Report | undefined
  *
  * ⚠️ **원본은 이 값을 「승인」 막대 높이로 쓰면서 옆에 「대기」 를 쌓았다.** 그러면
  *    통과율 선(87%)의 분모가 화면 어디에도 없다 — 반려가 빠져 있기 때문이다.
- *    여기서는 **승인 + 반려**로 쌓아 선과 막대가 같은 것을 말하게 했다 (§23.3).
+ *    여기서는 **승인 + 반려**로 쌓아 선과 막대가 같은 것을 말하게 했다 (§23.8).
  */
 const RATE = [82, 76, 91, 88, 79, 94, 86, 90, 73, 88, 92, 85, 89, 87]
 const JUDGED = [
@@ -156,7 +156,7 @@ type ReviewRow = [time: string, who: string, title: string, tookSec: number | nu
  * 최근 심사. **대기 11건은 아침 인증이 몰린 08시대**라 아직 큐에 남아 있다.
  *
  * ⚠️ **「심사 대기」 지표를 이 목록에서 세므로 둘이 어긋날 수 없다.** 원본은 지표에
- *    11 을 적고 목록에는 대기 2건만 뒀다 (§23.3).
+ *    11 을 적고 목록에는 대기 2건만 뒀다 (§23.8).
  */
 // prettier-ignore
 const TODAY_REVIEWS: ReviewRow[] = [
