@@ -9,6 +9,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 
 import {
   canDecide,
+  sortReports,
   summarizeAi,
   summarizeReports,
   type AiDay,
@@ -36,11 +37,17 @@ export type ReportsResult = {
   summary: ReportSummary
 }
 
+/**
+ * ⚠️ **순서는 파사드가 정한다.** 화면이 정렬하면 탭마다 순서가 갈리고, 같은 목록을 두
+ *    곳에서 다르게 세게 된다. 지표도 **거르기 전 전체**로 내야 해서(§23.1) 어차피 여기서
+ *    전량을 손에 쥔다.
+ */
 export async function getReports(): Promise<ReportsResult> {
   if (USE_MOCK) {
     await mockDelay()
     const all = allReports()
-    return { reports: all, summary: summarizeReports(all, today()) }
+    // 지표는 정렬과 무관하지만, 같은 배열에서 내야 화면의 행 수와 어긋날 수 없다.
+    return { reports: sortReports(all), summary: summarizeReports(all, today()) }
   }
 
   // TODO(백엔드 스펙 확정 후): http.get<ReportsDto>('/admin/moderation/reports')
@@ -54,7 +61,10 @@ export function useReports() {
 export type DecideVars = { key: number; next: ReportState }
 
 /**
- * 신고 처리 — 숨김 유지 또는 숨김 해제.
+ * 신고 처리 — 숨김 또는 노출 유지.
+ *
+ * ⚠️ **「숨김」 만 실제로 무언가를 바꾼다.** 자동 숨김을 걷어낸 뒤로 사진을 내리는 경로는
+ *    이것 하나뿐이다 (docs/ARCHITECTURE.md §23.0).
  *
  * ⚠️ **열람 기록이 감사 로그에 남아야 한다.** 인증 사진은 개인 콘텐츠라, 누가 언제 열어
  *    무엇으로 판단했는지가 남지 않으면 이 화면 자체가 사각지대가 된다.

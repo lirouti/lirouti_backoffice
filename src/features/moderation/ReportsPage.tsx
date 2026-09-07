@@ -4,7 +4,13 @@
  * **한 화면에서 목록과 상세를 같이 본다.** 상세를 별도 라우트로 빼지 않은 이유는
  * 이게 훑는 화면이기 때문이다 — 밀린 신고를 위에서 아래로 처리하는 동안 왼쪽 큐가
  * 계속 보여야 몇 개 남았는지 알 수 있다 (docs/ARCHITECTURE.md §23.2).
+ *
+ * ⚠️ **신고만으로는 아무것도 가려지지 않는다.** 자동 숨김을 걷어냈으므로 여기서
+ *    「숨김」 을 누르기 전까지 사진은 앱에 계속 보인다 — 이 화면이 늦으면 그만큼
+ *    노출이 길어지고, 그건 되돌릴 수 없다 (§23.0).
  */
+import { useEffect, useRef, useState } from 'react'
+
 import { useSearchParams } from 'react-router'
 
 import { css } from 'styled-system/css'
@@ -23,11 +29,14 @@ import { StatTile } from '@/shared/ui/StatTile'
 import {
   canDecide,
   filterReports,
+  isOverThreshold,
   nextAfterRemoved,
   REPORT_STATE_TONE,
   REPORT_TABS,
   reportCount,
+  REPORT_THRESHOLD,
   type Report,
+  type Reporter,
   type ReportState,
   type ReportTab,
 } from '@/domain/moderation'
@@ -36,10 +45,10 @@ import { useDecide, useReports } from '@/api/moderation'
 
 const isTab = (v: string | null): v is ReportTab => REPORT_TABS.some((t) => t === v)
 
-/** 주소가 가리키는 탭. **기본은 「대기」** — 이 화면에 오는 이유가 그것이다 */
+/** 주소가 가리키는 탭. **기본은 「미검토」** — 이 화면에 오는 이유가 그것이다 */
 const tabOf = (p: URLSearchParams): ReportTab => {
   const v = p.get('tab')
-  return isTab(v) ? v : '대기'
+  return isTab(v) ? v : '미검토'
 }
 
 /**
@@ -75,6 +84,7 @@ export default function ReportsPage() {
   const decide = useDecide()
 
   const tab = tabOf(params)
+  // 순서는 파사드가 정해서 온다 (§23.4) — 여기서 다시 정렬하지 않는다.
   const rows = filterReports(data?.reports ?? [], tab)
   // URL 의 id 가 이 탭에 없을 수 있다 — 처리해서 빠졌거나 남이 보낸 링크다. 첫 행으로 떨어진다.
   const selected = rows.find((r) => String(r.key) === params.get('id')) ?? rows[0]
@@ -84,14 +94,14 @@ export default function ReportsPage() {
 
   const run = (next: ReportState) => {
     if (!selected) return
-    // 처리하면 「대기」 탭에서는 이 행이 빠진다. 다음 건을 미리 잡아 둬야 오른쪽이 비지 않는다.
+    // 처리하면 「미검토」 탭에서는 이 행이 빠진다. 다음 건을 미리 잡아 둬야 오른쪽이 비지 않는다.
     const after = nextAfterRemoved(rows, selected.key)
     decide.mutate(
       { key: selected.key, next },
       {
         onSuccess: () => {
           // 변이가 도는 사이에 탭을 옮겼을 수 있다. 거기서는 행이 그대로 남으므로 건드리지 않는다.
-          if (tabOf(liveParams()) !== '대기') return
+          if (tabOf(liveParams()) !== '미검토') return
           patch({ id: after === null ? '' : String(after) })
         },
       },
@@ -102,7 +112,7 @@ export default function ReportsPage() {
     <>
       <PageHeader
         title="신고 처리"
-        sub="자동으로 가려진 인증을 사람이 검토합니다. 오신고는 여기서 되돌립니다."
+        sub="신고가 쌓인 인증을 사람이 검토합니다. 가릴지는 여기서만 정합니다."
         actions={
           <>
             {/* TODO(운영 위키가 생기면): 처리 기준 문서로 나가는 외부 링크 (§18.8) */}
@@ -129,14 +139,18 @@ export default function ReportsPage() {
               mb: '16px',
             })}
           >
+            {/*
+              ⚠️ **「우선 검토」 는 「미검토」 의 부분집합이다.** 둘을 더하면 안 된다 —
+                 라벨에 기준치를 적어 두 칸이 같은 것을 다르게 세고 있음을 드러낸다.
+            */}
             <StatTile
-              label="검토 대기"
-              value={num(data.summary.waiting)}
-              alert={data.summary.waiting > 0}
+              label={`우선 검토 · 신고 ${REPORT_THRESHOLD}건+`}
+              value={num(data.summary.urgent)}
+              alert={data.summary.urgent > 0}
             />
+            <StatTile label="미검토" value={num(data.summary.waiting)} />
             <StatTile label="오늘 접수" value={num(data.summary.today)} />
-            <StatTile label="숨김 유지" value={num(data.summary.kept)} />
-            <StatTile label="숨김 해제" value={num(data.summary.freed)} />
+            <StatTile label="숨김" value={num(data.summary.hidden)} />
           </div>
 
           {decide.error && <ErrorBanner message={decide.error.message} />}
@@ -202,6 +216,8 @@ export default function ReportsPage() {
 }
 
 function QueueRow({ report: r, on, pick }: { report: Report; on: boolean; pick: () => void }) {
+  const urgent = isOverThreshold(r) && r.state === '미검토'
+
   return (
     <li>
       <button
@@ -217,7 +233,8 @@ function QueueRow({ report: r, on, pick }: { report: Report; on: boolean; pick: 
           p: '11px 15px',
           border: '0',
           borderLeft: '3px solid',
-          borderLeftColor: on ? 'pri' : 'transparent',
+          // 선택 표시가 우선순위 표시보다 앞선다 — 지금 어디를 보고 있는지가 먼저다.
+          borderLeftColor: on ? 'pri' : urgent ? 'rFg' : 'transparent',
           borderBottom: '1px solid token(colors.ln)',
           bg: on ? 'prev2' : 'transparent',
           cursor: 'pointer',
@@ -240,10 +257,18 @@ function QueueRow({ report: r, on, pick }: { report: Report; on: boolean; pick: 
           <Icon name="ic_image" size={18} />
         </span>
         <span className={css({ minWidth: '0', flex: '1' })}>
-          <span className={css({ display: 'flex', alignItems: 'center', gap: '6px' })}>
+          <span
+            className={css({
+              display: 'flex',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '6px',
+            })}
+          >
             <Badge tone={REPORT_STATE_TONE[r.state]} size="sm">
               {r.state}
             </Badge>
+            {urgent && <ThresholdBadge />}
             <span className={css({ textStyle: 'micro', color: 'faint' })}>
               신고 {num(reportCount(r))}건
             </span>
@@ -302,8 +327,17 @@ function Detail({
           })}
         >
           <div className={css({ flex: '1 1 260px', minWidth: '0' })}>
-            <div className={css({ display: 'flex', alignItems: 'center', gap: '8px' })}>
+            <div
+              className={css({
+                display: 'flex',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '8px',
+              })}
+            >
               <Badge tone={REPORT_STATE_TONE[r.state]}>{r.state}</Badge>
+              {/* 검토를 마쳐도 남긴다 — 신고가 많았다는 건 판단과 무관한 사실이다 (§23.3) */}
+              {isOverThreshold(r) && <ThresholdBadge size="md" />}
               <span
                 className={css({ fontFamily: 'mono', textStyle: 'caption', color: 'faint' })}
               >
@@ -327,17 +361,18 @@ function Detail({
           <div className={css({ display: 'flex', gap: '8px' })}>
             {/* 이미 그 상태인 쪽은 잠근다 — 눌러도 아무 일이 없는데 반응한 것처럼 보인다 */}
             <Button
-              onClick={() => onDecide('숨김 해제')}
-              disabled={busy || !canDecide(r, '숨김 해제')}
+              onClick={() => onDecide('노출 유지')}
+              disabled={busy || !canDecide(r, '노출 유지')}
             >
-              숨김 해제
+              노출 유지
             </Button>
+            {/* ⚠️ **사진을 실제로 내리는 유일한 버튼이다.** 나머지는 기록만 남긴다 */}
             <Button
               variant="danger"
-              onClick={() => onDecide('숨김 유지')}
-              disabled={busy || !canDecide(r, '숨김 유지')}
+              onClick={() => onDecide('숨김')}
+              disabled={busy || !canDecide(r, '숨김')}
             >
-              숨김 유지
+              숨김
             </Button>
           </div>
         </div>
@@ -401,7 +436,7 @@ function Detail({
         <Card className={css({ flex: '1 1 280px', minWidth: '0', p: '15px' })}>
           <CardTitle
             title={`신고자 ${num(reportCount(r))}명`}
-            sub="사유는 신고한 사람이 고른 값입니다."
+            sub="사유는 신고한 사람이 고르거나 직접 쓴 값입니다."
           />
           <ul
             className={css({
@@ -410,50 +445,11 @@ function Detail({
               p: '0',
               display: 'flex',
               flexDirection: 'column',
-              gap: '10px',
+              gap: '12px',
             })}
           >
             {r.reporters.map((p) => (
-              <li
-                key={`${p.nick}-${p.at}`}
-                className={css({ display: 'flex', alignItems: 'center', gap: '9px' })}
-              >
-                <span
-                  aria-hidden="true"
-                  className={css({
-                    flex: 'none',
-                    display: 'grid',
-                    placeItems: 'center',
-                    width: '28px',
-                    height: '28px',
-                    borderRadius: 'full',
-                    bg: 'avB',
-                    color: 'avF',
-                    textStyle: 'micro',
-                    fontWeight: '700',
-                  })}
-                >
-                  {p.nick.slice(0, 1)}
-                </span>
-                <span className={css({ flex: '1', minWidth: '0' })}>
-                  <span
-                    className={css({
-                      display: 'block',
-                      textStyle: 'label',
-                      fontWeight: '600',
-                      color: 'ink',
-                    })}
-                  >
-                    {p.nick}
-                  </span>
-                  <span
-                    className={css({ display: 'block', textStyle: 'micro', color: 'faint' })}
-                  >
-                    {short(p.at)}
-                  </span>
-                </span>
-                <Badge size="sm">{p.why}</Badge>
-              </li>
+              <ReporterRow key={`${p.nick}-${p.at}`} reporter={p} />
             ))}
           </ul>
         </Card>
@@ -475,7 +471,7 @@ function Detail({
             <Row k="제재 이력" v={r.author.bans > 0 ? `${num(r.author.bans)}회` : '없음'} />
           </dl>
           <div className={css({ mt: '13px' })}>
-            {/* TODO(제재 API 가 생기면): 기간·사유를 받는 확인 창을 띄운다 (§18.8) */}
+            {/* TODO(제재 정책이 정해지면): 기간·사유를 받는 확인 창을 띄운다 (§18.8) */}
             <Button variant="danger" disabled>
               이 회원 제재하기 · 준비 중
             </Button>
@@ -483,6 +479,146 @@ function Detail({
         </Card>
       </div>
     </div>
+  )
+}
+
+/**
+ * 신고가 기준치를 넘겼다는 표시.
+ *
+ * ⚠️ **건수를 적지 않는다.** 바로 옆에 「신고 7건」 이 있어서 「기준 초과 7건」 으로 쓰면
+ *    같은 수를 두 번 세는 것처럼 읽힌다.
+ */
+function ThresholdBadge({ size = 'sm' }: { size?: 'sm' | 'md' }) {
+  return (
+    <Badge tone="danger" size={size}>
+      기준 초과
+    </Badge>
+  )
+}
+
+/**
+ * 신고자 한 명. **정해진 사유는 배지, 「기타」 본문은 인용 블록**이다.
+ *
+ * ⚠️ **본문을 배지로 그리면 안 된다.** `Badge` 는 `white-space: nowrap` 이라 문장 하나가
+ *    한 줄로 늘어나 카드를 밀어낸다 (docs/ARCHITECTURE.md §23.7).
+ */
+function ReporterRow({ reporter: p }: { reporter: Reporter }) {
+  const [open, setOpen] = useState(false)
+  const [clipped, setClipped] = useState(false)
+  const quote = useRef<HTMLQuoteElement>(null)
+
+  /*
+    ⚠️ **글자 수로 어림하지 않는다.** 「60자 넘으면 붙인다」 로 두면 세 줄에 딱 맞는 글에도
+       눌러 봐야 아무 일도 없는 버튼이 붙는다 (§18.8). 카드 폭이 `flex` 라 한 줄에 들어가는
+       글자 수도 창 크기마다 달라서, 넘쳤는지는 **재야만** 안다.
+
+    펼친 동안에는 재지 않는다 — 클램프가 풀려 있어 `scrollHeight === clientHeight` 라,
+    재면 "안 넘쳤다" 가 되어 접을 버튼이 사라진다.
+  */
+  useEffect(() => {
+    const el = quote.current
+    if (!el || open) return
+
+    const measure = () => setClipped(el.scrollHeight > el.clientHeight)
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [open, p.detail])
+
+  return (
+    <li className={css({ display: 'flex', flexDirection: 'column', gap: '6px' })}>
+      <div className={css({ display: 'flex', alignItems: 'center', gap: '9px' })}>
+        <span
+          aria-hidden="true"
+          className={css({
+            flex: 'none',
+            display: 'grid',
+            placeItems: 'center',
+            width: '28px',
+            height: '28px',
+            borderRadius: 'full',
+            bg: 'avB',
+            color: 'avF',
+            textStyle: 'micro',
+            fontWeight: '700',
+          })}
+        >
+          {p.nick.slice(0, 1)}
+        </span>
+        <span className={css({ flex: '1', minWidth: '0' })}>
+          <span
+            className={css({
+              display: 'block',
+              textStyle: 'label',
+              fontWeight: '600',
+              color: 'ink',
+            })}
+          >
+            {p.nick}
+          </span>
+          <span className={css({ display: 'block', textStyle: 'micro', color: 'faint' })}>
+            {short(p.at)}
+          </span>
+        </span>
+        <Badge size="sm">{p.why}</Badge>
+      </div>
+
+      {p.detail && (
+        <div
+          className={css({ pl: '37px', display: 'flex', flexDirection: 'column', gap: '4px' })}
+        >
+          <blockquote
+            ref={quote}
+            // 세 줄에서 자른다. Panda 가 `WebkitBoxOrient` 를 모르므로 인라인으로 준다 —
+            // 값이 고정이라 정적 추출이 필요 없다.
+            className={css({
+              display: open ? 'block' : '-webkit-box',
+              overflow: 'hidden',
+              m: '0',
+              p: '7px 11px',
+              borderLeft: '3px solid token(colors.bd)',
+              // 왼쪽은 인용 막대라 각지게 둔다 — 오른쪽만 깎는다.
+              borderTopRightRadius: 'xs',
+              borderBottomRightRadius: 'xs',
+              bg: 'prev',
+              textStyle: 'caption',
+              color: 'sub',
+              // 유저가 쓴 글이라 줄바꿈이 들어 있다. 그대로 살리되 긴 단어는 접는다.
+              whiteSpace: 'pre-wrap',
+              overflowWrap: 'anywhere',
+            })}
+            style={open ? undefined : { WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}
+          >
+            {p.detail}
+          </blockquote>
+          {clipped && (
+            <button
+              type="button"
+              onClick={() => setOpen((v) => !v)}
+              aria-expanded={open}
+              className={css({
+                alignSelf: 'flex-start',
+                border: '0',
+                bg: 'transparent',
+                p: '0',
+                textStyle: 'micro',
+                fontWeight: '700',
+                color: 'priD',
+                cursor: 'pointer',
+                _hover: { textDecoration: 'underline' },
+                _focusVisible: {
+                  outline: '2px solid token(colors.ringBd)',
+                  outlineOffset: '2px',
+                },
+              })}
+            >
+              {open ? '접기' : '전문 보기'}
+            </button>
+          )}
+        </div>
+      )}
+    </li>
   )
 }
 

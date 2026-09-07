@@ -13,6 +13,18 @@ export type NavChild = {
   count?: number
 }
 
+/**
+ * 화면별 **지금 사람을 기다리는 건수**. 셸이 밖에서 주입받는다.
+ *
+ * ⚠️ **`NavChild.count` 와 다른 것을 센다.** `count` 는 「그 화면에 항목이 몇 개 있는가」
+ *    라 늘 같은 값이고, 이건 「그중 몇 개가 나를 기다리는가」 다. 그래서 색도 다르다 —
+ *    앞은 회색, 이건 위험색이다.
+ *
+ * ⚠️ **0 은 넣지 않는다.** 「0건이 기다린다」 를 배지로 그리면 아무 일도 없다는 사실을
+ *    눈에 띄게 알리는 꼴이라, 배지가 눈에 띄는 이유 자체가 사라진다.
+ */
+export type NavAlerts = Partial<Record<ScreenId, number>>
+
 export type NavGroup = {
   label: string
   icon: IconId
@@ -29,7 +41,9 @@ export const NAV: NavGroup[] = [
     label: '모더레이션',
     icon: 'ic_shield2',
     scope: 'mod',
-    children: [{ screen: 'mod', count: 5 }, { screen: 'ai' }],
+    // ⚠️ **`count` 를 두지 않는다.** 여기는 밀린 신고 수가 실제로 들어오는 자리라
+    //    (`NavAlerts`), 박아 둔 숫자를 같이 그리면 둘 중 어느 것이 사실인지 알 수 없다.
+    children: [{ screen: 'mod' }, { screen: 'ai' }],
   },
   {
     label: '캐릭터',
