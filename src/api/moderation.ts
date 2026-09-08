@@ -127,7 +127,7 @@ export function useAi() {
  * 자동 심사를 켜고 끈다.
  *
  * ⚠️ **끄면 모든 인증이 심사 없이 즉시 승인된다.** 되돌릴 수 없는 종류의 설정이라
- *    화면에서 확인 창을 한 번 받는다 (§23.4).
+ *    화면에서 확인 창을 한 번 받는다 (§23.9).
  */
 export async function toggleAi(on: boolean): Promise<boolean> {
   if (USE_MOCK) {

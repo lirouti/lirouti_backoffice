@@ -60,7 +60,7 @@ export const isRisky = (log: AuditLog): boolean => RISKY_KINDS.includes(log.kind
  *
  * ⚠️ **자동 숨김을 걷어내면서 해당되는 조작이 반대로 뒤집혔다.** 예전에는 「숨김 유지」
  *    가 `숨김 → 숨김` 이라 안 바뀌는 쪽이었는데, 지금은 「숨김」 이 `노출 → 숨김` 으로
- *    **실제로 사진을 내린다** — 여기에 화살표가 없으면 안 된다 (§23.2).
+ *    **실제로 사진을 내린다** — 여기에 화살표가 없으면 안 된다 (§23.0).
  */
 export const isUnchanged = (log: AuditLog): boolean => log.from === log.to
 

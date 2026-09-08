@@ -2,7 +2,7 @@
  * AI 심사 — 자동 심사 현황과 스위치.
  *
  * **끄는 것이 위험한 화면이다.** 꺼지면 모든 인증이 심사 없이 승인되므로 확인 창을
- * 한 번 받는다 (docs/ARCHITECTURE.md §23.4).
+ * 한 번 받는다 (docs/ARCHITECTURE.md §23.9).
  */
 import { useState } from 'react'
 
@@ -61,7 +61,7 @@ const COLUMNS: Column<AiReview>[] = [
     labelHidden: true,
     width: '72px',
     align: 'right',
-    // TODO(사진 열람 API 가 생기면): 신고 처리와 같은 열람 규칙을 따른다 (§23.2)
+    // TODO(사진 열람 API 가 생기면): 신고 처리와 같은 열람 규칙을 따른다 (§23.5)
     render: () => <Button disabled>보기 · 준비 중</Button>,
   },
 ]

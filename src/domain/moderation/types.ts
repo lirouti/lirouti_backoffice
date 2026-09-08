@@ -99,7 +99,7 @@ export type Report = {
   author: AuthorHistory
 }
 
-/** AI 심사 결과. **「반려」 가 없다** — 반려는 기록을 남기지 않는다 (§23.3) */
+/** AI 심사 결과. **「반려」 가 없다** — 반려는 기록을 남기지 않는다 (§23.8) */
 export type AiVerdict = '승인' | '대기'
 
 export type AiReview = {
@@ -121,7 +121,7 @@ export type AiReview = {
  * 하루치 심사 집계.
  *
  * ⚠️ **반려는 건수만 안다.** 어느 회원의 무엇이 왜 반려됐는지는 남지 않아서
- *    `AiReview` 목록에는 나타나지 않는다 (§23.3). 통과율을 낼 수 있는 것은
+ *    `AiReview` 목록에는 나타나지 않는다 (§23.8). 통과율을 낼 수 있는 것은
  *    심사 API 가 성공·실패 **수**는 세기 때문이다.
  */
 export type AiDay = {
