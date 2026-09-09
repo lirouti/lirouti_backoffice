@@ -1,8 +1,8 @@
 # 리루티 운영 어드민 — 아키텍처 설계
 
-> 상태: **골격 구축 완료** — 셸 + 지표 화면 동작, 나머지 화면은 라우트 + placeholder
+> 상태: **화면 56개 전부 구현** — 남은 것은 화면이 아니라 §11 「아직 열려 있는 것」 이다 (§12)
 > 기준 디자인: Claude Design `리루티` 프로젝트 / `리루티 운영 어드민.dc.html` + `riruti-assets.js`
-> 최종 수정: 2026-08-25
+> 최종 수정: 2026-09-09
 
 ```bash
 bun install
@@ -292,9 +292,9 @@ lirouti_backoffice/
    ├─ assets/                     # `bun run assets` 생성물 — brand/ 만 예외
    │  ├─ brand/logo.png           #   손으로 두고 커밋한다 (§8.3)
    │  ├─ icons/                   #   ic_* 15개 + index.ts (ICONS · IconId)
-   │  └─ images/                  #   as_*/rg*/nst* 50개 + index.ts (IMAGES · AssetId)
+   │  └─ images/                  #   as_*/rg*/nst* 81개 + index.ts (IMAGES · AssetId)
    ├─ app/                        # 조립 지점. 위쪽 층을 전부 import 하는 유일한 곳
-   │  ├─ router.tsx               #   45개 화면 라우트 + lazy 등록
+   │  ├─ router.tsx               #   56개 화면 라우트 + lazy 등록
    │  └─ RequireAuth.tsx          #   미인증 차단 + 원래 목적지 기억 (§16.1)
    ├─ layouts/
    │  └─ AdminLayout/             # 어드민 셸 — `<Outlet/>` 바깥
@@ -307,7 +307,7 @@ lirouti_backoffice/
    │  ├─ dashboard/               # DashboardPage · TopItemsCard · LiveChallengesCard
    │  ├─ security/                # SecurityPage · TotpCard · EnrollWizard
    │  │                           # · BackupCodesPanel · CopyButton (§16.3)
-   │  └─ PlaceholderPage.tsx      # 미구현 43개 화면이 공유 — 특정 화면 소유가 아니라 평평하다
+   │  └─ PlaceholderPage.tsx      # 미구현 화면의 안전망 — 쓰는 화면은 지금 0 이다 (§12)
    ├─ entities/                   # 도메인 타입을 받는 공용 UI (§4.4.2)
    │  └─ asset/                   # AssetPicker — 아이템 폼과 업적 폼이 함께 쓴다
    ├─ stores/                     # localStorage 에 붙는 전역 UI 상태
@@ -1177,8 +1177,8 @@ manualChunks: (id) => (/node_modules\/recharts/.test(id) ? 'charts' : undefined)
 |---|---|---|---|
 | 1 | 도메인 상태값 표기 (§7.3) | **코드값 + 라벨 매핑** | `domain/<entity>/types.ts` 에 `'VISIBLE'` 등으로 정의, 한글은 같은 폴더의 `labels.ts`. 배지 tone 분기도 여기로 모았다 |
 | 2 | 디자인 원본 | **커밋하지 않는다 (`design/` gitignore)** | 대신 **산출물**(`src/assets/icons`·`images`)을 커밋한다. 입력과 산출물을 둘 다 빼면 깨끗한 클론에서 `@/assets/icons` 가 없어 빌드가 안 된다 — 둘 중 하나는 저장소에 있어야 한다. 포팅·재생성이 필요하면 Claude Design 에서 내려받아 `design/` 에 두고 `bun run assets` |
-| 3 | Pretendard | **CDN + SRI** | `/gh/` 경로는 GitHub **태그**를 서빙해서 태그가 옮겨지면 같은 URL 이 다른 내용을 준다. `integrity` 로 바이트를 고정했다(변조 시 브라우저가 차단하는 것까지 확인). ⚠️ SRI 는 CSS 만 덮고 그 CSS 가 부르는 **woff2 2.0MB 는 못 덮는다** — 완전히 닫으려면 self-host 여야 하고, 폐쇄망 요구와 함께 처리한다 |
-| 4 | 나머지 20개 화면 | **착수 시점에 하나씩** | 지금은 라우트 + placeholder |
+| 3 | Pretendard | **self-host** | `bun run font` 가 받아 `public/fonts/` 에 둔다. CDN + SRI 였으나 **SRI 는 CSS 만 덮고 그 CSS 가 부르는 woff2 는 못 덮어서** 완전히 닫으려면 self-host 여야 했다 — 이제 외부 요청이 0 이다. 전환하다 **토큰이 부르는 `Pretendard` 라는 이름이 어디에도 정의돼 있지 않아 첫 커밋 이후 줄곧 fallback 으로 그려지고 있던 것**을 찾았다 (§61) |
+| 4 | 나머지 화면 | **전부 구현됨** | 56개가 모두 `IMPLEMENTED` 에 등록됐다 — placeholder 로 남은 화면이 없다 (§12) |
 | 5 | 로그인 화면 | **구현됨** | 비밀번호 → TOTP 2단계 (§16) |
 | 6 | 2단계 인증 등록 | **구현됨** | `/security`. 디자인 원본에 없어 새로 그렸다 (§16.3) |
 
@@ -1195,25 +1195,26 @@ manualChunks: (id) => (/node_modules\/recharts/.test(id) ? 'charts' : undefined)
 
 ## 12. 현재 상태
 
-**동작 확인됨** (`bun run typecheck` · `bun run build` 통과, 브라우저 렌더 확인)
+**동작 확인됨** (`bun run typecheck` · `bun run test` · `bun run lint` · `bun run build` 전부 통과, 브라우저 렌더 확인)
 
-- 셸: 사이드바(15그룹, 접힘 상태 저장) · 헤더 · 브레드크럼 · 탭바 · 테마 토글 · 뷰어 배너
-- 지표 화면: KPI 6 · DAU 라인 차트 · 젬 유입·소비 바 차트 · 인기 아이템 TOP 5 · 진행 중 챌린지 달성률
+- 셸: 사이드바(15그룹, 접힘 상태 저장) · 헤더 · 브레드크럼 · 탭바 + 탭 도구막대(§64) · 커맨드 팔레트(§36) · 테마 토글 · 뷰어 배너
+- **화면 56개 전부 구현** — `IMPLEMENTED` 에 빠진 화면이 없다. `PlaceholderPage` 를 쓰는 화면은 현재 0 이지만 지우지 않는다: §4.5 의 등록 절차가 「등록 전에는 placeholder 로 뜬다」 를 전제한다
 - 라이트/다크 전환, FOUC 방지 포함
-- 45개 화면 전부 라우트 등록 — 구현 2개(`dash` · `security`), 나머지 43개는 placeholder
-- 탭 섹션 접힘 검증: `/items/3` 진입 시 탭은 "아이템 목록" 하나, 사이드바는 부모 항목 활성
-- 번들 (**현재 수치의 단일 출처.** §9.2·§9.3 의 표는 결정 당시의 A/B 값이다): **첫 로드 143KB gzip** — 엔트리 + 공용 청크 + CSS. 화면은 라우트 단위 lazy 라 `DashboardPage` 111KB gzip(recharts 포함) · `SecurityPage` 10KB gzip 은 그 화면에 들어갈 때 받는다
-- 에셋 SVG 50개는 개별 파일로 방출 — 대시보드 최초 로드에서 실제 요청은 **4건 / 22KB**
+- 접근성: Lighthouse Accessibility 100 (화면 56개) — 점수가 아니라 검사 목록으로 본다 (§38). 자동 검사가 못 보는 자리는 손으로 훑었다 (§63)
+- 테스트: **58파일 826개 통과** — `domain/` 순수 층 + 조각 단위 컴포넌트 테스트 (§60)
+- 검사 여섯 (`bun run lint`, 오류 0): ESLint · 선언 순서 · 명암비 · 토큰 이름 · 주석 · 문서
+- 번들 (**현재 수치의 단일 출처.** §9.2·§9.3 의 표는 결정 당시의 A/B 값이다): **첫 로드 161.23KB gzip / 예산 200KB (여유 38.77KB)** — 엔트리 + 공용 청크 + CSS. 화면은 라우트 단위 lazy 라 대시보드의 차트 청크(가장 큰 `CartesianChart` 86KB gzip 을 포함해 합 ~117KB) · `SecurityPage` 10KB gzip 은 그 화면에 들어갈 때 받는다
+- 에셋 이미지 SVG 81개는 개별 파일로 방출하고, 아이콘 15개는 컴포넌트로 인라인한다 (§8.4) — 화면은 자기가 쓰는 것만 요청한다
 - **`design/` 없이도 클린 체크아웃에서 빌드된다** — 에셋 산출물을 커밋하기 때문 (임시 디렉터리에 `git checkout-index` 후 `bun install && bun run build` 로 검증)
-
 - 레이어 순환 없음 — import 전수 스캔으로 확인했고, ESLint 로 강제한다 (§4.3 · §4.6)
 
-**다음**
+**다음** — 남은 것은 **화면이 아니다.** §11 「아직 열려 있는 것」 이 그대로 다음 목록이다.
 
-1. 에셋 원본 재수급 후 `bun run assets` 재실행 (`as_face_9` 복구, `nb3` 확인)
-2. `shared/ui` 2단계 — Table · Pagination · EmptyState · Field/Input/Select · Segmented
-3. 아이템 목록/상세 (`riruti-admin-items.dc.html`) — 필터를 `useSearchParams` 로 (§6.1)
-4. 챌린지 · 회원 · 결제 순으로 확장
+1. 제재 정책 — 기간·사유·스코프가 미정이라 버튼을 잠근 채 뒀다 (§23.11)
+2. 권한 서버 검증 — 지금은 localStorage 기반 UI 게이팅일 뿐이다 (§10)
+3. 화면 하나를 통째로 렌더하는 테스트 — 렌더 비용과 목 정책이 별도 결정이라 미뤘다 (§60)
+4. 패스키(WebAuthn) — 비번+TOTP 를 대체하는 별도 경로 (§16.5)
+5. 에셋 원본 재수급 후 `bun run assets` 재실행 (`as_face_9` 복구, `nb3` 확인) (§8)
 
 ---
 
