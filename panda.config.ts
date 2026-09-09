@@ -158,6 +158,17 @@ export default defineConfig({
           soft: { value: { base: '#EAF2FE', _dark: '#1C2C46' } },
           /** 차트 2계열 (소비 바) */
           chart: { value: { base: '#B9D3F8', _dark: '#2E5691' } },
+          /**
+           * 쌓는 막대의 **둘째 계열** (AI 심사의 반려).
+           *
+           * ⚠️ **`aFg` 를 막대에 칠하지 말 것.** 그건 `aBg` 위에 얹는 **글자색**이라
+           *    큰 면적으로 칠하면 탁한 갈색 덩어리가 된다 — 실제로 그렇게 쓰고 있었다
+           *    (docs/ARCHITECTURE.md §65). 여기 있는 것은 **칠하는 색**이다.
+           *
+           * 비텍스트 3:1 을 넘긴다 — 라이트 3.42:1 · 다크 6.30:1 (표면 위).
+           * `chart` 와는 색상(파랑↔금색)으로 갈리므로 명암비로 가를 필요가 없다.
+           */
+          chart2: { value: { base: '#B8801F', _dark: '#CE9433' } },
           /** pri 위 텍스트 */
           onPri: { value: { base: '#ffffff', _dark: '#0E1420' } },
 
