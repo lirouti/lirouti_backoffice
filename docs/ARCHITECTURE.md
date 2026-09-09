@@ -1203,7 +1203,7 @@ manualChunks: (id) => (/node_modules\/recharts/.test(id) ? 'charts' : undefined)
 - 접근성: Lighthouse Accessibility 100 (화면 56개) — 점수가 아니라 검사 목록으로 본다 (§38). 자동 검사가 못 보는 자리는 손으로 훑었다 (§63)
 - 테스트: **58파일 827개 통과** — `domain/` 순수 층 + 조각 단위 컴포넌트 테스트 (§60)
 - 검사 일곱 (`bun run lint`, 오류 0): ESLint · 선언 순서 · 명암비 · 토큰 이름 · 표 정렬 · 주석 · 문서
-- 번들 (**현재 수치의 단일 출처.** §9.2·§9.3 의 표는 결정 당시의 A/B 값이다): **첫 로드 161.32KB gzip / 예산 200KB (여유 38.68KB)** — 엔트리 + 공용 청크 + CSS. 화면은 라우트 단위 lazy 라 대시보드의 차트 청크(가장 큰 `CartesianChart` 86KB gzip 을 포함해 합 ~117KB) · `SecurityPage` 10KB gzip 은 그 화면에 들어갈 때 받는다
+- 번들 (**현재 수치의 단일 출처.** §9.2·§9.3 의 표는 결정 당시의 A/B 값이다): **첫 로드 161.30KB gzip / 예산 200KB (여유 38.70KB)** — 엔트리 + 공용 청크 + CSS. 화면은 라우트 단위 lazy 라 대시보드의 차트 청크(가장 큰 `CartesianChart` 86KB gzip 을 포함해 합 ~117KB) · `SecurityPage` 10KB gzip 은 그 화면에 들어갈 때 받는다
 - 에셋 이미지 SVG 81개는 개별 파일로 방출하고, 아이콘 15개는 컴포넌트로 인라인한다 (§8.4) — 화면은 자기가 쓰는 것만 요청한다
 - **`design/` 없이도 클린 체크아웃에서 빌드된다** — 에셋 산출물을 커밋하기 때문 (임시 디렉터리에 `git checkout-index` 후 `bun install && bun run build` 로 검증)
 - 레이어 순환 없음 — import 전수 스캔으로 확인했고, ESLint 로 강제한다 (§4.3 · §4.6)
