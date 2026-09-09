@@ -86,6 +86,7 @@ const COLUMNS: Column<Item>[] = [
     key: 'tier',
     label: '등급',
     width: '70px',
+    align: 'center',
     render: (it) => <Badge tone={TIER_TONE[it.tier]}>{TIER_LABEL[it.tier]}</Badge>,
   },
   { key: 'price', label: '가격', width: '96px', render: (it) => gem(it.price) },
@@ -115,6 +116,7 @@ const COLUMNS: Column<Item>[] = [
     key: 'status',
     label: '상태',
     width: '84px',
+    align: 'center',
     render: (it) => (
       <Badge tone={ITEM_STATUS_TONE[it.status]}>{ITEM_STATUS_LABEL[it.status]}</Badge>
     ),

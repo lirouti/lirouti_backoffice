@@ -110,6 +110,7 @@ export default function GemsPage() {
       key: 'status',
       label: '상태',
       width: '86px',
+      align: 'center',
       render: (p) => <Badge tone={GEM_STATUS_TONE[p.status]}>{p.status}</Badge>,
     },
   ]

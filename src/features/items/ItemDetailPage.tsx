@@ -44,6 +44,7 @@ const LEDGER_COLUMNS: Column<LedgerEntry>[] = [
     key: 'kind',
     label: '유형',
     width: '80px',
+    align: 'center',
     render: (e) => <Badge tone={LEDGER_KIND_TONE[e.kind]}>{LEDGER_KIND_LABEL[e.kind]}</Badge>,
   },
   { key: 'target', label: '대상', width: '130px', strong: true },

@@ -53,12 +53,14 @@ export default function NoticesPage() {
       key: 'pinned',
       label: '고정',
       width: '70px',
+      align: 'center',
       render: (r) => (r.notice.pinned ? <Badge size="sm">고정</Badge> : null),
     },
     {
       key: 'status',
       label: '상태',
       width: '90px',
+      align: 'center',
       render: (r) => (
         <Badge tone={PERIOD_STATUS_TONE[r.status]}>{NOTICE_STATUS_LABEL[r.status]}</Badge>
       ),

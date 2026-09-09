@@ -396,6 +396,7 @@ const COLUMNS: Column<AuditLog>[] = [
     key: 'kind',
     label: '조작',
     width: '126px',
+    align: 'center',
     render: (l) => <Badge tone={AUDIT_KIND_TONE[l.kind]}>{l.kind}</Badge>,
   },
   { key: 'target', label: '대상', minWidth: '180px', truncate: true },

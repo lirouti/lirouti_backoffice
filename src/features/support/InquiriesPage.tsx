@@ -68,6 +68,7 @@ export default function InquiriesPage() {
       key: 'category',
       label: '분류',
       width: '84px',
+      align: 'center',
       render: (i) => <Badge tone={INQUIRY_CATEGORY_TONE[i.category]}>{i.category}</Badge>,
     },
     {
@@ -123,6 +124,7 @@ export default function InquiriesPage() {
       key: 'status',
       label: '상태',
       width: '92px',
+      align: 'center',
       render: (i) => <Badge tone={INQUIRY_STATUS_TONE[i.status]}>{i.status}</Badge>,
     },
     { key: 'assignee', label: '담당', width: '90px', render: (i) => i.assignee || '미배정' },

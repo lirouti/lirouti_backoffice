@@ -23,7 +23,7 @@ bun run dev       # http://localhost:5173
 
 ## 검사
 
-`bun run lint` 는 여섯을 돌린다. 규칙을 문서에만 두면 새어 나가므로 전부 강제한다.
+`bun run lint` 는 일곱을 돌린다. 규칙을 문서에만 두면 새어 나가므로 전부 강제한다.
 
 | | 무엇을 |
 |---|---|
@@ -31,6 +31,7 @@ bun run dev       # http://localhost:5173
 | `scripts/check-order.ts` | 파일·컴포넌트 안 선언 순서 |
 | `scripts/check-contrast.ts` | 디자인 토큰 명암비 (WCAG AA, 라이트·다크) |
 | `scripts/check-tokens.ts` | 스타일 prop이 쓰는 토큰 이름의 실재 여부 |
+| `scripts/check-table-align.ts` | 표의 배지·동작 열 정렬 (§35.2) |
 | `scripts/check-comments.ts` | 주석의 자리와 형식 (§17) |
 | `scripts/check-docs.ts` | 문서 규약 (코드 펜스 언어 · 문서 상호참조) |
 
@@ -43,7 +44,7 @@ bun run dev       # http://localhost:5173
 
 ⚠️ **둘 다 gitignore 라 이 저장소에는 없다.** 새로 클론했다면 팀에서 받아 루트에 둔다.
 없어도 빌드는 되지만, 에이전트가 이 저장소의 규약(레이어 경계 · 선언 순서 · 주석 형식 ·
-검사 여섯 개)을 모르는 채로 코드를 쓴다.
+검사 일곱 개)을 모르는 채로 코드를 쓴다.
 
 ## 생성물
 

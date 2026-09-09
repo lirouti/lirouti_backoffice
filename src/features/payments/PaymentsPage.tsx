@@ -231,6 +231,7 @@ const COLUMNS: Column<Payment>[] = [
     key: 'status',
     label: '상태',
     width: '84px',
+    align: 'center',
     render: (p) => <Badge tone={PAY_STATUS_TONE[p.status]}>{PAY_STATUS_LABEL[p.status]}</Badge>,
   },
 ]
