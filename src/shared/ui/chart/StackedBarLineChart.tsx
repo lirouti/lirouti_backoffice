@@ -92,7 +92,10 @@ export function StackedBarLineChart({
             axisLine={false}
             tickLine={false}
             tick={{ fill: token('colors.faint'), fontSize: 10 }}
-            width={40}
+            // ⚠️ **말풍선과 같은 서식을 쓴다.** 축이 `1500`, 말풍선이 `1,352` 면 같은
+            //    차트 안에서 천 단위 구분이 갈려 두 수가 다른 단위처럼 읽힌다.
+            tickFormatter={num}
+            width={48}
           />
           <YAxis
             yAxisId="rate"
