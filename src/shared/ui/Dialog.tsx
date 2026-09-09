@@ -15,7 +15,13 @@ type DialogProps = {
   open: boolean
   /** 닫기 요청 — 취소 버튼·Esc·바깥 클릭이 모두 이걸 부른다 */
   onCancel: () => void
-  onConfirm: () => void
+  /**
+   * 확인 동작. **없으면 「읽고 닫는 창」 이 된다** — 버튼이 「닫기」 하나로 줄어든다.
+   *
+   * ⚠️ **확인할 것이 없는 창에 확인 버튼을 두지 말 것.** 「취소 / 확인」 이 나란히 있으면
+   *    무언가 결정하라는 뜻으로 읽히는데, 사진을 들여다보는 창에는 결정할 것이 없다.
+   */
+  onConfirm?: () => void
   title: string
   /** 제목 아래 설명. 무엇이 일어나는지 한 문장으로 */
   body?: ReactNode
@@ -27,6 +33,8 @@ type DialogProps = {
   confirmDisabled?: boolean
   /** 확인 전에 받아야 하는 입력 (체크박스, 현재 코드 등) */
   children?: ReactNode
+  /** 넓은 창. 사진 자리처럼 **본문이 읽을거리인** 창에 쓴다 */
+  wide?: boolean
 }
 
 /**
@@ -52,9 +60,11 @@ export function Dialog({
   body,
   tone = 'default',
   confirmLabel = '확인',
-  cancelLabel = '취소',
+  // 확인이 없는 창에서 「취소」 는 틀린 말이다 — 취소할 동작이 없다.
+  cancelLabel = onConfirm ? '취소' : '닫기',
   confirmDisabled = false,
   children,
+  wide = false,
 }: DialogProps) {
   const ref = useRef<HTMLDialogElement>(null)
   const titleId = useId()
@@ -106,7 +116,7 @@ export function Dialog({
     >
       <div
         className={css({
-          width: 'min(404px, calc(100vw - 32px))',
+          width: wide ? 'min(560px, calc(100vw - 32px))' : 'min(404px, calc(100vw - 32px))',
           bg: 'surf',
           border: '1px solid token(colors.bd)',
           borderRadius: 'xl',
@@ -168,14 +178,22 @@ export function Dialog({
             mt: '20px',
           })}
         >
-          <Button onClick={onCancel}>{cancelLabel}</Button>
-          <Button
-            variant={danger ? 'danger' : 'primary'}
-            onClick={onConfirm}
-            disabled={confirmDisabled}
-          >
-            {confirmLabel}
-          </Button>
+          {onConfirm ? (
+            <>
+              <Button onClick={onCancel}>{cancelLabel}</Button>
+              <Button
+                variant={danger ? 'danger' : 'primary'}
+                onClick={onConfirm}
+                disabled={confirmDisabled}
+              >
+                {confirmLabel}
+              </Button>
+            </>
+          ) : (
+            <Button variant="primary" onClick={onCancel}>
+              {cancelLabel}
+            </Button>
+          )}
         </div>
       </div>
     </dialog>
