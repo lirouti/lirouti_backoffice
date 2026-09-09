@@ -34,12 +34,30 @@ function sources(dir: string): string[] {
   })
 }
 
-/** 괄호·프래그먼트를 벗겨 낸 JSX 하나. 여러 개면 `null` */
+/**
+ * 괄호를 벗기고 얻은 JSX 하나. 여러 개를 그리면 `null`.
+ *
+ * ⚠️ **조건부도 배지 열이다.** `pinned ? <Badge/> : null` 처럼 **그릴 때는 배지 하나뿐인**
+ *    열이 있다. 처음엔 이걸 안 봐서 공지 목록의 「고정」 열이 그대로 왼쪽에 서 있었다 —
+ *    바로 옆 「상태」 는 중앙인데. 검사기가 못 보는 자리가 곧 어긋나는 자리다.
+ *
+ * 양쪽 가지에서 **`null`·`false` 를 뺀 나머지가 배지 하나**면 배지 열로 본다.
+ */
 function soleJsx(n: ts.Node): ts.JsxOpeningLikeElement | null {
   if (ts.isParenthesizedExpression(n)) return soleJsx(n.expression)
   if (ts.isJsxElement(n)) return n.openingElement
   if (ts.isJsxSelfClosingElement(n)) return n
+  if (ts.isConditionalExpression(n)) {
+    const drawn = [n.whenTrue, n.whenFalse].filter((b) => !isNothing(b))
+    return drawn.length === 1 ? soleJsx(drawn[0]!) : null
+  }
   return null
+}
+
+/** 아무것도 안 그리는 가지인가 */
+function isNothing(n: ts.Expression): boolean {
+  if (ts.isParenthesizedExpression(n)) return isNothing(n.expression)
+  return n.kind === ts.SyntaxKind.NullKeyword || n.kind === ts.SyntaxKind.FalseKeyword
 }
 
 /** `render` 가 배지 **하나만** 그리는가 */
