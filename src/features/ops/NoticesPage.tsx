@@ -53,6 +53,7 @@ export default function NoticesPage() {
       key: 'pinned',
       label: '고정',
       width: '70px',
+      align: 'center',
       render: (r) => (r.notice.pinned ? <Badge size="sm">고정</Badge> : null),
     },
     {
