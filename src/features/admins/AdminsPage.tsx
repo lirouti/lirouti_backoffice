@@ -155,6 +155,7 @@ const COLUMNS: Column<AdminEntry>[] = [
     key: 'role',
     label: '역할',
     width: '108px',
+    align: 'center',
     render: ({ admin }) => (
       <Badge tone={ADMIN_ROLE_TONE[admin.role]}>{ADMIN_ROLE_LABEL[admin.role]}</Badge>
     ),
@@ -180,6 +181,7 @@ const COLUMNS: Column<AdminEntry>[] = [
     key: 'passkey',
     label: '생체',
     width: '82px',
+    align: 'center',
     render: ({ admin }) => (
       <Badge tone={admin.passkey ? 'teal' : 'neutral'}>
         {admin.passkey ? '등록' : '미등록'}
@@ -199,6 +201,7 @@ const COLUMNS: Column<AdminEntry>[] = [
     key: 'status',
     label: '상태',
     width: '80px',
+    align: 'center',
     render: ({ status }) => <Badge tone={ADMIN_STATUS_TONE[status]}>{status}</Badge>,
   },
 ]

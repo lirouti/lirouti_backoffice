@@ -56,6 +56,7 @@ const LOG_COLUMNS: Column<CouponUseLog>[] = [
     key: 'result',
     label: '결과',
     width: '96px',
+    align: 'center',
     render: (l) => <Badge tone={USE_RESULT_TONE[l.result]}>{l.result}</Badge>,
   },
 ]

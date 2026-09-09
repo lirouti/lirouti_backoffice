@@ -126,6 +126,7 @@ const COLUMNS: Column<Challenge>[] = [
     key: 'kind',
     label: '주기',
     width: '84px',
+    align: 'center',
     render: (c) => (
       <Badge tone={CHALLENGE_KIND_TONE[c.kind]}>{CHALLENGE_KIND_LABEL[c.kind]}</Badge>
     ),
@@ -180,6 +181,7 @@ const COLUMNS: Column<Challenge>[] = [
     key: 'status',
     label: '상태',
     width: '84px',
+    align: 'center',
     render: (c) => (
       <Badge tone={CHALLENGE_STATUS_TONE[c.status]}>{CHALLENGE_STATUS_LABEL[c.status]}</Badge>
     ),

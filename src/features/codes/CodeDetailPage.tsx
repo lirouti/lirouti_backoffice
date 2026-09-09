@@ -41,6 +41,7 @@ const LOG_COLUMNS: Column<CodeLog>[] = [
     key: 'kind',
     label: '구분',
     width: '96px',
+    align: 'center',
     render: (l) => <Badge tone={CODE_LOG_TONE[l.kind]}>{l.kind}</Badge>,
   },
   { key: 'what', label: '변경 내용', truncate: true },

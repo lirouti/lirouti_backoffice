@@ -69,6 +69,7 @@ const COLUMNS: Column<Push>[] = [
     key: 'kind',
     label: '종류',
     width: '110px',
+    align: 'center',
     render: (p) => <Badge tone={PUSH_KIND_TONE[p.kind]}>{PUSH_KIND_LABEL[p.kind]}</Badge>,
   },
   { key: 'audience', label: '대상', width: '110px' },
@@ -95,6 +96,7 @@ const COLUMNS: Column<Push>[] = [
     key: 'status',
     label: '상태',
     width: '96px',
+    align: 'center',
     render: (p) => <Badge tone={PUSH_STATUS_TONE[p.status]}>{p.status}</Badge>,
   },
 ]

@@ -151,6 +151,7 @@ const COLUMNS: Column<Species>[] = [
     key: 'rarity',
     label: '희귀도',
     width: '96px',
+    align: 'center',
     render: (sp) => <Badge tone={RARITY_TONE[sp.rarity]}>{sp.rarity}</Badge>,
   },
   { key: 'note', label: '슬롯 기본값', width: '150px', truncate: true },
@@ -167,6 +168,7 @@ const COLUMNS: Column<Species>[] = [
     key: 'status',
     label: '상태',
     width: '96px',
+    align: 'center',
     render: (sp) => (
       <Badge tone={appearanceTone(sp.hidden)}>{appearanceLabel(sp.hidden)}</Badge>
     ),

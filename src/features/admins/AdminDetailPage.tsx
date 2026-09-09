@@ -418,6 +418,7 @@ const LOG_COLUMNS: Column<AdminLog>[] = [
     key: 'kind',
     label: '구분',
     width: '84px',
+    align: 'center',
     render: (l) => <Badge tone={ADMIN_LOG_TONE[l.kind]}>{l.kind}</Badge>,
   },
   { key: 'what', label: '내용', truncate: true },

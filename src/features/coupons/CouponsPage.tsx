@@ -73,6 +73,7 @@ const COLUMNS: Column<CouponEntry>[] = [
     key: 'kind',
     label: '방식',
     width: '116px',
+    align: 'center',
     render: (e) => (
       <Badge tone={COUPON_KIND_TONE[e.coupon.kind]}>{COUPON_KIND_LABEL[e.coupon.kind]}</Badge>
     ),
@@ -123,6 +124,7 @@ const COLUMNS: Column<CouponEntry>[] = [
     key: 'status',
     label: '상태',
     width: '86px',
+    align: 'center',
     render: (e) => <Badge tone={COUPON_STATUS_TONE[e.status]}>{e.status}</Badge>,
   },
 ]

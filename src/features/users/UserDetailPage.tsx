@@ -297,6 +297,7 @@ const ORDER_COLUMNS: Column<OrderRow>[] = [
     key: 'status',
     label: '상태',
     width: '90px',
+    align: 'center',
     render: (r) => <Badge tone={r.status === '환불' ? 'danger' : 'success'}>{r.status}</Badge>,
   },
 ]

@@ -44,6 +44,7 @@ const COLUMNS: Column<AiReview>[] = [
     key: 'verdict',
     label: '심사',
     width: '80px',
+    align: 'center',
     render: (r) => <Badge tone={AI_VERDICT_TONE[r.verdict]}>{r.verdict}</Badge>,
   },
   {
@@ -60,7 +61,7 @@ const COLUMNS: Column<AiReview>[] = [
     label: '열람',
     labelHidden: true,
     width: '72px',
-    align: 'right',
+    align: 'center',
     // TODO(사진 열람 API 가 생기면): 신고 처리와 같은 열람 규칙을 따른다 (§23.5)
     render: () => <Button disabled>보기 · 준비 중</Button>,
   },

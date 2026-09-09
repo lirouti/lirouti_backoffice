@@ -64,6 +64,7 @@ const COLUMNS: Column<GrantLog>[] = [
     key: 'kind',
     label: '유형',
     width: '74px',
+    align: 'center',
     render: (g) => <Badge tone={GRANT_KIND_TONE[g.kind]}>{g.kind}</Badge>,
   },
   { key: 'what', label: '항목', width: '120px', truncate: true },

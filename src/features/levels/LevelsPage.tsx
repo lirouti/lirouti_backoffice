@@ -41,6 +41,7 @@ const COLUMNS: Column<Level>[] = [
     key: 'status',
     label: '상태',
     width: '90px',
+    align: 'center',
     render: (l) => <Badge tone={LEVEL_STATUS_TONE[l.status]}>{l.status}</Badge>,
   },
 ]

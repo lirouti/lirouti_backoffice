@@ -47,6 +47,7 @@ const COLUMNS: Column<SlotRow>[] = [
     width: '90px',
     // 여섯 슬롯이 전부 교체 가능하다. 그래도 열을 두는 이유는 **불가능한 슬롯이 생겼을 때
     // 바로 드러나야** 해서다 — 값이 하나뿐이라 지우면 그 변화를 아무도 못 본다.
+    align: 'center',
     render: () => <Badge tone="success">가능</Badge>,
   },
   { key: 'note', label: '비고', truncate: true },

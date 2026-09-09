@@ -20,7 +20,18 @@ type ColumnStyle = {
   /** 고정 폭. 숫자·날짜처럼 폭이 정해진 열에 준다 */
   width?: string
   minWidth?: string
-  /** 본문 셀 정렬. 헤더는 열 종류와 무관하게 항상 중앙이다 */
+  /**
+   * 열 정렬. **헤더와 본문이 같이 따른다** — 값 종류가 정렬을 정하고, 제목은 제 데이터 위에 선다.
+   *
+   * | 열 | 정렬 |
+   * |---|---|
+   * | 이름 · 설명 · 날짜 | `left` (기본) |
+   * | 숫자 · 금액 · 비율 | `right` |
+   * | 배지 · 상태 · 동작 | `center` |
+   *
+   * ⚠️ **헤더만 중앙으로 두지 말 것.** 한동안 그렇게 두었는데, 600px 짜리 「챌린지」 열에서
+   *    제목이 데이터에서 **300px 떨어진 자리에 떠 있었다** (docs/ARCHITECTURE.md §35.2).
+   */
   align?: 'left' | 'right' | 'center'
   /** 식별자 열처럼 굵게 */
   strong?: boolean
@@ -116,7 +127,6 @@ const head = css({
   textStyle: 'label',
   fontWeight: '700',
   color: 'sub',
-  textAlign: 'center',
   bg: 'surf2',
   borderBottom: '1px solid token(colors.bd)',
   whiteSpace: 'nowrap',
@@ -162,7 +172,9 @@ export function Table<Row>({
                   key={c.key}
                   scope="col"
                   className={head}
-                  style={{ width: c.width, minWidth: c.minWidth }}
+                  // ⚠️ **`<th>` 의 브라우저 기본값은 `center` 다.** 안 적으면 본문만 왼쪽으로
+                  //    가고 제목은 가운데 남는다 — 비워 두는 것이 곧 어긋남이다.
+                  style={{ textAlign: c.align ?? 'left', width: c.width, minWidth: c.minWidth }}
                 >
                   {/*
                     감출 때도 **글자는 DOM 에 남긴다.** 안 그리면 `<th>` 가 비어서 헤더로
@@ -210,7 +222,7 @@ export function Table<Row>({
                     key={c.key}
                     className={cell}
                     style={{
-                      textAlign: c.align,
+                      textAlign: c.align ?? 'left',
                       fontWeight: c.strong ? 600 : undefined,
                       whiteSpace: c.nowrap ? 'nowrap' : undefined,
                       // 말줄임은 `max-width: 0` 이어야 표 안에서 동작한다.

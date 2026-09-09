@@ -59,6 +59,7 @@ export default function NoticesPage() {
       key: 'status',
       label: '상태',
       width: '90px',
+      align: 'center',
       render: (r) => (
         <Badge tone={PERIOD_STATUS_TONE[r.status]}>{NOTICE_STATUS_LABEL[r.status]}</Badge>
       ),
