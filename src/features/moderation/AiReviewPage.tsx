@@ -33,10 +33,17 @@ import {
 
 import { useAi, useToggleAi } from '@/api/moderation'
 
+import { CertPhotoPanel } from '@/entities/moderation'
+
 /** 소수 첫째 자리를 고정한다. `2초` 와 `2.1초` 가 한 열에 섞이면 자릿수가 어긋나 보인다 */
 const sec = (v: number): string => `${v.toFixed(1)}초`
 
-const COLUMNS: Column<AiReview>[] = [
+/**
+ * 열 정의. **「보기」 가 행을 알아야 해서** 상수가 아니라 함수다.
+ *
+ * `open` 은 화면이 넘겨 준다 — `shared/ui` 는 창을 모르고, 창은 화면이 들고 있다.
+ */
+const columnsWith = (open: (r: AiReview) => void): Column<AiReview>[] => [
   { key: 'at', label: '일시', width: '150px', nowrap: true },
   { key: 'who', label: '회원', width: '110px', strong: true },
   { key: 'title', label: '챌린지', truncate: true },
@@ -60,10 +67,17 @@ const COLUMNS: Column<AiReview>[] = [
     // 화면에는 제목이 군더더기지만 **비우면 이 열의 칸들이 헤더를 잃는다** (§38).
     label: '열람',
     labelHidden: true,
-    width: '72px',
+    width: '86px',
     align: 'center',
-    // TODO(사진 열람 API 가 생기면): 신고 처리와 같은 열람 규칙을 따른다 (§23.5)
-    render: () => <Button disabled>보기 · 준비 중</Button>,
+    /*
+      ⚠️ **행마다 이름이 달라야 한다.** 「보기」 만 열네 개면 스크린리더로 훑을 때
+         어느 행의 것인지 알 수 없다 — 보이는 글자는 그대로 두고 접근 이름만 늘린다(§37).
+    */
+    render: (r) => (
+      <Button onClick={() => open(r)} aria-label={`${r.who} 의 ${r.title} 인증 보기`}>
+        보기
+      </Button>
+    ),
   },
 ]
 
@@ -84,7 +98,9 @@ export default function AiReviewPage() {
   const toggle = useToggleAi()
   const [tab, setTab] = useState<AiTab>('전체')
   const [asking, setAsking] = useState(false)
+  const [opened, setOpened] = useState<AiReview | null>(null)
 
+  const columns = columnsWith(setOpened)
   const rows = filterAiReviews(data?.reviews ?? [], tab)
   const groups = (data?.days ?? []).map(toDatum)
   const max = Math.max(1, ...groups.map((g) => g.a + g.b))
@@ -210,7 +226,7 @@ export default function AiReviewPage() {
             </span>
           </div>
 
-          <Table columns={COLUMNS} rows={rows} minWidth={760} rowKey={(r) => String(r.key)} />
+          <Table columns={columns} rows={rows} minWidth={760} rowKey={(r) => String(r.key)} />
 
           {/*
         원본에 있던 경고를 그대로 남긴다. 이건 화면의 결함이 아니라 **백엔드에 없는 것**을
@@ -231,6 +247,55 @@ export default function AiReviewPage() {
             않아 이 목록에 나타나지 않습니다 — 「왜 반려됐나요」 라는 문의에 답할 근거가
             없습니다. 반려 사유를 남기는 백엔드 작업이 필요합니다.
           </p>
+
+          {/*
+            열람 창. **확인할 것이 없으므로 `onConfirm` 을 주지 않는다** — 버튼이 「닫기」
+            하나로 줄어든다. 사진 원본은 아직 목에 없고, 있어도 화면 밖으로 나가면 안 되는
+            개인 콘텐츠라 **자리와 취급 규칙만** 그린다 (§23.5).
+          */}
+          <Dialog
+            open={opened !== null}
+            onCancel={() => setOpened(null)}
+            wide
+            title="인증 사진 열람"
+            body={opened ? `${opened.who} · ${opened.title}` : undefined}
+          >
+            {opened && (
+              <>
+                <dl
+                  className={css({
+                    display: 'grid',
+                    gridTemplateColumns: 'auto 1fr',
+                    gap: '6px 14px',
+                    m: '0 0 14px',
+                    textStyle: 'caption',
+                  })}
+                >
+                  {(
+                    [
+                      ['올라온 시각', opened.at],
+                      ['심사 결과', opened.verdict],
+                      // 대기 건은 아직 값이 없다 — 0 초로 그리면 「즉시 끝났다」 가 된다.
+                      ['소요', opened.tookSec === null ? '심사 중' : sec(opened.tookSec)],
+                    ] as const
+                  ).map(([k, v]) => (
+                    <div key={k} className={css({ display: 'contents' })}>
+                      <dt className={css({ color: 'faint' })}>{k}</dt>
+                      <dd className={css({ m: '0', color: 'ink' })}>{v}</dd>
+                    </div>
+                  ))}
+                </dl>
+
+                <CertPhotoPanel
+                  caption={
+                    opened.verdict === '대기'
+                      ? '아직 심사 중인 사진입니다'
+                      : '자동 심사를 통과한 사진입니다'
+                  }
+                />
+              </>
+            )}
+          </Dialog>
 
           <Dialog
             open={asking}
