@@ -4,7 +4,13 @@
  * ⚠️ **누적은 여기서 만들지 않는다.** `withTotals` 가 `need` 를 더해 채운다 —
  *    원본처럼 별개 식으로 만들면 두 열이 어긋난다 (docs/ARCHITECTURE.md §24.1).
  */
-import { withTotals, type Level, type LevelSeed } from '@/domain/level'
+import {
+  applyLevelEdit,
+  withTotals,
+  type Level,
+  type LevelInput,
+  type LevelSeed,
+} from '@/domain/level'
 
 /** 원본 `unlock` 배열 — 레벨 순서 그대로 */
 const UNLOCKS = [
@@ -35,4 +41,26 @@ const SEEDS: LevelSeed[] = UNLOCKS.map((unlock, i) => ({
   status: i + 1 <= REVIEWED_UPTO ? '적용' : '검수 중',
 }))
 
-export const allLevels = (): Level[] => withTotals(SEEDS)
+/**
+ * ⚠️ **배열을 통째로 바꾼다** — 제자리에서 고치면 실패한 저장이 화면에 남는다.
+ *    모듈 캐시라 새로고침하면 고친 값이 사라진다(목이라서다).
+ */
+let levels: Level[] = withTotals(SEEDS)
+
+export const allLevels = (): Level[] => levels
+
+/**
+ * 한 레벨을 고친다. 없는 `lv` 면 `undefined`.
+ *
+ * 누적 재계산과 「검수 중」 강등은 `applyLevelEdit` 이 한다 — 규칙은 도메인에 둔다.
+ */
+export function setLevel(lv: number, input: LevelInput): Level | undefined {
+  if (!levels.some((l) => l.lv === lv)) return undefined
+  levels = applyLevelEdit(levels, lv, input)
+  return levels.find((l) => l.lv === lv)
+}
+
+/** 테스트가 모듈 캐시를 되돌린다 */
+export function resetLevels(): void {
+  levels = withTotals(SEEDS)
+}

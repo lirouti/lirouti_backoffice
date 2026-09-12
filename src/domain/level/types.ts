@@ -31,3 +31,32 @@ export type Level = {
   unlock: string
   status: LevelStatus
 }
+
+/**
+ * 운영자가 고치는 값.
+ *
+ * ⚠️ **`total` 과 `status` 는 없다.** 누적은 `need` 에서 나오고(§24.1), 상태는 **고치면
+ *    자동으로 「검수 중」** 이 된다(§24.1.1) — 둘 다 사람이 적을 값이 아니다.
+ */
+export type LevelInput = {
+  need: number
+  gem: number
+  unlock: string
+}
+
+/** 입력 오류. 다른 `validate*` 와 같은 모양이다 */
+export type LevelErrors = Partial<Record<keyof LevelInput, string>>
+
+/**
+ * 폼이 들고 있는 **날것**. 숫자 칸도 문자열이다.
+ *
+ * ⚠️ **숫자로 들고 있으면 「지웠다」 와 「0 으로 바꿨다」 를 구분할 수 없다.**
+ *    `Number('')` 는 `0` 이라, 젬 보상처럼 **0 이 유효한 칸**에서는 칸을 비운 순간
+ *    멀쩡한 값이 되어 저장 버튼이 열린다 — 실제로 60 이 0 으로 바뀌었다
+ *    (docs/ARCHITECTURE.md §24.1.3).
+ */
+export type LevelDraft = {
+  need: string
+  gem: string
+  unlock: string
+}
