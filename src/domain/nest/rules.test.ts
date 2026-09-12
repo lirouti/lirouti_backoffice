@@ -17,6 +17,7 @@ import type { Nest } from './types'
 
 const nests = (): Nest[] => [
   {
+    key: 0,
     assetId: 'as_nest_0',
     name: '잔가지 둥지',
     fromDay: 1,
@@ -25,6 +26,7 @@ const nests = (): Nest[] => [
     own: 92,
   },
   {
+    key: 1,
     assetId: 'as_nest_1',
     name: '튼튼한 둥지',
     fromDay: 30,
@@ -33,6 +35,7 @@ const nests = (): Nest[] => [
     own: 54,
   },
   {
+    key: 2,
     assetId: 'as_nest_2',
     name: '보금자리',
     fromDay: 100,

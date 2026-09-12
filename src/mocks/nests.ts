@@ -15,6 +15,7 @@ import { applyNestBoundaries, type Nest, type NestBoundaries } from '@/domain/ne
  */
 const NESTS: Nest[] = [
   {
+    key: 0,
     assetId: 'as_nest_0',
     name: '잔가지 둥지',
     fromDay: 1,
@@ -23,6 +24,7 @@ const NESTS: Nest[] = [
     own: 92,
   },
   {
+    key: 1,
     assetId: 'as_nest_1',
     name: '튼튼한 둥지',
     fromDay: 30,
@@ -31,6 +33,7 @@ const NESTS: Nest[] = [
     own: 54,
   },
   {
+    key: 2,
     assetId: 'as_nest_2',
     name: '보금자리',
     fromDay: 100,
@@ -51,10 +54,20 @@ export function setNestBoundaries(b: NestBoundaries): Nest[] {
   return nests
 }
 
-/** 그림을 바꾼다. 없는 `assetId` 면 `undefined` */
-export function setNestAsset(assetId: string, nextAssetId: string): Nest | undefined {
-  const found = nests.find((n) => n.assetId === assetId)
-  if (!found) return undefined
-  nests = nests.map((n) => (n === found ? { ...n, assetId: nextAssetId } : n))
-  return nests.find((n) => n.assetId === nextAssetId)
+/**
+ * 그림을 바꾼다. 없는 `key` 면 `undefined`.
+ *
+ * ⚠️ **`assetId` 로 찾지 말 것.** 카탈로그의 다른 그림을 고르면 다른 줄과 같은 id 가 되어
+ *    **엉뚱한 줄을 고친다** (§19.3.2). 둥지 셋이 카탈로그 셋을 다 쓰고 있어서 교체하면
+ *    거의 반드시 겹친다.
+ */
+export function setNestAsset(key: number, nextAssetId: string): Nest | undefined {
+  if (!nests.some((n) => n.key === key)) return undefined
+  nests = nests.map((n) => (n.key === key ? { ...n, assetId: nextAssetId } : n))
+  return nests.find((n) => n.key === key)
+}
+
+/** 테스트가 모듈 캐시를 되돌린다 — 목 저장소는 파일 하나를 공유한다 */
+export function resetNests(): void {
+  nests = NESTS
 }

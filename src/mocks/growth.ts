@@ -18,15 +18,31 @@ import { applyBoundaries, type GrowthBoundaries, type GrowthStage } from '@/doma
 const STAGES: GrowthStage[] = [
   {
     kind: 'days',
+    key: 0,
     assetId: 'as_growth_0',
     name: '알',
     fromDay: 0,
     unlock: '기본 배경 · 잔가지 둥지',
   },
-  { kind: 'event', assetId: 'as_growth_1', name: '금', note: '부화 직전', unlock: '부화 연출' },
-  { kind: 'days', assetId: 'as_growth_2', name: '유체', fromDay: 3, unlock: '표정 · 이모티콘' },
+  {
+    kind: 'event',
+    key: 1,
+    assetId: 'as_growth_1',
+    name: '금',
+    note: '부화 직전',
+    unlock: '부화 연출',
+  },
   {
     kind: 'days',
+    key: 2,
+    assetId: 'as_growth_2',
+    name: '유체',
+    fromDay: 3,
+    unlock: '표정 · 이모티콘',
+  },
+  {
+    kind: 'days',
+    key: 3,
     assetId: 'as_growth_3',
     name: '성체',
     fromDay: 14,
@@ -45,10 +61,18 @@ export function setBoundaries(b: GrowthBoundaries): GrowthStage[] {
   return stages
 }
 
-/** 그림을 바꾼다. 없는 `assetId` 면 `undefined` */
-export function setStageAsset(assetId: string, nextAssetId: string): GrowthStage | undefined {
-  const found = stages.find((s) => s.assetId === assetId)
-  if (!found) return undefined
-  stages = stages.map((s) => (s === found ? { ...s, assetId: nextAssetId } : s))
-  return stages.find((s) => s.assetId === nextAssetId)
+/**
+ * 그림을 바꾼다. 없는 `key` 면 `undefined`.
+ *
+ * ⚠️ **`assetId` 로 찾지 말 것** — 겹치면 엉뚱한 줄을 고친다 (§19.3.2).
+ */
+export function setStageAsset(key: number, nextAssetId: string): GrowthStage | undefined {
+  if (!stages.some((s) => s.key === key)) return undefined
+  stages = stages.map((s) => (s.key === key ? { ...s, assetId: nextAssetId } : s))
+  return stages.find((s) => s.key === key)
+}
+
+/** 테스트가 모듈 캐시를 되돌린다 — 목 저장소는 파일 하나를 공유한다 */
+export function resetStages(): void {
+  stages = STAGES
 }

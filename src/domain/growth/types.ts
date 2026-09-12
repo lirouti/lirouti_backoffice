@@ -17,7 +17,15 @@ import type { AssetExt } from '../asset'
 export type GrowthStage =
   | {
       kind: 'days'
-      /** 에셋 파일 id — `as_growth_0` */
+      /**
+       * 줄을 가리키는 **고정 id**. 늘지도 줄지도 않는 집합이라 값이 바뀌지 않는다.
+       *
+       * ⚠️ **`assetId` 를 식별자로 쓰지 말 것.** 그림 교체가 열리면서 `assetId` 는 **바뀌는
+       *    값**이 됐다 — 카탈로그의 다른 그림을 고르면 다른 줄과 같은 id 가 되어 React 키가
+       *    겹치고, 파사드가 **엉뚱한 줄을 고친다** (docs/ARCHITECTURE.md §19.3.2).
+       */
+      key: number
+      /** 지금 그림의 에셋 id — `as_growth_0`. **교체되는 값이다** */
       assetId: string
       /** 「알」 */
       name: string
@@ -40,6 +48,8 @@ export type GrowthStage =
     }
   | {
       kind: 'event'
+      /** 줄을 가리키는 고정 id (§19.3.2) */
+      key: number
       assetId: string
       name: string
       /** 날짜 대신 적는 말 — 「부화 직전」 */

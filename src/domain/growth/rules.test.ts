@@ -17,10 +17,24 @@ import type { GrowthStage } from './types'
 
 /** 실제 기본값과 같은 모양 — 「금」 이 알과 유체 **사이**에 있는 것이 요점이다 */
 const stages = (): GrowthStage[] => [
-  { kind: 'days', assetId: 'as_growth_0', name: '알', fromDay: 0, unlock: '기본 배경' },
-  { kind: 'event', assetId: 'as_growth_1', name: '금', note: '부화 직전', unlock: '부화 연출' },
-  { kind: 'days', assetId: 'as_growth_2', name: '유체', fromDay: 3, unlock: '표정' },
-  { kind: 'days', assetId: 'as_growth_3', name: '성체', fromDay: 14, unlock: '전 슬롯' },
+  { kind: 'days', key: 0, assetId: 'as_growth_0', name: '알', fromDay: 0, unlock: '기본 배경' },
+  {
+    kind: 'event',
+    key: 1,
+    assetId: 'as_growth_1',
+    name: '금',
+    note: '부화 직전',
+    unlock: '부화 연출',
+  },
+  { kind: 'days', key: 2, assetId: 'as_growth_2', name: '유체', fromDay: 3, unlock: '표정' },
+  {
+    kind: 'days',
+    key: 3,
+    assetId: 'as_growth_3',
+    name: '성체',
+    fromDay: 14,
+    unlock: '전 슬롯',
+  },
 ]
 
 describe('stageSpan', () => {

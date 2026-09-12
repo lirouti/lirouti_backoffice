@@ -43,9 +43,14 @@ export function NestBoundaryDialog({ open, onClose, initial }: NestBoundaryDialo
   const preview = withUnlocks(applyNestBoundaries(data ?? [], value))
 
   // 취소한 입력이 다음 번에 남아 있으면 안 고친 값을 저장하게 된다.
+  // ⚠️ **지난 오류도 지운다** — 저장이 실패한 뒤 닫았다 열면, 손대지도 않은 입력 위에
+  //    옛 오류가 떠 있어 방금 실패한 것처럼 읽힌다.
   if (open !== wasOpen) {
     setWasOpen(open)
-    if (open) setValue(initial)
+    if (open) {
+      setValue(initial)
+      save.reset()
+    }
   }
 
   return (
@@ -95,7 +100,7 @@ export function NestBoundaryDialog({ open, onClose, initial }: NestBoundaryDialo
           })}
         >
           {preview.map(({ nest, unlock }) => (
-            <Line key={nest.assetId} nest={nest} unlock={unlock} invalid={invalid} />
+            <Line key={nest.key} nest={nest} unlock={unlock} invalid={invalid} />
           ))}
         </ul>
       </div>

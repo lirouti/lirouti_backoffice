@@ -69,18 +69,19 @@ export function useSaveBoundaries() {
   })
 }
 
-export type StageAssetVars = { assetId: string; nextAssetId: string }
+/** ⚠️ **`key` 로 가리킨다** — `assetId` 는 교체되는 값이라 식별자가 못 된다 (§19.3.2) */
+export type StageAssetVars = { key: number; nextAssetId: string }
 
 /** 한 단계의 그림을 바꾼다. **줄을 더하는 것이 아니라 같은 줄의 교체다** */
 export async function saveStageAsset({
-  assetId,
+  key,
   nextAssetId,
 }: StageAssetVars): Promise<GrowthStage> {
   if (USE_MOCK) {
     await mockDelay()
 
-    const saved = setStageAsset(assetId, nextAssetId)
-    if (!saved) throw apiError('http', `성장 단계 「${assetId}」 를 찾을 수 없습니다.`, 404)
+    const saved = setStageAsset(key, nextAssetId)
+    if (!saved) throw apiError('http', `성장 단계 #${key} 를 찾을 수 없습니다.`, 404)
     return withAssetSrc(saved)
   }
 

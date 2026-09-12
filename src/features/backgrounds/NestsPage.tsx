@@ -58,7 +58,7 @@ export default function NestsPage() {
       ) : isPending ? (
         <>
           {/* 셋인 것을 안다 — 둥지는 기획이 고정한 3단계다 (§41.3) */}
-          <SkeletonCards count={3} min={280} className={css({ mb: '18px' })} />
+          <SkeletonCards count={3} min={280} button className={css({ mb: '18px' })} />
           <SkeletonRows rows={3} silent />
         </>
       ) : (
@@ -73,7 +73,7 @@ export default function NestsPage() {
           >
             {rows.map(({ nest, unlock }) => (
               <NestCard
-                key={nest.assetId}
+                key={nest.key}
                 nest={nest}
                 unlock={unlock}
                 onReplace={() => setReplacing(nest)}
@@ -81,7 +81,12 @@ export default function NestsPage() {
             ))}
           </div>
 
-          <Table columns={COLUMNS} rows={rows} rowKey={(r) => r.nest.assetId} minWidth={640} />
+          <Table
+            columns={COLUMNS}
+            rows={rows}
+            rowKey={(r) => String(r.nest.key)}
+            minWidth={640}
+          />
 
           <NestBoundaryDialog
             open={editing}
@@ -89,25 +94,29 @@ export default function NestsPage() {
             initial={nestBoundariesOf(data)}
           />
 
-          {replacing && (
-            <AssetReplaceDialog
-              open
-              onClose={() => setReplacing(null)}
-              kind="nest"
-              assetId={replacing.assetId}
-              assetSrc={replacing.assetSrc}
-              name={replacing.name}
-              on="background"
-              backdropId="as_bg_0"
-              saving={saveAsset.isPending}
-              onSave={(nextAssetId) =>
-                saveAsset.mutate(
-                  { assetId: replacing.assetId, nextAssetId },
-                  { onSuccess: () => setReplacing(null) },
-                )
-              }
-            />
-          )}
+          {/*
+            ⚠️ **창을 언마운트로 닫지 말 것.** 네이티브 `<dialog>` 는 `close()` 를 불렀을
+               때만 포커스를 돌려준다 — DOM 에서 빼면 **`body` 로 떨어진다**(§63.1).
+               실측했다: Esc 를 누르면 포커스가 `body` 였다. 그래서 계속 붙여 두고 `open`
+               만 여닫는다 (`AiReviewPage` 와 같은 방식).
+          */}
+          <AssetReplaceDialog
+            open={replacing !== null}
+            onClose={() => setReplacing(null)}
+            kind="nest"
+            assetId={replacing?.assetId ?? ''}
+            name={replacing?.name ?? ''}
+            on="background"
+            backdropId="as_bg_0"
+            saving={saveAsset.isPending}
+            onSave={(nextAssetId) =>
+              replacing &&
+              saveAsset.mutate(
+                { key: replacing.key, nextAssetId },
+                { onSuccess: () => setReplacing(null) },
+              )
+            }
+          />
         </>
       )}
     </>

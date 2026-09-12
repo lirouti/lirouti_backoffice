@@ -132,15 +132,16 @@ export function useSaveNestBoundaries() {
   })
 }
 
-export type NestAssetVars = { assetId: string; nextAssetId: string }
+/** ⚠️ **`key` 로 가리킨다** — `assetId` 는 교체되는 값이라 식별자가 못 된다 (§19.3.2) */
+export type NestAssetVars = { key: number; nextAssetId: string }
 
 /** 둥지 하나의 그림을 바꾼다. **줄을 더하는 것이 아니라 같은 줄의 교체다** */
-export async function saveNestAsset({ assetId, nextAssetId }: NestAssetVars): Promise<Nest> {
+export async function saveNestAsset({ key, nextAssetId }: NestAssetVars): Promise<Nest> {
   if (USE_MOCK) {
     await mockDelay()
 
-    const saved = setNestAsset(assetId, nextAssetId)
-    if (!saved) throw apiError('http', `둥지 「${assetId}」 를 찾을 수 없습니다.`, 404)
+    const saved = setNestAsset(key, nextAssetId)
+    if (!saved) throw apiError('http', `둥지 #${key} 를 찾을 수 없습니다.`, 404)
     return withNestAssetSrc(saved)
   }
 
