@@ -8,11 +8,11 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 
 import type { Background, BackgroundInput } from '@/domain/background'
-import type { Nest } from '@/domain/nest'
+import { validateNestBoundaries, type Nest, type NestBoundaries } from '@/domain/nest'
 
 import { assetsOf } from '@/mocks/assets'
 import { allBackgrounds, upsertBackground } from '@/mocks/backgrounds'
-import { allNests } from '@/mocks/nests'
+import { allNests, setNestAsset, setNestBoundaries } from '@/mocks/nests'
 
 import { mockDelay, qk, queryClient, USE_MOCK } from './core'
 import { apiError } from './error'
@@ -84,10 +84,18 @@ export function useSaveBackground() {
 }
 
 /** 둥지는 **읽기 전용**이다 — 3단계가 기획으로 고정돼 있다 (docs/ARCHITECTURE.md §41.3) */
+/**
+ * 올린 그림의 URL 을 실어 준다 — 올린 에셋은 빌드에 없어 `assetId` 로 못 찾는다 (§8.5).
+ */
+function withNestAssetSrc(n: Nest): Nest {
+  const found = assetsOf('nest').find((x) => x.assetId === n.assetId)
+  return found?.src ? { ...n, assetSrc: found.src, assetExt: found.ext } : n
+}
+
 export async function getNests(): Promise<Nest[]> {
   if (USE_MOCK) {
     await mockDelay()
-    return allNests()
+    return allNests().map(withNestAssetSrc)
   }
 
   // TODO(백엔드 스펙 확정 후): http.get<NestDto[]>('/admin/nests')
@@ -96,4 +104,52 @@ export async function getNests(): Promise<Nest[]> {
 
 export function useNests() {
   return useQuery({ queryKey: qk.nests.list(), queryFn: getNests })
+}
+
+/**
+ * 해금 일수를 저장한다.
+ *
+ * ⚠️ **파사드가 다시 검증한다** — 폼이 막는 것은 보이는 것뿐이다 (§22.2.3).
+ */
+export async function saveNestBoundaries(b: NestBoundaries): Promise<Nest[]> {
+  if (USE_MOCK) {
+    await mockDelay()
+
+    const errors = validateNestBoundaries(b)
+    const first = Object.values(errors)[0]
+    if (first) throw apiError('http', first, 400)
+
+    return setNestBoundaries(b).map(withNestAssetSrc)
+  }
+
+  throw new Error('둥지 API 가 아직 연결되지 않았습니다. VITE_USE_MOCK=1 로 두세요.')
+}
+
+export function useSaveNestBoundaries() {
+  return useMutation({
+    mutationFn: saveNestBoundaries,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.nests.all }),
+  })
+}
+
+export type NestAssetVars = { assetId: string; nextAssetId: string }
+
+/** 둥지 하나의 그림을 바꾼다. **줄을 더하는 것이 아니라 같은 줄의 교체다** */
+export async function saveNestAsset({ assetId, nextAssetId }: NestAssetVars): Promise<Nest> {
+  if (USE_MOCK) {
+    await mockDelay()
+
+    const saved = setNestAsset(assetId, nextAssetId)
+    if (!saved) throw apiError('http', `둥지 「${assetId}」 를 찾을 수 없습니다.`, 404)
+    return withNestAssetSrc(saved)
+  }
+
+  throw new Error('둥지 API 가 아직 연결되지 않았습니다. VITE_USE_MOCK=1 로 두세요.')
+}
+
+export function useSaveNestAsset() {
+  return useMutation({
+    mutationFn: saveNestAsset,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.nests.all }),
+  })
 }

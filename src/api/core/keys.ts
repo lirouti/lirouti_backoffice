@@ -49,6 +49,11 @@ export const qk = {
     all: ['nests'] as const,
     list: () => ['nests', 'list'] as const,
   },
+  /** 성장 단계는 고정 4단계라 상세가 없다 (docs/ARCHITECTURE.md §42.3) */
+  growth: {
+    all: ['growth'] as const,
+    list: () => ['growth', 'list'] as const,
+  },
   security: {
     all: ['security'] as const,
     /** 내 계정의 2단계 인증 상태 */
