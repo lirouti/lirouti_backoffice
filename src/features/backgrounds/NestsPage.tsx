@@ -102,7 +102,12 @@ export default function NestsPage() {
           */}
           <AssetReplaceDialog
             open={replacing !== null}
-            onClose={() => setReplacing(null)}
+            onClose={() => {
+              setReplacing(null)
+              // ⚠️ 저장 오류는 페이지에 떠 있다 — 창을 닫고 다른 줄을 열면 **그 줄의
+              //    오류처럼** 읽힌다. 닫을 때 함께 지운다.
+              saveAsset.reset()
+            }}
             kind="nest"
             assetId={replacing?.assetId ?? ''}
             name={replacing?.name ?? ''}

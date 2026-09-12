@@ -171,12 +171,16 @@ export function AssetReplaceDialog({
           setPicked(id)
           setPending(null)
           setUploaded(null)
+          // ⚠️ 지난 업로드 오류도 지운다 — 파일을 물린 것도 아닌데 배너가 남아 있으면
+          //    방금 고른 그림이 잘못된 것처럼 읽힌다.
+          upload.reset()
           setPicking(false)
         }}
         onPickFile={(file) => {
           setPending({ file, preview: URL.createObjectURL(file) })
           // 다른 파일을 고르면 앞서 올린 것은 이 창의 결과가 아니다.
           setUploaded(null)
+          upload.reset()
           setPicking(false)
         }}
       />
