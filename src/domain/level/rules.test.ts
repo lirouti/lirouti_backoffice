@@ -10,11 +10,14 @@ import {
   applyLevelEdit,
   summarizeLevels,
   UNLOCK_MAX,
+  levelDraftOf,
+  toLevelInput,
+  validateDraft,
   validateLevel,
   withTotals,
   type LevelSeed,
 } from './rules'
-import type { Level, LevelInput } from './types'
+import type { Level, LevelDraft, LevelInput } from './types'
 
 const seed = (lv: number, need: number, over: Partial<LevelSeed> = {}): LevelSeed => ({
   lv,
@@ -146,5 +149,63 @@ describe('applyLevelEdit', () => {
 
   it('없는 레벨이면 아무것도 바뀌지 않는다', () => {
     expect(applyLevelEdit(list(), 99, { need: 1, gem: 0, unlock: 'x' })).toEqual(list())
+  })
+})
+
+describe('validateDraft', () => {
+  const draft = (over: Partial<LevelDraft> = {}): LevelDraft => ({
+    need: '240',
+    gem: '8',
+    unlock: '둥지 2단계',
+    ...over,
+  })
+
+  it('정상값은 통과', () => {
+    expect(validateDraft(draft())).toEqual({})
+  })
+
+  /*
+    ⚠️ **`Number('')` 는 `0` 이다.** 숫자로 들고 있으면 「지웠다」 가 「0 으로 바꿨다」 가
+       되는데, 젬 보상은 0 이 유효해서 **저장 버튼이 열린 채로 남는다** — 실제로 60 이
+       0 으로 바뀌었다. 빈 칸은 값이 아니라 **아직 안 적은 것**이다.
+  */
+  it('⚠️ 빈 칸을 0 으로 읽지 않는다', () => {
+    expect(validateDraft(draft({ gem: '' })).gem).toBe('젬 보상을 입력해 주세요.')
+    expect(validateDraft(draft({ gem: '   ' })).gem).toBeTruthy()
+    expect(validateDraft(draft({ need: '' })).need).toBe('필요 경험치를 입력해 주세요.')
+  })
+
+  // 빈 칸에 「1 이상이어야 한다」 고 하면 딴소리다 — 무엇을 하라는 말인지가 달라진다.
+  it('⚠️ 빈 칸 오류가 값 오류를 덮는다', () => {
+    expect(validateDraft(draft({ need: '' })).need).not.toContain('1 이상')
+  })
+
+  it('정수가 아니면 막는다 — 친 글자는 그대로 둔다', () => {
+    expect(validateDraft(draft({ gem: '-5' })).gem).toBeTruthy()
+    expect(validateDraft(draft({ gem: '1.5' })).gem).toBeTruthy()
+    expect(validateDraft(draft({ need: 'abc' })).need).toBeTruthy()
+  })
+
+  it('젬 0 은 통과한다', () => {
+    expect(validateDraft(draft({ gem: '0' }))).toEqual({})
+  })
+
+  it('값 검증도 그대로 걸린다', () => {
+    expect(validateDraft(draft({ need: '0' })).need).toBeTruthy()
+    expect(validateDraft(draft({ unlock: '  ' })).unlock).toBeTruthy()
+  })
+})
+
+describe('levelDraftOf · toLevelInput', () => {
+  it('뽑아서 그대로 되돌리면 제자리다', () => {
+    const l = withTotals([{ lv: 1, need: 100, gem: 0, unlock: '가', status: '적용' }])[0]!
+    expect(toLevelInput(levelDraftOf(l))).toEqual({ need: 100, gem: 0, unlock: '가' })
+  })
+
+  it('앞뒤 공백이 있어도 숫자로 읽는다', () => {
+    expect(toLevelInput({ need: ' 100 ', gem: ' 0 ', unlock: 'x' })).toMatchObject({
+      need: 100,
+      gem: 0,
+    })
   })
 })

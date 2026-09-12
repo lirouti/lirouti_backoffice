@@ -46,3 +46,17 @@ export type LevelInput = {
 
 /** 입력 오류. 다른 `validate*` 와 같은 모양이다 */
 export type LevelErrors = Partial<Record<keyof LevelInput, string>>
+
+/**
+ * 폼이 들고 있는 **날것**. 숫자 칸도 문자열이다.
+ *
+ * ⚠️ **숫자로 들고 있으면 「지웠다」 와 「0 으로 바꿨다」 를 구분할 수 없다.**
+ *    `Number('')` 는 `0` 이라, 젬 보상처럼 **0 이 유효한 칸**에서는 칸을 비운 순간
+ *    멀쩡한 값이 되어 저장 버튼이 열린다 — 실제로 60 이 0 으로 바뀌었다
+ *    (docs/ARCHITECTURE.md §24.1.3).
+ */
+export type LevelDraft = {
+  need: string
+  gem: string
+  unlock: string
+}

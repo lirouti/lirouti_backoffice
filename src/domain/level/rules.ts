@@ -1,5 +1,5 @@
 /** 레벨 테이블 규칙. */
-import type { Level, LevelErrors, LevelInput, LevelStatus } from './types'
+import type { Level, LevelDraft, LevelErrors, LevelInput, LevelStatus } from './types'
 
 /** `total` 이 아직 없는 행 — 목·서버가 주는 원재료 */
 export type LevelSeed = Omit<Level, 'total'>
@@ -50,8 +50,9 @@ export const UNLOCK_MAX = 40
  * ⚠️ **필요 경험치는 1 이상이다.** 0 이면 그 레벨을 **경험치 없이 지나간다** — 표에서는
  *    누적이 안 늘어난 것으로만 보여서 알아채기 어렵다.
  *
- * ⚠️ **젬 보상은 0 을 허용한다.** 보상이 없는 레벨은 기획이 실제로 두는 값이고,
- *    「0 이면 없음」 이 아니라 **정말 0 개**를 준다는 뜻이다.
+ * ⚠️ **젬 보상은 0 을 허용한다.** 지금 표에는 0 인 레벨이 없지만, **보상을 줄지 말지는
+ *    폼이 정할 일이 아니다** — 기획이 0 을 두기로 하면 그건 「없음」 이 아니라 정말 0 개다.
+ *    대신 0 이 유효하다는 것이 함정을 만든다(§24.1.3) — 칸을 비웠을 때와 구분해야 한다.
  */
 export function validateLevel(input: LevelInput): LevelErrors {
   const errors: LevelErrors = {}
@@ -98,4 +99,46 @@ function toSeed(l: Level, lv: number, input: LevelInput): LevelSeed {
   void total // 누적은 `withTotals` 가 다시 채운다
   if (seed.lv !== lv) return seed
   return { ...seed, ...input, unlock: input.unlock.trim(), status: '검수 중' }
+}
+
+/** 부호 없는 정수만. 앞뒤 공백은 미리 뗀다 */
+const INTEGER = /^\d+$/
+
+/** 지금 값에서 폼 초안을 만든다 */
+export const levelDraftOf = (l: Level): LevelDraft => ({
+  need: String(l.need),
+  gem: String(l.gem),
+  unlock: l.unlock,
+})
+
+/** 초안을 저장할 값으로. **검증을 통과한 뒤에만 부를 것** */
+export const toLevelInput = (d: LevelDraft): LevelInput => ({
+  need: Number(d.need.trim()),
+  gem: Number(d.gem.trim()),
+  unlock: d.unlock,
+})
+
+/**
+ * 폼 검증 — **빈 칸을 0 으로 읽지 않는다.**
+ *
+ * ⚠️ **`parseCount` 를 쓰지 않는다.** 그 헬퍼는 빈 칸도 못 읽은 글자도 전부 `0` 으로
+ *    눌러 담는데(§59.6, `NaN` 으로 칸이 깨지는 것을 막으려는 결정), **여기서는 그게
+ *    위험하다** — 젬 보상은 0 이 유효해서 「지웠다」 가 「0 으로 바꿨다」 가 된다.
+ *    개수를 빠르게 치는 칸과 달리 이건 **밸런스 상수**라, 친 글자를 그대로 두고
+ *    무엇이 틀렸는지 말해 주는 편이 맞다.
+ */
+export function validateDraft(d: LevelDraft): LevelErrors {
+  const errors: LevelErrors = {}
+  const need = d.need.trim()
+  const gem = d.gem.trim()
+
+  if (!need) errors.need = '필요 경험치를 입력해 주세요.'
+  else if (!INTEGER.test(need)) errors.need = '필요 경험치는 0 이상의 정수여야 합니다.'
+
+  if (!gem) errors.gem = '젬 보상을 입력해 주세요.'
+  else if (!INTEGER.test(gem)) errors.gem = '젬 보상은 0 이상의 정수여야 합니다.'
+
+  // 모양이 맞는 칸만 값 검증으로 넘긴다 — 빈 칸에 「1 이상」 이라고 하면 딴소리다.
+  const parsed = validateLevel(toLevelInput({ ...d, need: need || '1', gem: gem || '0' }))
+  return { ...parsed, ...errors }
 }

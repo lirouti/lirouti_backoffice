@@ -27,12 +27,13 @@ import { Table, type Column } from '@/shared/ui/Table'
 
 import {
   applyLevelEdit,
-  levelInputOf,
+  levelDraftOf,
   LEVEL_STATUS_TONE,
   summarizeLevels,
-  validateLevel,
+  toLevelInput,
+  validateDraft,
   type Level,
-  type LevelInput,
+  type LevelDraft,
 } from '@/domain/level'
 
 import { useLevels, useSaveLevel } from '@/api/levels'
@@ -44,9 +45,9 @@ export default function LevelsPage() {
   const { data, isPending, error } = useLevels()
   const save = useSaveLevel()
   const [lv, setLv] = useState<number | null>(null)
-  const [draft, setDraft] = useState<LevelInput | null>(null)
+  const [draft, setDraft] = useState<LevelDraft | null>(null)
 
-  const errors = draft ? validateLevel(draft) : {}
+  const errors = draft ? validateDraft(draft) : {}
   const invalid = Object.keys(errors).length > 0
   /*
     ⚠️ **저장될 표를 그대로 만들어 보여 준다.** 경험치를 고치면 **아래 모든 행의 누적**이
@@ -56,13 +57,13 @@ export default function LevelsPage() {
   */
   const shown =
     lv !== null && draft && !invalid
-      ? applyLevelEdit(data?.levels ?? [], lv, draft)
+      ? applyLevelEdit(data?.levels ?? [], lv, toLevelInput(draft))
       : data?.levels
   const summary = shown ? summarizeLevels(shown) : data?.summary
 
   const start = (l: Level) => {
     setLv(l.lv)
-    setDraft(levelInputOf(l))
+    setDraft(levelDraftOf(l))
     save.reset()
   }
 
@@ -74,7 +75,7 @@ export default function LevelsPage() {
 
   const commit = () => {
     if (lv === null || !draft || invalid) return
-    save.mutate({ lv, input: draft }, { onSuccess: cancel })
+    save.mutate({ lv, input: toLevelInput(draft) }, { onSuccess: cancel })
   }
 
   return (
@@ -153,9 +154,9 @@ function toRows(shown: Level[], original: Level[], editingLv: number | null): Ro
 
 type Wiring = {
   lv: number | null
-  draft: LevelInput | null
-  errors: ReturnType<typeof validateLevel>
-  setDraft: (v: LevelInput) => void
+  draft: LevelDraft | null
+  errors: ReturnType<typeof validateDraft>
+  setDraft: (v: LevelDraft) => void
   start: (l: Level) => void
   cancel: () => void
   commit: () => void
@@ -186,12 +187,11 @@ function columnsWith(w: Wiring): Column<Row>[] {
           <Input
             /* ⚠️ 표 안의 입력은 **행마다 이름이 달라야** 어느 줄인지 알 수 있다 (§37) */
             aria-label={`Lv ${r.level.lv} 필요 경험치`}
-            type="number"
-            min={1}
-            value={String(w.draft.need)}
+            inputMode="numeric"
+            value={w.draft.need}
             error={w.errors.need}
             disabled={busy}
-            onChange={(v) => w.setDraft({ ...w.draft!, need: Number(v) })}
+            onChange={(v) => w.setDraft({ ...w.draft!, need: v })}
           />
         ) : (
           num(r.level.need)
@@ -225,12 +225,11 @@ function columnsWith(w: Wiring): Column<Row>[] {
           <Input
             /* ⚠️ 표 안의 입력은 **행마다 이름이 달라야** 어느 줄인지 알 수 있다 (§37) */
             aria-label={`Lv ${r.level.lv} 젬 보상`}
-            type="number"
-            min={0}
-            value={String(w.draft.gem)}
+            inputMode="numeric"
+            value={w.draft.gem}
             error={w.errors.gem}
             disabled={busy}
-            onChange={(v) => w.setDraft({ ...w.draft!, gem: Number(v) })}
+            onChange={(v) => w.setDraft({ ...w.draft!, gem: v })}
           />
         ) : (
           num(r.level.gem)
