@@ -31,3 +31,18 @@ export type Level = {
   unlock: string
   status: LevelStatus
 }
+
+/**
+ * 운영자가 고치는 값.
+ *
+ * ⚠️ **`total` 과 `status` 는 없다.** 누적은 `need` 에서 나오고(§24.1), 상태는 **고치면
+ *    자동으로 「검수 중」** 이 된다(§24.1.1) — 둘 다 사람이 적을 값이 아니다.
+ */
+export type LevelInput = {
+  need: number
+  gem: number
+  unlock: string
+}
+
+/** 입력 오류. 다른 `validate*` 와 같은 모양이다 */
+export type LevelErrors = Partial<Record<keyof LevelInput, string>>
