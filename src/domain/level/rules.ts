@@ -133,7 +133,9 @@ export function validateDraft(d: LevelDraft): LevelErrors {
   const gem = d.gem.trim()
 
   if (!need) errors.need = '필요 경험치를 입력해 주세요.'
-  else if (!INTEGER.test(need)) errors.need = '필요 경험치는 0 이상의 정수여야 합니다.'
+  // ⚠️ **하한을 값 검증과 맞춘다** — 같은 칸이 무엇을 치느냐에 따라 다른 하한을 말하면
+  //    안 된다. `abc` 에 「0 이상」 이라 해 놓고 `0` 을 치면 「1 이상」 이라고 한다.
+  else if (!INTEGER.test(need)) errors.need = '필요 경험치는 1 이상의 정수여야 합니다.'
 
   if (!gem) errors.gem = '젬 보상을 입력해 주세요.'
   else if (!INTEGER.test(gem)) errors.gem = '젬 보상은 0 이상의 정수여야 합니다.'

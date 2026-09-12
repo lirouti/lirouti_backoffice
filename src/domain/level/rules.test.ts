@@ -186,6 +186,15 @@ describe('validateDraft', () => {
     expect(validateDraft(draft({ need: 'abc' })).need).toBeTruthy()
   })
 
+  // 같은 칸이 무엇을 치느냐에 따라 다른 하한을 말하면 안 된다 —
+  // `abc` 에 「0 이상」 이라 해 놓고 `0` 을 치면 「1 이상」 이라고 하던 자리다.
+  it('⚠️ 형식 오류와 값 오류가 같은 하한을 말한다', () => {
+    expect(validateDraft(draft({ need: 'abc' })).need).toContain('1 이상')
+    expect(validateDraft(draft({ need: '0' })).need).toContain('1 이상')
+    expect(validateDraft(draft({ gem: 'abc' })).gem).toContain('0 이상')
+    expect(validateDraft(draft({ gem: '-1' })).gem).toContain('0 이상')
+  })
+
   it('젬 0 은 통과한다', () => {
     expect(validateDraft(draft({ gem: '0' }))).toEqual({})
   })
