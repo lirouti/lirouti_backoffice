@@ -111,6 +111,7 @@ export function SkeletonCards({
   count = 8,
   min = 200,
   lines = 2,
+  button = false,
   thumb,
   silent = false,
   className,
@@ -120,8 +121,17 @@ export function SkeletonCards({
   /**
    * 타일 아래 글줄 수. 배경·둥지·아이템은 둘(이름 + 한 줄)인데 **캐릭터 종류는 셋**이다
    * (이름 · 코드 · 배지 줄) — 둘로 그리니 실측 250px 대 278px 로 28px 이 짧았다.
+   *
    */
   lines?: number
+  /**
+   * 글줄 아래 **버튼 한 개**를 그린다 (성장·둥지의 「그림 교체」).
+   *
+   * ⚠️ **글줄을 늘려 흉내 내지 말 것.** 버튼은 48px(39 + 여백 9)인데 글줄은 23px 이라
+   *    하나로는 모자라고 둘로는 넘친다 — 실제로 `lines` 를 하나 늘려 보니 45px 어긋남이
+   *    22px 로 줄었을 뿐이었다. 버튼은 버튼 크기로 그린다.
+   */
+  button?: boolean
   /** 주면 칸을 채우는 타일 대신 **이 폭의 정사각형을 가운데** 놓는다 (업적 74) */
   thumb?: number
 }) {
@@ -160,6 +170,7 @@ export function SkeletonCards({
                   }}
                 />
               ))}
+              {button && <div className={bar} style={{ height: 39, marginTop: 9 }} />}
             </div>
           </div>
         ) : (

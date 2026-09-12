@@ -49,9 +49,16 @@ const DECL = /^ {2}(const|let)\s/
 /**
  * 훅 이름과 `(` 사이에 **타입 인자**가 낄 수 있다 — `useState<'a' | 'b'>('a')`.
  * 이걸 빠뜨리면 제네릭이 붙은 훅이 통째로 "파생값"으로 잡혀서, 바로 뒤의 멀쩡한 훅이
- * 위반으로 신고된다. `=` 를 제외해 화살표 함수(`=>`)까지 삼키지 않게 막는다.
+ * 위반으로 신고된다.
+ *
+ * ⚠️ **`;` 를 막지 말 것.** 객체 타입은 멤버를 `;` 로 가른다 —
+ *    `useState<{ file: File; preview: string } | null>(null)` 이 통째로 파생값이 되어
+ *    **바로 뒤의 멀쩡한 `useState` 가 위반으로 신고됐다.**
+ *
+ * 대신 `=` 와 `(` 를 막는다. 앞은 화살표 함수(`=>`)를, 뒤는 다음 호출까지 삼키는 것을
+ * 막는다 — 타입 인자 안에 그 둘이 들어올 일은 없다.
  */
-const TYPE_ARGS = String.raw`(<[^;=]*>)?\s*`
+const TYPE_ARGS = String.raw`(<[^=(]*>)?\s*`
 const HOOK_CALL = new RegExp(String.raw`\buse[A-Z]\w*\s*` + TYPE_ARGS + String.raw`\(`)
 const BARE_HOOK = new RegExp(String.raw`^ {2}use[A-Z]\w*\s*` + TYPE_ARGS + String.raw`\(`)
 
