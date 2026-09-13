@@ -2,6 +2,7 @@ import {
   useEffect,
   useId,
   useRef,
+  type KeyboardEvent,
   type MouseEvent,
   type ReactNode,
   type SyntheticEvent,
@@ -83,10 +84,18 @@ export function Dialog({
     }
   }, [open])
 
-  // Esc 는 브라우저가 `cancel` 로 알려준다. 기본 동작(즉시 close)을 막고
-  // 우리 `open` 을 통해 닫아야 React 상태와 DOM 이 갈라지지 않는다.
+  /*
+    Esc 는 브라우저가 `cancel` 로 알려준다. 기본 동작(즉시 close)을 막고 우리 `open` 을
+    통해 닫아야 React 상태와 DOM 이 갈라지지 않는다.
+
+    ⚠️ **전파를 끊어야 한다.** 창을 창 안에 그리면(고르기 창 위의 확인 창) 안쪽 `<dialog>`
+       가 바깥 `<dialog>` 의 **DOM 자식**이라, React 의 합성 `onCancel` 이 위로 올라가
+       **Esc 한 번에 두 창이 닫힌다.** 고르던 자리를 통째로 잃는다 —
+       `stopPropagation` 이 없으면 중첩 창을 쓸 수 없다.
+  */
   const cancel = (e: SyntheticEvent<HTMLDialogElement>) => {
     e.preventDefault()
+    e.stopPropagation()
     onCancel()
   }
 
@@ -95,12 +104,33 @@ export function Dialog({
     if (e.target === ref.current) onCancel()
   }
 
+  /*
+    ⚠️ **폼 안에 뜬 창에서 Enter 를 치면 그 폼이 제출된다.** `<dialog>` 는 top layer 로
+       띄워 줄 뿐 **폼의 경계가 아니라서**, 창 안의 `<input>` 도 바깥 `<form>` 의 소유다 —
+       브라우저는 그걸 그냥 제출한다(암묵적 제출, §44.3).
+
+       실측했다: 챌린지 등록 폼 위에서 고르기 창을 열고 검색칸에 Enter 를 치면
+       **보상을 고르지도 않은 챌린지가 만들어지고** 상세로 넘어갔다. 창은 `inert` 로
+       막아 주는 바깥 버튼 이야기라 눌린 것이 없는데도 제출된다.
+
+       **소유 폼이 창 밖에 있을 때만** 막는다 — 창이 자기 `<form>` 을 품고 있으면
+       거기서의 Enter 는 그 폼의 것이 맞다.
+  */
+  const keyDown = (e: KeyboardEvent<HTMLDialogElement>) => {
+    if (e.key !== 'Enter') return
+    // textarea 는 줄바꿈, 버튼은 자기 클릭이다 — 한 줄 입력만 제출로 샌다.
+    const el = e.target
+    if (!(el instanceof HTMLInputElement)) return
+    if (el.form && !ref.current?.contains(el.form)) e.preventDefault()
+  }
+
   return (
     <dialog
       ref={ref}
       aria-labelledby={titleId}
       onCancel={cancel}
       onClick={clickOutside}
+      onKeyDown={keyDown}
       className={css({
         p: '0',
         border: '0',

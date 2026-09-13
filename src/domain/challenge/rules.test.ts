@@ -63,7 +63,7 @@ describe('validateChallenge', () => {
   })
 
   it('젬이 0 이어도 보상 아이템이 있으면 통과', () => {
-    const reward = { assetId: 'as_head_0', name: '밀짚모자', slot: 'HEAD' as const }
+    const reward = { itemKey: 1, assetId: 'as_head_0', name: '밀짚모자', slot: 'HEAD' as const }
     expect(validateChallenge(input({ gem: 0, rewardItem: reward })).gem).toBeUndefined()
   })
 
@@ -134,7 +134,7 @@ describe('challengeStatusOf', () => {
 })
 
 describe('rewardLabel', () => {
-  const crown = { assetId: 'as_head_9', name: '금세공 왕관', slot: 'HEAD' as const }
+  const crown = { itemKey: 7, assetId: 'as_head_9', name: '금세공 왕관', slot: 'HEAD' as const }
 
   it('젬과 아이템을 있는 것만 이어 붙인다', () => {
     expect(rewardLabel({ gem: 120, rewardItem: null })).toBe('120 젬')
@@ -205,7 +205,9 @@ describe('hasItemReward', () => {
     expect(hasItemReward(chal())).toBe(false)
     expect(
       hasItemReward(
-        chal({ rewardItem: { assetId: 'as_head_0', name: '밀짚모자', slot: 'HEAD' } }),
+        chal({
+          rewardItem: { itemKey: 1, assetId: 'as_head_0', name: '밀짚모자', slot: 'HEAD' },
+        }),
       ),
     ).toBe(true)
   })
