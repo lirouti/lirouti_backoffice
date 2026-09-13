@@ -53,8 +53,11 @@ export function RewardItemPicker({ open, value, onClose, onPick }: RewardItemPic
     if (open) {
       setPicked(value)
       setQ('')
-      setPeeking(null)
     }
+    // ⚠️ **닫을 때도 되돌린다.** 이 창이 닫히는 순간 겹쳐 둔 상세 창이 열린 채로 남으면,
+    //    `display:none` 이 된 조상 안에서 top layer 만 살아 **안 보이는 모달이 바깥을
+    //    계속 잠근다.** 여는 쪽만 되돌리면 그 상태를 만들 수 있다.
+    setPeeking(null)
   }
 
   const items = data?.items ?? []
@@ -137,10 +140,16 @@ export function RewardItemPicker({ open, value, onClose, onPick }: RewardItemPic
         </p>
       )}
 
-      {/* 고르기 창 위에 겹쳐 연다 — 네이티브 `<dialog>` 는 top layer 가 쌓인다 */}
+      {/*
+        고르기 창 위에 겹쳐 연다 — 네이티브 `<dialog>` 는 top layer 가 쌓인다.
+
+        **아이템을 함께 넘긴다.** 목록이 이미 여섯 칸을 다 갖고 있어서, 안 넘기면
+        화면에 떠 있는 값을 다시 받아 오며 스켈레톤이 깜빡인다 (§20.5.3).
+      */}
       <ItemPeekDialog
         open={peeking !== null}
         itemKey={peeking}
+        item={items.find((it) => it.key === peeking)}
         onClose={() => setPeeking(null)}
       />
     </Dialog>

@@ -14,6 +14,8 @@
  */
 import { css, cx } from 'styled-system/css'
 
+import { skeletonBar as bar, skeletonRegion as region } from './skeletonBase'
+
 /** 막대 한 줄의 너비 조합. 다 같으면 기계처럼 보인다 */
 const WIDTHS = [
   ['70%', '44%'],
@@ -21,35 +23,6 @@ const WIDTHS = [
   ['64%', '38%'],
   ['46%', '54%'],
 ] as const
-
-/**
- * 회색 막대.
- *
- * ⚠️ **`prefers-reduced-motion` 을 존중한다.** 스켈레톤은 이제 화면을 통째로 채울 수
- *    있어서, 전정기관이 예민한 사람에게 **넓은 면적이 맥동하는 것**은 작은 막대 몇 개와
- *    전혀 다른 경험이다. 자동 접근성 검사는 이걸 보지 않으므로 여기서 지킬 수밖에 없다.
- */
-const bar = css({
-  borderRadius: '5px',
-  bg: 'surf2',
-  // ⚠️ **고정 px 너비를 주는 자리가 있다**(`SkeletonPage` 의 제목 180 · 부제 320).
-  //    담는 칸이 그보다 좁으면 **페이지가 가로로 스크롤된다** — 실제로 200px 컨테이너에서
-  //    scrollWidth 320 > clientWidth 200 이 났다. 퍼센트 막대는 저절로 줄지만 px 은 안 준다.
-  maxWidth: '100%',
-  animation: 'rvPulse 1.8s ease-in-out infinite',
-  '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
-})
-
-/**
- * 스크린리더에게 「오는 중」임을 알리는 껍데기.
- *
- * ⚠️ **막대 자체는 읽히면 안 된다.** 빈 `div` 수십 개를 읽어 주는 것은 소음이라
- *    안쪽 전부가 `aria-hidden` 이고, 상태는 이 한 줄로만 말한다.
- */
-const region = (silent: boolean) =>
-  silent
-    ? ({ 'aria-hidden': true } as const)
-    : ({ role: 'status', 'aria-label': '불러오는 중' } as const)
 
 type Common = {
   /**

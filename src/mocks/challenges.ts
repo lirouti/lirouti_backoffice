@@ -10,7 +10,6 @@ import {
 } from '@/domain/challenge'
 import { SLOT_ORDER, type Slot } from '@/domain/item'
 
-import { ASSETS } from './assetTable'
 import { allItems } from './items'
 
 const TITLES: Record<ChallengeKind, string[]> = {
@@ -52,6 +51,12 @@ const WINDOW: Record<ChallengeKind, { startAt: string; endAt: string }> = {
 
 const KINDS: ChallengeKind[] = ['DAILY', 'WEEKLY', 'SEASON']
 
+/**
+ * 보상 아이템을 고를 때 훑는 자리 수. **원본 규칙의 `% 9` 를 그대로 둔다** —
+ * 슬롯마다 아이템이 10개 이상이라 항상 있는 자리다.
+ */
+const PICKS = 9
+
 let cache: Challenge[] | null = null
 
 export function allChallenges(): Challenge[] {
@@ -69,7 +74,6 @@ export function allChallenges(): Challenge[] {
       // 시즌 챌린지와 3의 배수 인덱스에만 보상 아이템이 붙는다 (원본 규칙)
       const slot: Slot = SLOT_ORDER[i % 4]!
       const hasItem = kind === 'SEASON' || i % 3 === 0
-      const row = hasItem ? ASSETS[slot][(i * 3) % 9] : undefined
 
       out.push({
         key: out.length,
@@ -85,7 +89,7 @@ export function allChallenges(): Challenge[] {
         ...WINDOW[kind],
         target: '전체 유저',
         desc: `${title} 챌린지입니다. 달성 시 보상이 즉시 지급됩니다.`,
-        rewardItem: row ? rewardOf(row, slot) : null,
+        rewardItem: hasItem ? rewardOf(slot, (i * 3) % PICKS) : null,
       })
     })
   })
@@ -156,13 +160,31 @@ export function trendOfChallenge(key: number, rate: number): number[] {
 }
 
 /**
- * 씨앗 행을 **실제 아이템을 가리키는** 보상으로 바꾼다.
+ * 보상이 가리킬 **실제 아이템**을 고른다.
  *
- * ⚠️ **아이템을 못 찾으면 보상을 안 붙인다.** 없는 아이템을 가리키는 보상을 만들어 두면
- *    화면이 처음부터 「삭제된 아이템」 을 그린다 — 목이 만들어 낸 가짜 사고다.
+ * ⚠️ **`assetId` + 이름으로 찾지 않는다.** 한때 그렇게 했는데, 그건 `ChallengeReward`
+ *    가 스스로 금지하는 조회다 (docs/ARCHITECTURE.md §20.4 — 그림만 같고 가격·획득
+ *    경로가 다른 아이템이 여럿일 수 있다). 게다가 `allItems()` 와 `allChallenges()` 가
+ *    **둘 다 게으른 캐시**라, 챌린지가 만들어지기 전에 아이템 이름이 바뀌면 조회가
+ *    빗나가 **씨앗이 붙였다고 한 보상이 조용히 사라졌다** — 실측했다: 아이템 하나를
+ *    개명하니 보상 10건 중 **3건**이 날아갔다. 자리로 집으면 이름이 바뀌어도 같은
+ *    아이템이다.
+ *
+ * 아이템은 슬롯 순서대로 만들어지므로 슬롯 안 `at` 번째가 곧 `ASSETS[slot][at]` 의 것이다.
  */
-function rewardOf(row: { assetId: string; name: string }, slot: Slot): ChallengeReward | null {
-  const item = allItems().find((it) => it.assetId === row.assetId && it.name === row.name)
+function rewardOf(slot: Slot, at: number): ChallengeReward | null {
+  const item = allItems().filter((it) => it.slot === slot)[at]
   if (!item) return null
-  return { itemKey: item.key, assetId: item.assetId, name: item.name, slot }
+  return {
+    itemKey: item.key,
+    assetId: item.assetId,
+    // ⚠️ **없으면 키 자체를 넣지 않는다.** `assetSrc: undefined` 로 두면 JSON 왕복에서
+    //    키가 사라져 `sameShape` 의 키 개수 비교가 어긋나고, **폼 초안이 조용히 버려진다**
+    //    (§33.1.1). 실측했다: 넣었더니 보상 있는 챌린지의 초안이 전부 복원에 실패했다.
+    ...(item.assetSrc ? { assetSrc: item.assetSrc } : {}),
+    name: item.name,
+    // ⚠️ 인수로 받은 슬롯이 아니라 **아이템의 것**을 쓴다 — 둘이 갈리면 키와 슬롯이
+    //    서로 다른 아이템을 가리킨다.
+    slot: item.slot,
+  }
 }
