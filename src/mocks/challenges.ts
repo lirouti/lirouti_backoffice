@@ -2,6 +2,7 @@
 import { rng } from '@/shared/lib/rng'
 
 import {
+  type ChallengeReward,
   CHALLENGE_CONDS,
   type Challenge,
   type ChallengeInput,
@@ -10,6 +11,7 @@ import {
 import { SLOT_ORDER, type Slot } from '@/domain/item'
 
 import { ASSETS } from './assetTable'
+import { allItems } from './items'
 
 const TITLES: Record<ChallengeKind, string[]> = {
   DAILY: [
@@ -83,7 +85,7 @@ export function allChallenges(): Challenge[] {
         ...WINDOW[kind],
         target: '전체 유저',
         desc: `${title} 챌린지입니다. 달성 시 보상이 즉시 지급됩니다.`,
-        rewardItem: row ? { assetId: row.assetId, name: row.name, slot } : null,
+        rewardItem: row ? rewardOf(row, slot) : null,
       })
     })
   })
@@ -151,4 +153,16 @@ export function trendOfChallenge(key: number, rate: number): number[] {
     const ramp = 0.6 + (i / 13) * 0.5
     return Math.max(0, Math.min(100, Math.round(rate * ramp + (r() - 0.5) * 10)))
   })
+}
+
+/**
+ * 씨앗 행을 **실제 아이템을 가리키는** 보상으로 바꾼다.
+ *
+ * ⚠️ **아이템을 못 찾으면 보상을 안 붙인다.** 없는 아이템을 가리키는 보상을 만들어 두면
+ *    화면이 처음부터 「삭제된 아이템」 을 그린다 — 목이 만들어 낸 가짜 사고다.
+ */
+function rewardOf(row: { assetId: string; name: string }, slot: Slot): ChallengeReward | null {
+  const item = allItems().find((it) => it.assetId === row.assetId && it.name === row.name)
+  if (!item) return null
+  return { itemKey: item.key, assetId: item.assetId, name: item.name, slot }
 }

@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { css } from 'styled-system/css'
 
 import { AssetThumb } from '@/shared/ui/AssetThumb'
+import { Button } from '@/shared/ui/Button'
 import { Dialog } from '@/shared/ui/Dialog'
 import { ErrorBanner } from '@/shared/ui/ErrorBanner'
 import { Input } from '@/shared/ui/Input'
@@ -12,6 +13,8 @@ import type { ChallengeReward } from '@/domain/challenge'
 import { SLOT_LABEL, type Item } from '@/domain/item'
 
 import { useItems } from '@/api/items'
+
+import { ItemPeekDialog } from './ItemPeekDialog'
 
 type RewardItemPickerProps = {
   open: boolean
@@ -39,6 +42,7 @@ export function RewardItemPicker({ open, value, onClose, onPick }: RewardItemPic
     perPage: PER_PAGE,
   })
   const [picked, setPicked] = useState<ChallengeReward | null>(value)
+  const [peeking, setPeeking] = useState<number | null>(null)
   const [wasOpen, setWasOpen] = useState(open)
 
   // ⚠️ 창이 열릴 때마다 임시 선택과 검색어를 되돌린다. 「취소」 는 `picked` 를 건드리지
@@ -49,6 +53,7 @@ export function RewardItemPicker({ open, value, onClose, onPick }: RewardItemPic
     if (open) {
       setPicked(value)
       setQ('')
+      setPeeking(null)
     }
   }
 
@@ -107,10 +112,13 @@ export function RewardItemPicker({ open, value, onClose, onPick }: RewardItemPic
             <li key={it.key}>
               <Row
                 item={it}
-                on={picked?.assetId === it.assetId && picked?.name === it.name}
+                onPeek={() => setPeeking(it.key)}
+                // ⚠️ **키로 견준다** — `assetId` + 이름은 겹칠 수 있다 (§20.4)
+                on={picked?.itemKey === it.key}
                 // ⚠️ `assetSrc` 를 함께 담는다 — 버리면 고른 뒤에 그림이 사라진다.
                 onPick={() =>
                   setPicked({
+                    itemKey: it.key,
                     assetId: it.assetId,
                     assetSrc: it.assetSrc,
                     name: it.name,
@@ -128,6 +136,13 @@ export function RewardItemPicker({ open, value, onClose, onPick }: RewardItemPic
           {data.total}개 중 {items.length}개를 보여 줍니다. 이름으로 좁혀 주세요.
         </p>
       )}
+
+      {/* 고르기 창 위에 겹쳐 연다 — 네이티브 `<dialog>` 는 top layer 가 쌓인다 */}
+      <ItemPeekDialog
+        open={peeking !== null}
+        itemKey={peeking}
+        onClose={() => setPeeking(null)}
+      />
     </Dialog>
   )
 }
@@ -138,58 +153,89 @@ export function RewardItemPicker({ open, value, onClose, onPick }: RewardItemPic
  * 고른 것을 테두리 색으로만 알리지 않는다 — `aria-pressed` 가 있어야 스크린리더가
  * "눌림" 을 읽는다 (`AssetPicker` 의 타일과 같은 이유).
  */
-function Row({ item, on, onPick }: { item: Item; on: boolean; onPick: () => void }) {
+function Row({
+  item,
+  on,
+  onPick,
+  onPeek,
+}: {
+  item: Item
+  on: boolean
+  onPick: () => void
+  onPeek: () => void
+}) {
   return (
-    <button
-      type="button"
-      aria-pressed={on}
-      onClick={onPick}
+    /*
+      ⚠️ **고르기와 상세는 형제 버튼이다.** 줄 전체가 버튼인데 그 안에 또 버튼을 넣으면
+         HTML 이 깨지고, 브라우저마다 다르게 복구한다.
+    */
+    <div
       className={css({
-        width: 'full',
         display: 'flex',
         alignItems: 'center',
-        gap: '10px',
-        p: '7px 9px',
-        appearance: 'none',
-        font: 'inherit',
-        textAlign: 'left',
-        cursor: 'pointer',
+        gap: '6px',
         borderRadius: 'md',
         borderWidth: '2px',
         borderStyle: 'solid',
         borderColor: on ? 'pri' : 'transparent',
         bg: on ? 'soft' : 'transparent',
         _hover: { bg: on ? 'soft' : 'hov' },
-        _focusVisible: { outline: 'none', boxShadow: '0 0 0 3px token(colors.ring)' },
+        pr: '7px',
       })}
     >
-      <AssetThumb
-        assetId={item.assetId}
-        src={item.assetSrc}
-        size={32}
-        paid={item.tier === 'PAID'}
-      />
-      <span className={css({ flex: '1', minWidth: '0' })}>
-        <span
-          className={css({
-            display: 'block',
-            textStyle: 'label',
-            fontWeight: '600',
-            color: 'ink',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          })}
-        >
-          {item.name}
+      <button
+        type="button"
+        aria-pressed={on}
+        onClick={onPick}
+        className={css({
+          flex: '1',
+          minWidth: '0',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          p: '7px 9px',
+          appearance: 'none',
+          font: 'inherit',
+          textAlign: 'left',
+          cursor: 'pointer',
+          border: '0',
+          bg: 'transparent',
+          borderRadius: 'md',
+          _focusVisible: { outline: 'none', boxShadow: '0 0 0 3px token(colors.ring)' },
+        })}
+      >
+        <AssetThumb
+          assetId={item.assetId}
+          src={item.assetSrc}
+          size={32}
+          paid={item.tier === 'PAID'}
+        />
+        <span className={css({ flex: '1', minWidth: '0' })}>
+          <span
+            className={css({
+              display: 'block',
+              textStyle: 'label',
+              fontWeight: '600',
+              color: 'ink',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            })}
+          >
+            {item.name}
+          </span>
+          {/* ⚠️ 고른 줄은 `soft` 배경이라 `faint` 가 4.35:1 로 모자란다 (docs/ARCHITECTURE.md §3.5.1) */}
+          <span
+            className={css({ display: 'block', mt: '1px', textStyle: 'micro', color: 'sub' })}
+          >
+            {SLOT_LABEL[item.slot]} · {item.code}
+          </span>
         </span>
-        {/* ⚠️ 고른 줄은 `soft` 배경이라 `faint` 가 4.35:1 로 모자란다 (docs/ARCHITECTURE.md §3.5.1) */}
-        <span
-          className={css({ display: 'block', mt: '1px', textStyle: 'micro', color: 'sub' })}
-        >
-          {SLOT_LABEL[item.slot]} · {item.code}
-        </span>
-      </span>
-    </button>
+      </button>
+      {/* ⚠️ 「상세」 만 열두 개면 어느 줄의 것인지 알 수 없다 — 접근 이름에 아이템을 넣는다 (§37) */}
+      <Button size="sm" onClick={onPeek} aria-label={`${item.name} 상세 보기`}>
+        상세
+      </Button>
+    </div>
   )
 }

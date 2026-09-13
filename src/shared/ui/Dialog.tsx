@@ -83,10 +83,18 @@ export function Dialog({
     }
   }, [open])
 
-  // Esc 는 브라우저가 `cancel` 로 알려준다. 기본 동작(즉시 close)을 막고
-  // 우리 `open` 을 통해 닫아야 React 상태와 DOM 이 갈라지지 않는다.
+  /*
+    Esc 는 브라우저가 `cancel` 로 알려준다. 기본 동작(즉시 close)을 막고 우리 `open` 을
+    통해 닫아야 React 상태와 DOM 이 갈라지지 않는다.
+
+    ⚠️ **전파를 끊어야 한다.** 창을 창 안에 그리면(고르기 창 위의 확인 창) 안쪽 `<dialog>`
+       가 바깥 `<dialog>` 의 **DOM 자식**이라, React 의 합성 `onCancel` 이 위로 올라가
+       **Esc 한 번에 두 창이 닫힌다.** 고르던 자리를 통째로 잃는다 —
+       `stopPropagation` 이 없으면 중첩 창을 쓸 수 없다.
+  */
   const cancel = (e: SyntheticEvent<HTMLDialogElement>) => {
     e.preventDefault()
+    e.stopPropagation()
     onCancel()
   }
 

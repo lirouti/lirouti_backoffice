@@ -44,6 +44,7 @@ import { useChallenge, useSaveChallenge } from '@/api/challenges'
 
 import { useUnsavedGuard } from '@/stores/dirtyStore'
 
+import { ItemPeekDialog } from './ItemPeekDialog'
 import { RewardItemPicker } from './RewardItemPicker'
 
 const KIND_OPTIONS = CHALLENGE_KINDS.map((k) => ({ value: k, label: CHALLENGE_KIND_LABEL[k] }))
@@ -328,6 +329,7 @@ function RewardCard({
   onChange: (v: ChallengeInput['rewardItem']) => void
 }) {
   const [picking, setPicking] = useState(false)
+  const [peeking, setPeeking] = useState(false)
 
   return (
     <Card className={css({ p: '17px 20px' })}>
@@ -360,6 +362,13 @@ function RewardCard({
             >
               {input.rewardItem.name}
             </span>
+            {/* 이미 고른 것도 다시 확인할 수 있어야 한다 — 수정으로 들어오면 이름만 보인다 */}
+            <Button
+              onClick={() => setPeeking(true)}
+              aria-label={`${input.rewardItem.name} 상세 보기`}
+            >
+              상세
+            </Button>
             <Button onClick={() => setPicking(true)}>바꾸기</Button>
             <Button onClick={() => onChange(null)}>{NO_ITEM}으로</Button>
           </>
@@ -378,6 +387,12 @@ function RewardCard({
         value={input.rewardItem}
         onClose={() => setPicking(false)}
         onPick={onChange}
+      />
+
+      <ItemPeekDialog
+        open={peeking}
+        itemKey={input.rewardItem?.itemKey ?? null}
+        onClose={() => setPeeking(false)}
       />
     </Card>
   )
